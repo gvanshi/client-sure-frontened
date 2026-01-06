@@ -1,0 +1,443 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import Axios from "@/utils/Axios"
+
+interface CourseVideo {
+  id: string
+  title: string
+  description: string
+  url: string
+  type: string
+  createdAt: string
+  isActive: boolean
+  thumbnailUrl?: string
+}
+
+export default function CourseVideosContent() {
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [videos, setVideos] = useState<CourseVideo[]>([])
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    url: "",
+    thumbnailUrl: ""
+  })
+  const [editingVideo, setEditingVideo] = useState<CourseVideo | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [previewVideo, setPreviewVideo] = useState<CourseVideo | null>(null)
+  const [videoPreview, setVideoPreview] = useState<string>("")
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.url) return
+
+    setIsLoading(true)
+    const submitData = {
+      title: formData.title,
+      description: formData.description,
+      type: 'video',
+      url: formData.url,
+      thumbnailUrl: formData.thumbnailUrl || formData.url
+    }
+
+    try {
+      const response = await Axios.post('/admin/resources', submitData)
+      if (response.data) {
+        setFormData({ title: "", description: "", url: "", thumbnailUrl: "" })
+        setShowAddForm(false)
+        loadVideos()
+      }
+    } catch (error) {
+      console.error('Error uploading video:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const loadVideos = async () => {
+    try {
+      const response = await Axios.get('/admin/resources')
+      const videoFiles = response.data.filter((video: any) => video.type === 'video').map((video: any) => ({
+        ...video,
+        id: video._id || video.id
+      }))
+      setVideos(videoFiles)
+    } catch (error) {
+      console.error('Error loading videos:', error)
+      setVideos([])
+    }
+  }
+
+  const toggleStatus = async (id: string, isActive: boolean) => {
+    try {
+      await Axios.put(`/admin/resources/${id}`, { isActive: !isActive })
+      loadVideos()
+    } catch (error) {
+      console.error('Error updating status:', error)
+    }
+  }
+
+  const editVideo = (video: CourseVideo) => {
+    setEditingVideo(video)
+    setFormData({
+      title: video.title,
+      description: video.description,
+      url: video.url,
+      thumbnailUrl: video.thumbnailUrl || ""
+    })
+    setShowAddForm(true)
+  }
+
+  const updateVideo = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingVideo || !formData.url) return
+
+    setIsLoading(true)
+    try {
+      const updateData = {
+        title: formData.title,
+        description: formData.description,
+        type: 'video',
+        url: formData.url,
+        thumbnailUrl: formData.thumbnailUrl || formData.url
+      }
+      await Axios.put(`/admin/resources/${editingVideo.id}`, updateData)
+      setFormData({ title: "", description: "", url: "", thumbnailUrl: "" })
+      setEditingVideo(null)
+      setShowAddForm(false)
+      loadVideos()
+    } catch (error) {
+      console.error('Error updating video:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const cancelEdit = () => {
+    setEditingVideo(null)
+    setFormData({ title: "", description: "", url: "", thumbnailUrl: "" })
+    setVideoPreview("")
+    setShowAddForm(false)
+  }
+
+  // Function to get embeddable video URL
+  const getEmbedUrl = (url: string) => {
+    if (!url) return ""
+    
+    // YouTube URL conversion
+    const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
+    const youtubeMatch = url.match(youtubeRegex)
+    if (youtubeMatch) {
+      return `https://www.youtube.com/embed/${youtubeMatch[1]}`
+    }
+    
+    // Vimeo URL conversion
+    const vimeoRegex = /(?:vimeo\.com\/)([0-9]+)/
+    const vimeoMatch = url.match(vimeoRegex)
+    if (vimeoMatch) {
+      return `https://player.vimeo.com/video/${vimeoMatch[1]}`
+    }
+    
+    // Return original URL for direct video files
+    return url
+  }
+
+  // Function to check if URL is embeddable (YouTube/Vimeo)
+  const isEmbeddableUrl = (url: string) => {
+    return url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')
+  }
+
+  // Function to handle URL change and update preview
+  const handleUrlChange = (url: string) => {
+    setFormData({...formData, url})
+    setVideoPreview(url)
+  }
+
+  const deleteVideo = async (id: string) => {
+    console.log('Deleting resource with ID:', id)
+    if (!confirm('Are you sure you want to delete this video?')) return
+    
+    try {
+      await Axios.delete(`/admin/resources/${id}`)
+      loadVideos()
+    } catch (error) {
+      console.error('Error deleting video:', error)
+    }
+  }
+
+  useEffect(() => {
+    loadVideos()
+  }, [])
+
+  return (
+    <div className="p-8">
+      <div className="bg-white border-l-4 border-purple-600 rounded-lg shadow-sm p-6 mb-8">
+        <div className="flex items-center space-x-4">
+          <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+            <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Course Videos</h2>
+            <p className="text-gray-600">Manage course videos and tutorials</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-xl font-semibold text-gray-900">Videos ({videos.length})</h3>
+        <button
+          onClick={() => editingVideo ? cancelEdit() : setShowAddForm(!showAddForm)}
+          className="bg-purple-600 text-white px-6 py-2.5 rounded-lg hover:bg-purple-700 transition-colors font-medium"
+        >
+          {showAddForm ? 'Cancel' : '+ Add Video'}
+        </button>
+      </div>
+
+      {showAddForm && (
+        <div className="bg-white rounded-lg border shadow-sm p-6 mb-8">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4">{editingVideo ? 'Edit Course Video' : 'Add Course Video'}</h4>
+          <form onSubmit={editingVideo ? updateVideo : handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-black mb-2">Title</label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-black"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-black mb-2">Description</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-black"
+                rows={3}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-black mb-2">Video URL</label>
+              <input
+                type="url"
+                value={formData.url}
+                onChange={(e) => handleUrlChange(e.target.value)}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-black"
+                placeholder="YouTube, Vimeo, or direct video URL"
+                required
+              />
+              <p className="text-sm text-gray-500 mt-1">Supports YouTube, Vimeo, and direct video links</p>
+            </div>
+            
+            {/* Video Preview */}
+            {videoPreview && (
+              <div>
+                <label className="block text-sm font-semibold text-black mb-2">Preview</label>
+                <div className="border rounded-lg overflow-hidden bg-gray-100">
+                  <div className="aspect-video">
+                    {isEmbeddableUrl(videoPreview) ? (
+                      <iframe
+                        src={getEmbedUrl(videoPreview)}
+                        className="w-full h-full"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    ) : (
+                      <video 
+                        className="w-full h-full object-cover"
+                        controls
+                        preload="metadata"
+                      >
+                        <source src={videoPreview} type="video/mp4" />
+                        <source src={videoPreview} type="video/webm" />
+                        <source src={videoPreview} type="video/ogg" />
+                        Your browser does not support the video tag.
+                      </video>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+            {/* <div>
+              <label className="block text-sm font-semibold text-black mb-2">Thumbnail URL (Optional)</label>
+              <input
+                type="url"
+                value={formData.thumbnailUrl}
+                onChange={(e) => setFormData({...formData, thumbnailUrl: e.target.value})}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-black"
+                placeholder="https://example.com/thumbnail.jpg"
+              />
+              <p className="text-sm text-gray-500 mt-1">Leave empty to use video URL as thumbnail</p>
+            </div> */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-purple-600 text-white py-2.5 rounded-lg hover:bg-purple-700 disabled:opacity-50 font-medium"
+            >
+              {isLoading ? (editingVideo ? 'Updating...' : 'Adding...') : (editingVideo ? 'Update Video' : 'Add Video')}
+            </button>
+          </form>
+        </div>
+      )}
+
+      <div className="bg-white rounded-lg border shadow-sm">
+        {videos.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <p className="text-gray-600">No course videos uploaded yet</p>
+            <p className="text-sm text-gray-400 mt-1">Click "Add Video" to get started</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+            {videos.map((video, index) => (
+              <div key={video.id || index} className="border rounded-lg overflow-hidden">
+                <div className="aspect-video bg-gray-200 relative">
+                  {video.type === 'video' && video.url ? (
+                    isEmbeddableUrl(video.url) ? (
+                      <iframe
+                        src={getEmbedUrl(video.url)}
+                        className="w-full h-full"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    ) : (
+                      <video 
+                        className="w-full h-full object-cover"
+                        controls
+                        preload="metadata"
+                      >
+                        <source src={video.url} type="video/mp4" />
+                        <source src={video.url} type="video/webm" />
+                        <source src={video.url} type="video/ogg" />
+                        Your browser does not support the video tag.
+                      </video>
+                    )
+                  ) : video.type === 'pdf' && video.thumbnailUrl ? (
+                    <div className="relative w-full h-full">
+                      <img 
+                        src={video.thumbnailUrl} 
+                        alt={`${video.title} preview`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to PDF icon if thumbnail fails to load
+                          e.currentTarget.style.display = 'none';
+                          if (e.currentTarget.nextElementSibling) {
+                            (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex';
+                          }
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
+                        <div className="bg-white/90 rounded-full p-2">
+                          <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div className="absolute inset-0 bg-gray-100 flex items-center justify-center" style={{display: 'none'}}>
+                        <div className="text-center">
+                          <svg className="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <p className="text-xs text-gray-600 font-medium">PDF Preview</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <h4 className="font-medium text-gray-900 mb-2">{video.title}</h4>
+                  <p className="text-sm text-gray-600 mb-3">{video.description}</p>
+                  <div className="flex justify-end items-center mb-3">
+                    <button
+                      onClick={() => toggleStatus(video.id, video.isActive)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        video.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}
+                    >
+                      {video.isActive ? 'Active' : 'Inactive'}
+                    </button>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button 
+                      onClick={() => setPreviewVideo(video)}
+                      className="flex-1 text-green-600 hover:text-green-800 text-sm font-medium py-2 px-3 border border-green-200 rounded hover:bg-green-50 transition-colors"
+                    >
+                      Preview
+                    </button>
+                    <button 
+                      onClick={() => editVideo(video)}
+                      className="flex-1 text-blue-600 hover:text-blue-800 text-sm font-medium py-2 px-3 border border-blue-200 rounded hover:bg-blue-50 transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => deleteVideo(video.id)}
+                      className="flex-1 text-red-600 hover:text-red-800 text-sm font-medium py-2 px-3 border border-red-200 rounded hover:bg-red-50 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Video Preview Modal */}
+      {previewVideo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-4xl h-5/6 flex flex-col">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">{previewVideo.title}</h3>
+              <button
+                onClick={() => setPreviewVideo(null)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex-1 p-4 flex items-center justify-center">
+              {isEmbeddableUrl(previewVideo.url) ? (
+                <iframe
+                  src={getEmbedUrl(previewVideo.url)}
+                  className="w-full h-full rounded"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <video 
+                  className="max-w-full max-h-full rounded"
+                  controls
+                  autoPlay
+                >
+                  <source src={previewVideo.url} type="video/mp4" />
+                  <source src={previewVideo.url} type="video/webm" />
+                  <source src={previewVideo.url} type="video/ogg" />
+                  Your browser does not support the video tag.
+                </video>
+              )}
+            </div>
+            <div className="p-4 border-t bg-gray-50">
+              <p className="text-sm text-gray-600">{previewVideo.description}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
