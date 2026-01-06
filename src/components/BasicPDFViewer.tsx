@@ -94,9 +94,9 @@ export default function BasicPDFViewer({
   }
 
   return (
-    <div className={`bg-white rounded-lg border shadow-sm ${className}`}>
+    <div className={`bg-white rounded-lg border shadow-sm flex flex-col h-full ${className}`}>
       {/* Controls */}
-      <div className="flex items-center justify-between p-4 border-b bg-gray-50">
+      <div className="flex items-center justify-between p-4 border-b bg-gray-50 flex-shrink-0">
         <div className="flex items-center gap-3">
           <FileText className="w-5 h-5 text-red-600" />
           <div>
@@ -107,29 +107,9 @@ export default function BasicPDFViewer({
 
         <div className="flex items-center gap-2">
           {numPages && (
-            <div className="flex items-center gap-1 mr-2">
-              <button
-                onClick={goToPrevPage}
-                disabled={pageNumber <= 1}
-                className="p-2 rounded-lg bg-white border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Previous page"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              
-              <span className="px-3 py-1 text-xs font-medium text-gray-600 bg-white border rounded">
-                {pageNumber} / {numPages}
-              </span>
-
-              <button
-                onClick={goToNextPage}
-                disabled={pageNumber >= numPages}
-                className="p-2 rounded-lg bg-white border hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Next page"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+            <span className="px-3 py-1 text-xs font-medium text-gray-600 bg-white border rounded">
+              {numPages} {numPages === 1 ? 'page' : 'pages'}
+            </span>
           )}
 
           {showExternal && (
@@ -154,8 +134,8 @@ export default function BasicPDFViewer({
         </div>
       </div>
 
-      {/* PDF Content */}
-      <div className="p-4 bg-gray-100 min-h-[600px] flex items-center justify-center overflow-auto">
+      {/* PDF Content - Scrollable */}
+      <div className="flex-1 overflow-auto bg-gray-100 p-4">
         {!isValidUrl ? (
           <div className="text-center p-8">
             <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -177,7 +157,7 @@ export default function BasicPDFViewer({
                 • PDF may be password protected<br />
                 • File might be corrupted or invalid<br />
                 • Browser security blocking content<br />
-                • Cloudinary URL access restrictions<br />
+                • ImageKit URL access restrictions<br />
                 <strong>Solution:</strong> Try downloading the file or opening in a new tab
               </p>
             </div>
@@ -201,9 +181,9 @@ export default function BasicPDFViewer({
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-inner">
+          <div className="flex flex-col items-center space-y-4">
             {loading && (
-              <div className="flex items-center justify-center h-[600px]">
+              <div className="flex items-center justify-center py-12">
                 <div className="text-center">
                   <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                   <p className="text-gray-600">Loading PDF...</p>
@@ -215,13 +195,19 @@ export default function BasicPDFViewer({
               onLoadSuccess={onDocumentLoadSuccess}
               onLoadError={onDocumentLoadError}
               loading=""
+              className="flex flex-col items-center space-y-4"
             >
-              <Page
-                pageNumber={pageNumber}
-                width={800}
-                renderTextLayer={true}
-                renderAnnotationLayer={true}
-              />
+              {Array.from(new Array(numPages), (el, index) => (
+                <div key={`page_${index + 1}`} className="bg-white shadow-lg">
+                  <Page
+                    pageNumber={index + 1}
+                    width={Math.min(800, window.innerWidth - 100)}
+                    renderTextLayer={true}
+                    renderAnnotationLayer={true}
+                    loading=""
+                  />
+                </div>
+              ))}
             </Document>
           </div>
         )}

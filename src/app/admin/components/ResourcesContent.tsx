@@ -1,8 +1,21 @@
 "use client"
 
 import { useState } from "react"
-import PDFDocumentsContent from "./PDFDocumentsContent"
+import dynamic from "next/dynamic"
 import CourseVideosContent from "./CourseVideosContent"
+
+// Dynamically import PDFDocumentsContent with SSR disabled to avoid DOMMatrix error
+const PDFDocumentsContent = dynamic(() => import("./PDFDocumentsContent"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center p-12">
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading PDF Documents...</p>
+      </div>
+    </div>
+  )
+})
 
 export default function ResourcesContent() {
   const [activeTab, setActiveTab] = useState('pdf')

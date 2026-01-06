@@ -347,9 +347,9 @@ export default function PDFDocumentsContent() {
       {/* PDF Preview Modal */}
       {previewDoc && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-5xl h-5/6 flex flex-col shadow-2xl">
+          <div className="bg-white rounded-lg w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl">
             {/* Header */}
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200 flex-shrink-0">
               <div>
                 <h3 className="text-xl font-semibold text-gray-900">{previewDoc.title}</h3>
                 <p className="text-sm text-gray-500 mt-1">PDF Document Preview</p>
@@ -367,8 +367,8 @@ export default function PDFDocumentsContent() {
               </button>
             </div>
 
-            {/* PDF Viewer */}
-            <div className="flex-1 relative">
+            {/* PDF Viewer - Scrollable */}
+            <div className="flex-1 overflow-auto bg-gray-100">
               <BasicPDFViewer
                 url={previewDoc.url}
                 title={previewDoc.title}
@@ -379,7 +379,7 @@ export default function PDFDocumentsContent() {
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
+            <div className="p-6 border-t border-gray-200 bg-gray-50 flex-shrink-0">
               <div className="flex justify-between items-center">
                 <div className="flex-1">
                   <p className="text-sm text-gray-700">{previewDoc.description}</p>

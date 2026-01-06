@@ -35,7 +35,7 @@ export async function GET(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 })
     }
 
-    // Fetch PDF from Cloudinary
+    // Fetch PDF from ImageKit
     const pdfResponse = await fetch(resource.url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; PDF-Downloader/1.0)'
