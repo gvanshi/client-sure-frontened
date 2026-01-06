@@ -229,7 +229,7 @@ export default function TokenUsagePage() {
                 {/* Buy Now Button */}
                 <button
                   onClick={() => setShowPurchaseModal(true)}
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-4 rounded-lg font-semibold transition-all shadow-lg flex items-center justify-center gap-2 mb-4"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-semibold transition-all shadow-lg flex items-center justify-center gap-2 mb-4"
                 >
                   <Plus className="w-5 h-5" />
                   Buy More Tokens
@@ -263,7 +263,7 @@ export default function TokenUsagePage() {
               </div>
               
               {/* Quick Purchase Options */}
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-lg border border-purple-200">
+              <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
                 <h3 className="text-lg font-semibold text-purple-900 mb-4 flex items-center">
                   <Zap className="w-5 h-5 mr-2" />
                   Quick Top-Up

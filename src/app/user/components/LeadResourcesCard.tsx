@@ -33,14 +33,14 @@ export default function LeadResourcesCard() {
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Lead Resources</h2>
           <p className="text-gray-600">Everything you need to generate quality leads</p>
         </div>
-        <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+        <div className="bg-green-600 text-white px-4 py-2 rounded-full text-sm font-medium">
           Premium Access
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {resources.map((resource, index) => (
-          <div key={index} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+          <div key={index} className="bg-gray-100 rounded-xl p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group">
             <div className="flex items-start justify-between mb-4">
               <div className="text-3xl">{resource.icon}</div>
               <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">
@@ -62,7 +62,7 @@ export default function LeadResourcesCard() {
       </div>
 
       <div className="mt-8 text-center">
-        <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-lg hover:from-blue-700 hover:to-purple-700 font-semibold">
+        <button className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-semibold">
           View All Resources
         </button>
       </div>

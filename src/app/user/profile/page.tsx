@@ -351,7 +351,7 @@ export default function ProfilePage() {
             
               {activeSection === 'Account Details' && userProfile && (
                 <div>
-                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-white mb-8 shadow-lg">
+                  <div className="bg-blue-600 rounded-lg p-8 text-white mb-8 shadow-lg">
                     <div className="flex items-center space-x-6">
                       <div className="relative">
                         {avatarPreview ? (
@@ -536,7 +536,7 @@ export default function ProfilePage() {
               {activeSection === 'Subscription Plan' && userProfile && (
                 <div>
                   {userProfile.subscription.plan ? (
-                    <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-8 text-white mb-8 shadow-lg">
+                    <div className="bg-purple-600 rounded-lg p-8 text-white mb-8 shadow-lg">
                       <div className="text-center">
                         <div className="inline-block bg-white bg-opacity-20 rounded-full px-4 py-1 mb-3">
                           <span className="text-sm font-semibold text-black">CURRENT PLAN</span>
@@ -547,7 +547,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg p-8 text-center mb-8 border border-gray-300">
+                    <div className="bg-gray-200 rounded-lg p-8 text-center mb-8 border border-gray-300">
                       <div className="text-6xl mb-4">📋</div>
                       <h3 className="text-2xl font-bold text-gray-900 mb-2">No Active Plan</h3>
                       <p className="text-gray-600 mb-4">Subscribe to a plan to access premium features</p>
@@ -717,7 +717,7 @@ export default function ProfilePage() {
                           }`}
                         >
                           <div className="flex items-start space-x-4">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                            <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
                               {notification.fromUser?.name?.charAt(0).toUpperCase() || 'N'}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -781,7 +781,7 @@ export default function ProfilePage() {
                     </div>
                   ) : (
                     <>
-                      <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-lg p-8 text-white mb-6 shadow-lg">
+                      <div className="bg-green-600 rounded-lg p-8 text-white mb-6 shadow-lg">
                         <div className="text-center">
                           <h3 className="text-3xl font-bold mb-2">Refer & Earn</h3>
                           <p className="text-green-100 mb-6">Share your referral code and earn rewards</p>

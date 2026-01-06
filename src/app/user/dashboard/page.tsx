@@ -143,7 +143,7 @@ function DashboardContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-white">
       <Navbar />
       
       {/* Low Token Alert Popup */}
@@ -158,7 +158,7 @@ function DashboardContent() {
             </button>
             
             <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Zap className="w-8 h-8 text-white" />
               </div>
               
@@ -167,7 +167,7 @@ function DashboardContent() {
                 You've used all your daily tokens. Purchase more tokens to continue accessing leads and resources.
               </p>
               
-              <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-4 mb-6">
+              <div className="bg-orange-50 rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-center gap-2 text-orange-700">
                   <Zap className="w-5 h-5" />
                   <span className="font-semibold">Current Balance: {userStats?.tokens || 0} tokens</span>
@@ -180,7 +180,7 @@ function DashboardContent() {
                     setShowLowTokenAlert(false)
                     handleNavigation('/user/profile/tokens')
                   }}
-                  className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white py-3 px-4 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                  className="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 px-4 rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
                 >
                   <Plus className="w-5 h-5" />
                   Buy More Tokens
@@ -207,7 +207,7 @@ function DashboardContent() {
 
         {/* Welcome Message for New Subscribers */}
         {showWelcome && (
-          <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-2xl p-6 mb-8">
+          <div className="bg-green-50 border border-green-200 rounded-2xl p-6 mb-8">
             <div className="flex items-center">
               <div className="text-green-600 text-3xl mr-4">🎉</div>
               <div>
@@ -250,7 +250,7 @@ function DashboardContent() {
               )}
             </div>
             {(userStats?.prizeTokens || 0) > 0 && (
-              <div className="mt-2 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-lg p-2">
+              <div className="mt-2 bg-yellow-100 rounded-lg p-2">
                 <div className="text-xs font-bold text-yellow-700">
                   🎉 {userStats?.prizeTokenType} Bonus!
                 </div>
@@ -299,7 +299,7 @@ function DashboardContent() {
         {/* Hero Sections */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {/* Lead Information Section */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg p-6 border border-blue-200">
+          <div className="bg-blue-100 rounded-xl shadow-lg p-6 border border-blue-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="bg-blue-600 p-3 rounded-lg">
                 <Database className="w-6 h-6 text-white" />
@@ -313,7 +313,7 @@ function DashboardContent() {
           </div>
 
           {/* Accessed Leads Section */}
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-lg p-6 border border-green-200">
+          <div className="bg-green-100 rounded-xl shadow-lg p-6 border border-green-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="bg-green-600 p-3 rounded-lg">
                 <Users className="w-6 h-6 text-white" />
@@ -327,7 +327,7 @@ function DashboardContent() {
           </div>
 
           {/* External Tools Section */}
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-lg p-6 border border-purple-200">
+          <div className="bg-purple-100 rounded-xl shadow-lg p-6 border border-purple-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="bg-purple-600 p-3 rounded-lg">
                 <ExternalLink className="w-6 h-6 text-white" />
@@ -341,7 +341,7 @@ function DashboardContent() {
           </div>
 
           {/* Community Section */}
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl shadow-lg p-6 border border-orange-200">
+          <div className="bg-orange-100 rounded-xl shadow-lg p-6 border border-orange-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="bg-orange-600 p-3 rounded-lg">
                 <MessageCircle className="w-6 h-6 text-white" />
@@ -355,7 +355,7 @@ function DashboardContent() {
           </div>
 
           {/* Chatbot Tools Section */}
-          <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl shadow-lg p-6 border border-cyan-200">
+          <div className="bg-cyan-100 rounded-xl shadow-lg p-6 border border-cyan-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="bg-cyan-600 p-3 rounded-lg">
                 <Bot className="w-6 h-6 text-white" />
@@ -484,7 +484,7 @@ function DashboardContent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {resources.filter(r => r.type === 'video').map((resource) => (
                     <div key={resource.id} onClick={() => handleNavigation(`/user/resource/${resource.id}`)} className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer">
-                      <div className="relative h-48 bg-gradient-to-br from-blue-100 to-purple-100 overflow-hidden">
+                      <div className="relative h-48 bg-blue-100 overflow-hidden">
                         {resource.isAccessedByUser && resource.url ? (
                           // Show video preview for accessed resources
                           <div className="w-full h-full">
@@ -498,7 +498,7 @@ function DashboardContent() {
                           </div>
                         ) : (
                           // Show placeholder for locked resources
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                          <div className="w-full h-full flex items-center justify-center bg-gray-200">
                             <div className="text-center">
                               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
                                 <Play className="w-8 h-8 text-blue-600" />
@@ -568,7 +568,7 @@ function DashboardContent() {
 export default function Dashboard() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="min-h-screen bg-white">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>

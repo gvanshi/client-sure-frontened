@@ -419,7 +419,7 @@ export default function CommunityPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      <div className="min-h-screen bg-white">
         <Navbar />
         <div className="flex items-center justify-center h-64">
           <div className="flex items-center gap-3">
@@ -506,7 +506,7 @@ export default function CommunityPage() {
               
               {/* Daily Limits Display */}
               <div className="px-6 pb-6">
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-100">
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-blue-600" />
@@ -1060,23 +1060,23 @@ export default function CommunityPage() {
                       return (
                         <div key={user._id} className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${
                           isCurrentUser 
-                            ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 shadow-sm' 
+                            ? 'bg-blue-50 border-2 border-blue-200 shadow-sm' 
                             : 'hover:bg-gray-50'
                         }`}>
                           <div className={`text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-sm ${
-                            index === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white' :
-                            index === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-500 text-white' :
-                            index === 2 ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white' :
-                            isCurrentUser ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white' :
-                            'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700'
+                            index === 0 ? 'bg-yellow-500 text-white' :
+                            index === 1 ? 'bg-gray-400 text-white' :
+                            index === 2 ? 'bg-orange-500 text-white' :
+                            isCurrentUser ? 'bg-purple-600 text-white' :
+                            'bg-gray-200 text-gray-700'
                           }`}>
                             {index + 1}
                           </div>
                           
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-sm ${
                             isCurrentUser 
-                              ? 'bg-gradient-to-br from-blue-500 to-purple-600' 
-                              : 'bg-gradient-to-br from-blue-500 to-blue-600'
+                              ? 'bg-purple-600' 
+                              : 'bg-blue-600'
                           }`}>
                             {user.name.charAt(0).toUpperCase()}
                           </div>
@@ -1119,12 +1119,12 @@ export default function CommunityPage() {
                           Your Ranking
                         </div>
                         
-                        <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg shadow-sm">
-                          <div className="text-xs font-bold w-8 h-8 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-sm">
+                        <div className="flex items-center gap-3 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg shadow-sm">
+                          <div className="text-xs font-bold w-8 h-8 rounded-full flex items-center justify-center bg-purple-600 text-white shadow-sm">
                             #{leaderboardData.currentUserRank.rank}
                           </div>
                           
-                          <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold bg-gradient-to-br from-blue-500 to-purple-600 shadow-sm">
+                          <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-semibold bg-purple-600 shadow-sm">
                             {leaderboardData.currentUserRank.user.name.charAt(0).toUpperCase()}
                           </div>
                           

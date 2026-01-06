@@ -181,8 +181,8 @@ export default function NotificationsPage() {
                   <div className="flex items-start space-x-4">
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 ${
                       notification.type === 'token_purchase' 
-                        ? 'bg-gradient-to-br from-green-500 to-emerald-600'
-                        : 'bg-gradient-to-br from-blue-500 to-purple-600'
+                        ? 'bg-green-600'
+                        : 'bg-purple-600'
                     }`}>
                       {notification.type === 'token_purchase' ? (
                         <Coins className="w-6 h-6" />

@@ -113,7 +113,7 @@ export default function ResourceDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="min-h-screen bg-white">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center py-16">
@@ -150,7 +150,7 @@ export default function ResourceDetailPage() {
                 resource.type === 'video' && resource.url ? (
                   <div className="relative bg-black">
                     {showPreview && !resource.isAccessedByUser ? (
-                      <div className="aspect-video bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
+                      <div className="aspect-video bg-purple-600 flex items-center justify-center">
                         <div className="text-center text-white">
                           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
                           <p className="text-lg font-semibold">Unlocking Premium Content...</p>
@@ -200,7 +200,7 @@ export default function ResourceDetailPage() {
                 )
               ) : (
                 // Show locked preview when not accessed
-                <div className="relative aspect-video bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+                <div className="relative aspect-video bg-gray-900">
                   {resource.type === 'video' ? (
                     <div className="w-full h-full flex items-center justify-center">
                       <div className="text-center text-white">
@@ -239,7 +239,7 @@ export default function ResourceDetailPage() {
                     </span>
                   </div>
                   
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
+                  <div className="absolute inset-0 bg-black/50 pointer-events-none"></div>
                 </div>
               )}
             </div>
@@ -305,7 +305,7 @@ export default function ResourceDetailPage() {
                   <button 
                     onClick={handleAccess} 
                     disabled={accessLoading}
-                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg text-sm font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                    className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                   >
                     {accessLoading ? (
                       <>
@@ -324,7 +324,7 @@ export default function ResourceDetailPage() {
             </div>
 
             {/* Quick Info Card */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-100 p-6">
+            <div className="bg-blue-50 rounded-lg border border-blue-100 p-6">
               <h3 className="text-xs font-semibold text-blue-900 uppercase tracking-wide mb-3">Resource ID</h3>
               <p className="text-xs text-blue-700 font-mono break-all">{resource.id}</p>
             </div>

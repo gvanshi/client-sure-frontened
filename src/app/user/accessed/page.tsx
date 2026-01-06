@@ -44,14 +44,14 @@ export default function AccessedResourcesPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-white">
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
             My 
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> Accessed Resources</span>
+            <span className="text-purple-600"> Accessed Resources</span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             View and re-access all the resources you've previously unlocked
@@ -162,7 +162,7 @@ export default function AccessedResourcesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <a 
                 href="/user/resources"
-                className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 text-center"
+                className="bg-blue-600 text-white p-6 rounded-xl hover:bg-blue-700 transition-all duration-300 text-center"
               >
                 <div className="text-2xl mb-2">🔍</div>
                 <div className="font-semibold">Browse More Resources</div>
@@ -170,7 +170,7 @@ export default function AccessedResourcesPage() {
               </a>
               <a 
                 href="/user/profile"
-                className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all duration-300 text-center"
+                className="bg-purple-600 text-white p-6 rounded-xl hover:bg-purple-700 transition-all duration-300 text-center"
               >
                 <div className="text-2xl mb-2">👤</div>
                 <div className="font-semibold">View Profile</div>

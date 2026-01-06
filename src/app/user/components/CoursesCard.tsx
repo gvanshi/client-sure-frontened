@@ -50,14 +50,14 @@ export default function CoursesCard() {
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Courses</h2>
           <p className="text-gray-600">Master the art of lead generation and sales</p>
         </div>
-        <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-medium">
+        <div className="bg-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium">
           4 Courses Available
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {courses.map((course, index) => (
-          <div key={index} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+          <div key={index} className="bg-gray-100 rounded-xl p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group">
             <div className="flex items-start justify-between mb-4">
               <div className="text-3xl">{course.image}</div>
               <div className={`px-3 py-1 rounded-full text-xs font-medium ${getLevelColor(course.level)}`}>
@@ -77,12 +77,12 @@ export default function CoursesCard() {
             
             <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
               <div 
-                className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
+                className="bg-purple-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${course.progress}%` }}
               ></div>
             </div>
             
-            <button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 rounded-lg hover:from-purple-700 hover:to-pink-700 font-medium transition-all duration-300">
+            <button className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 font-medium transition-all duration-300">
               {course.progress > 0 ? 'Continue Course' : 'Start Course'}
             </button>
           </div>
@@ -90,7 +90,7 @@ export default function CoursesCard() {
       </div>
 
       <div className="mt-8 text-center">
-        <button className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-3 rounded-lg hover:from-purple-700 hover:to-pink-700 font-semibold">
+        <button className="bg-purple-600 text-white px-8 py-3 rounded-lg hover:bg-purple-700 font-semibold">
           Browse All Courses
         </button>
       </div>

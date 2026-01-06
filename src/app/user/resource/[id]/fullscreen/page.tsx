@@ -73,7 +73,7 @@ export default function FullscreenResourcePage() {
   return (
     <div className="min-h-screen bg-black relative">
       {/* Header Controls */}
-      <div className="absolute top-0 left-0 right-0 z-50 bg-gradient-to-b from-black/80 to-transparent p-4">
+      <div className="absolute top-0 left-0 right-0 z-50 bg-black/80 p-4">
         <div className="flex items-center justify-between">
           <button
             onClick={handleClose}
