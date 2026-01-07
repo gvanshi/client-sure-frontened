@@ -42,13 +42,21 @@ function LoginForm() {
         password: formData.password
       })
     
-         // ✅ CORRECT:
-    localStorage.setItem('userToken', response.data.userToken)           // Token
-    localStorage.setItem('user', JSON.stringify(response.data.user))     // User object
-    
+      // Store token and user data
+      localStorage.setItem('userToken', response.data.userToken || response.data.token) // Handle both formats
+      if (response.data.role === 'admin') {
+         localStorage.setItem('adminToken', response.data.token) // Also store as adminToken for admin routes if needed
+      }
+      localStorage.setItem('user', JSON.stringify(response.data.user))
       
-      // Redirect to dashboard with newSubscription param if payment was successful
-      const redirectUrl = paymentSuccess ? '/user/dashboard?newSubscription=true' : '/user/dashboard'
+      // Determine redirect URL based on role
+      let redirectUrl = '/user/dashboard';
+      if (response.data.role === 'admin' || response.data.user?.role === 'admin') {
+        redirectUrl = '/admin/dashboard';
+      } else if (paymentSuccess) {
+        redirectUrl = '/user/dashboard?newSubscription=true';
+      }
+      
       toast.success('Login successful! Welcome back.')
       router.push(redirectUrl)
     } catch (error: any) {
