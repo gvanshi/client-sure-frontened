@@ -75,6 +75,7 @@ export default function CommunityPage() {
     sortBy: 'latest',
     minLikes: 0
   })
+  const [allPosts, setAllPosts] = useState<Post[]>([])
   const [communityStats, setCommunityStats] = useState<any>({})
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -116,6 +117,78 @@ export default function CommunityPage() {
       window.removeEventListener('focus', handleWindowFocus)
     }
   }, [])
+
+  // Auto-fetch when search or trending changes
+  useEffect(() => {
+    fetchData(false)
+  }, [searchQuery, showTrending])
+
+  // Client-side filtering
+  useEffect(() => {
+    let filtered = [...allPosts]
+
+    // Filter by author
+    if (searchFilters.author) {
+      filtered = filtered.filter(post => 
+        post.user_id.name.toLowerCase().includes(searchFilters.author.toLowerCase())
+      )
+    }
+
+    // Filter by has image
+    if (searchFilters.hasImage) {
+      filtered = filtered.filter(post => post.image)
+    }
+
+    // Filter by date range
+    if (searchFilters.dateFrom) {
+      const fromDate = new Date(searchFilters.dateFrom)
+      filtered = filtered.filter(post => new Date(post.createdAt) >= fromDate)
+    }
+    if (searchFilters.dateTo) {
+      const toDate = new Date(searchFilters.dateTo)
+      toDate.setHours(23, 59, 59, 999) // End of day
+      filtered = filtered.filter(post => new Date(post.createdAt) <= toDate)
+    }
+
+    // Filter by minimum likes
+    if (searchFilters.minLikes > 0) {
+      filtered = filtered.filter(post => post.likes.length >= searchFilters.minLikes)
+    }
+
+    // Sort
+    switch (searchFilters.sortBy) {
+      case 'latest':
+        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        break
+      case 'oldest':
+        filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+        break
+      case 'popular':
+        filtered.sort((a, b) => b.likes.length - a.likes.length)
+        break
+      case 'trending':
+        // Trending: combination of likes and comments with recency
+        filtered.sort((a, b) => {
+          const scoreA = (a.likes.length * 2 + a.comments.length) / Math.max(1, (Date.now() - new Date(a.createdAt).getTime()) / (1000 * 60 * 60))
+          const scoreB = (b.likes.length * 2 + b.comments.length) / Math.max(1, (Date.now() - new Date(b.createdAt).getTime()) / (1000 * 60 * 60))
+          return scoreB - scoreA
+        })
+        break
+    }
+
+    setPosts(filtered)
+  }, [allPosts, searchFilters])
+
+  const resetFilters = () => {
+    setSearchFilters({
+      author: '',
+      hasImage: false,
+      dateFrom: '',
+      dateTo: '',
+      sortBy: 'latest',
+      minLikes: 0
+    })
+  }
 
   const getCurrentUser = async () => {
     try {
@@ -177,12 +250,6 @@ export default function CommunityPage() {
       const queryParams = new URLSearchParams()
       
       if (searchQuery) queryParams.append('search', searchQuery)
-      if (searchFilters.author) queryParams.append('author', searchFilters.author)
-      if (searchFilters.hasImage) queryParams.append('hasImage', 'true')
-      if (searchFilters.dateFrom) queryParams.append('dateFrom', searchFilters.dateFrom)
-      if (searchFilters.dateTo) queryParams.append('dateTo', searchFilters.dateTo)
-      if (searchFilters.sortBy) queryParams.append('sortBy', searchFilters.sortBy)
-      if (searchFilters.minLikes > 0) queryParams.append('minLikes', searchFilters.minLikes.toString())
       
       const params = queryParams.toString() ? `?${queryParams.toString()}` : ''
       
@@ -191,6 +258,7 @@ export default function CommunityPage() {
         Axios.get('/community/leaderboard?limit=10&includeCurrentUser=true'),
         Axios.get('/community/stats')
       ])
+      setAllPosts(postsRes.data.posts)
       setPosts(postsRes.data.posts)
       
       // Handle new leaderboard structure
@@ -218,18 +286,7 @@ export default function CommunityPage() {
     }
   }
 
-  const resetFilters = () => {
-    setSearchFilters({
-      author: '',
-      hasImage: false,
-      dateFrom: '',
-      dateTo: '',
-      sortBy: 'latest',
-      minLikes: 0
-    })
-    setSearchQuery('')
-    fetchData(false)
-  }
+
 
   const createPost = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -478,7 +535,13 @@ export default function CommunityPage() {
                   <Filter className="w-4 h-4" /> Filters
                 </button>
                 <button
-                  onClick={() => { setShowTrending(!showTrending); fetchData(false); }}
+                  onClick={() => {
+                    setShowTrending(!showTrending)
+                    setSearchFilters({
+                      ...searchFilters, 
+                      sortBy: showTrending ? 'latest' : 'popular'
+                    })
+                  }}
                   className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
                     showTrending 
                       ? 'bg-orange-500 text-white hover:bg-orange-600' 
@@ -509,12 +572,6 @@ export default function CommunityPage() {
                   <Calendar className="w-4 h-4 text-blue-600" />
                   Daily Limits
                 </h3>
-                <button
-                  onClick={() => fetchDailyLimits(false)}
-                  className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Refresh
-                </button>
               </div>
               
               <div className="grid grid-cols-3 gap-4">
@@ -631,11 +688,22 @@ export default function CommunityPage() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Author Name</label>
+                      <input
+                        type="text"
+                        value={searchFilters.author}
+                        onChange={(e) => setSearchFilters({...searchFilters, author: e.target.value})}
+                        className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-gray-900"
+                        placeholder="Search by author..."
+                      />
+                    </div>
+                    
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
                       <select
                         value={searchFilters.sortBy}
                         onChange={(e) => setSearchFilters({...searchFilters, sortBy: e.target.value})}
-                        className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                        className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-gray-900"
                       >
                         <option value="latest">Latest</option>
                         <option value="popular">Most Liked</option>
@@ -645,12 +713,24 @@ export default function CommunityPage() {
                     </div>
                     
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Minimum Likes</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={searchFilters.minLikes}
+                        onChange={(e) => setSearchFilters({...searchFilters, minLikes: parseInt(e.target.value) || 0})}
+                        className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-gray-900"
+                        placeholder="0"
+                      />
+                    </div>
+                    
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Date From</label>
                       <input
                         type="date"
                         value={searchFilters.dateFrom}
                         onChange={(e) => setSearchFilters({...searchFilters, dateFrom: e.target.value})}
-                        className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
+                        className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-gray-900"
                       />
                     </div>
                     
@@ -660,19 +740,7 @@ export default function CommunityPage() {
                         type="date"
                         value={searchFilters.dateTo}
                         onChange={(e) => setSearchFilters({...searchFilters, dateTo: e.target.value})}
-                        className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Minimum Likes</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={searchFilters.minLikes}
-                        onChange={(e) => setSearchFilters({...searchFilters, minLikes: parseInt(e.target.value) || 0})}
-                        className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none"
-                        placeholder="0"
+                        className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none text-gray-900"
                       />
                     </div>
                     
@@ -682,7 +750,7 @@ export default function CommunityPage() {
                           type="checkbox"
                           checked={searchFilters.hasImage}
                           onChange={(e) => setSearchFilters({...searchFilters, hasImage: e.target.checked})}
-                          className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         />
                         <span className="text-sm font-medium text-gray-700">Posts with images only</span>
                       </label>
@@ -691,21 +759,19 @@ export default function CommunityPage() {
                   
                   <div className="flex items-center gap-3 mt-6">
                     <button
-                      onClick={() => fetchData(false)}
-                      className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-                    >
-                      Apply Filters
-                    </button>
-                    <button
                       onClick={resetFilters}
                       className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
                     >
-                      Reset
+                      Reset Filters
                     </button>
+                    <div className="text-sm text-gray-600">
+                      Showing {posts.length} of {allPosts.length} posts
+                    </div>
                   </div>
                 </div>
               </div>
             )}
+
 
             {/* Create Post */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">

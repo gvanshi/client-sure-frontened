@@ -6,6 +6,7 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { LayoutDashboard, FileText, Users, User, LogOut, ChevronDown, Menu, X, Coins, MessageCircle, Bell, Plus, Mail, Bot } from "lucide-react"
 import Axios from "@/utils/Axios"
+import TokenLimitBanner from "./TokenLimitBanner"
 
 interface Notification {
   _id: string
@@ -426,6 +427,12 @@ export default function Navbar() {
           </div>
         </div>
       )}
+      
+      {/* Token Limit Banner */}
+      <TokenLimitBanner 
+        effectiveTokens={tokens.effectiveTokens} 
+        dailyLimit={tokens.dailyLimit} 
+      />
     </nav>
   )
 }

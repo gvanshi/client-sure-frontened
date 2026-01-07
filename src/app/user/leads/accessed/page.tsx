@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Download, Filter, Calendar, ArrowLeft, Mail, Linkedin, Instagram, Facebook, Globe, MapPin, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
+import { Search, Download, Filter, Calendar, ArrowLeft, Mail, Linkedin, Instagram, Facebook, Globe, MapPin, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X } from "lucide-react"
 import { toast } from "sonner"
 import Navbar from "../../components/Navbar"
 import Footer from "../../components/Footer"
@@ -48,7 +48,11 @@ function AccessedLeadsContent() {
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [emailDefaultType, setEmailDefaultType] = useState<'bulk' | 'category' | 'city' | 'country' | 'selected'>('bulk')
   const [hoveredPhone, setHoveredPhone] = useState<string | null>(null)
-  const [selectedAccessDate, setSelectedAccessDate] = useState("")
+  const [showExportModal, setShowExportModal] = useState(false)
+  const [exportType, setExportType] = useState<'all' | 'current' | 'custom'>('all')
+  const [customStartPage, setCustomStartPage] = useState(1)
+  const [customEndPage, setCustomEndPage] = useState(1)
+  const [isExporting, setIsExporting] = useState(false)
 
   const loadAccessedLeads = async () => {
     setLoading(true)
@@ -62,7 +66,6 @@ function AccessedLeadsContent() {
       if (selectedCategory) params.append('category', selectedCategory)
       if (selectedCity) params.append('city', selectedCity)
       if (selectedCountry) params.append('country', selectedCountry)
-      if (selectedAccessDate) params.append('date', selectedAccessDate)
       if (startDate) params.append('startDate', startDate)
       if (endDate) params.append('endDate', endDate)
 
@@ -103,32 +106,80 @@ function AccessedLeadsContent() {
   }
 
   const handleBulkExport = async () => {
-    const leadIds = accessedLeads.map(lead => lead.id)
-
-    if (leadIds.length === 0) {
-      toast.error('No leads to export')
-      return
+    if (exportType === 'custom') {
+      if (customStartPage < 1 || customEndPage < 1) {
+        toast.error('Page numbers must be greater than 0')
+        return
+      }
+      if (customStartPage > customEndPage) {
+        toast.error('Start page must be less than or equal to end page')
+        return
+      }
+      if (customEndPage > totalPages) {
+        toast.error(`End page cannot exceed total pages (${totalPages})`)
+        return
+      }
     }
 
+    setIsExporting(true)
     try {
-      const response = await Axios.post('/auth/leads/bulk-export', { leadIds }, {
-        responseType: 'blob'
-      })
+      const params = new URLSearchParams()
+      
+      // Add filters
+      if (searchTerm) params.append('search', searchTerm)
+      if (selectedCategory) params.append('category', selectedCategory)
+      if (selectedCity) params.append('city', selectedCity)
+      if (selectedCountry) params.append('country', selectedCountry)
+      if (startDate) params.append('startDate', startDate)
+      if (endDate) params.append('endDate', endDate)
+
+      // Add export type specific parameters
+      if (exportType === 'all') {
+        params.append('exportAll', 'true')
+      } else if (exportType === 'current') {
+        params.append('page', page.toString())
+        params.append('limit', '10')
+      } else if (exportType === 'custom') {
+        params.append('startPage', customStartPage.toString())
+        params.append('endPage', customEndPage.toString())
+        params.append('limit', '10')
+      }
+
+      const response = await Axios.post('/leads/bulk-export', 
+        { filters: Object.fromEntries(params) },
+        { responseType: 'blob' }
+      )
 
       const url = window.URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement('a')
       link.href = url
-      link.setAttribute('download', `leads_export_${Date.now()}.xlsx`)
+      
+      let filename = 'accessed_leads_'
+      if (exportType === 'all') filename += 'all'
+      else if (exportType === 'current') filename += `page_${page}`
+      else filename += `pages_${customStartPage}_to_${customEndPage}`
+      filename += `_${Date.now()}.xlsx`
+      
+      link.setAttribute('download', filename)
       document.body.appendChild(link)
       link.click()
       link.remove()
       window.URL.revokeObjectURL(url)
 
-      toast.success(`${leadIds.length} leads exported successfully!`)
+      toast.success('Leads exported successfully!')
+      setShowExportModal(false)
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to export leads data')
+      console.error('Export error:', error)
+      if (error.code === 'ECONNABORTED' || error.message === 'Network Error') {
+        toast.error('Backend server is not running. Please start the server.')
+      } else {
+        toast.error(error.response?.data?.error || 'Failed to export leads')
+      }
+    } finally {
+      setIsExporting(false)
     }
   }
+
 
   const handleSendEmail = async (data: EmailData) => {
     try {
@@ -181,11 +232,11 @@ function AccessedLeadsContent() {
   // Reload when any filter changes
   useEffect(() => {
     setPage(1)
-  }, [searchTerm, selectedCategory, selectedCity, selectedCountry, selectedAccessDate, startDate, endDate])
+  }, [searchTerm, selectedCategory, selectedCity, selectedCountry, startDate, endDate])
 
   useEffect(() => {
     loadAccessedLeads()
-  }, [page, searchTerm, selectedCategory, selectedCity, selectedCountry, selectedAccessDate, startDate, endDate])
+  }, [page, searchTerm, selectedCategory, selectedCity, selectedCountry, startDate, endDate])
 
   const cities = Array.from(new Set(accessedLeads.map(l => l.city).filter(Boolean))) as string[]
   const countries = Array.from(new Set(accessedLeads.map(l => l.country).filter(Boolean))) as string[]
@@ -210,7 +261,14 @@ function AccessedLeadsContent() {
             <p className="text-sm text-gray-600 mt-1">View and manage all your unlocked leads</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowExportModal(true)}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Export All
+          </button>
           <button
             onClick={() => { setEmailDefaultType('bulk'); setShowEmailModal(true); }}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2"
@@ -218,15 +276,9 @@ function AccessedLeadsContent() {
             <Mail className="w-4 h-4" />
             Send Email
           </button>
-          <button
-            onClick={handleBulkExport}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            Export All
-          </button>
         </div>
       </div>
+
 
       <div className="bg-white rounded-lg border border-gray-200 mb-6">
         <div className="p-4 space-y-4">
@@ -284,37 +336,27 @@ function AccessedLeadsContent() {
 
             <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto border-t md:border-t-0 pt-3 md:pt-0 mt-1 md:mt-0">
               <div className="hidden md:block"><Calendar className="w-4 h-4 text-gray-500" /></div>
-              <div className="grid grid-cols-1 sm:grid-cols-1 md:flex md:items-center gap-2 w-full">
-                  <input
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full md:w-auto">
+                <input
                     type="date"
-                    value={selectedAccessDate}
-                    onChange={(e) => setSelectedAccessDate(e.target.value)}
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
                     className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 w-full md:w-auto"
-                    placeholder="Access Date"
-                    title="Filter by access date (DD/MM/YYYY)"
-                  />
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full md:w-auto">
-                    <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 w-full md:w-auto"
-                        placeholder="Start Date"
-                    />
-                    <span className="hidden md:inline text-gray-500 text-sm">to</span>
-                    <span className="md:hidden text-center text-gray-500 text-sm">to</span>
-                    <input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 w-full md:w-auto"
-                        placeholder="End Date"
-                    />
-                  </div>
+                    placeholder="Start Date"
+                />
+                <span className="hidden md:inline text-gray-500 text-sm">to</span>
+                <span className="md:hidden text-center text-gray-500 text-sm">to</span>
+                <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 w-full md:w-auto"
+                    placeholder="End Date"
+                />
               </div>
             </div>
 
-            {(selectedCountry || selectedCategory || selectedCity || startDate || endDate || selectedAccessDate) && (
+            {(selectedCountry || selectedCategory || selectedCity || startDate || endDate) && (
               <button
                 onClick={() => {
                   setSelectedCity("")
@@ -322,7 +364,6 @@ function AccessedLeadsContent() {
                   setSelectedCategory("")
                   setStartDate("")
                   setEndDate("")
-                  setSelectedAccessDate("")
                 }}
                 className="text-sm text-gray-600 hover:text-gray-900 mt-2 md:mt-0 w-full md:w-auto text-center"
               >
@@ -362,7 +403,7 @@ function AccessedLeadsContent() {
                   {filteredLeads.length === 0 ? (
                     <tr>
                       <td colSpan={11} className="px-2 py-8 text-center text-sm text-gray-500">
-                        {selectedAccessDate ? `No leads accessed on ${formatDate(selectedAccessDate)}` : 'No accessed leads found'}
+                        No accessed leads found
                       </td>
                     </tr>
                   ) : (
@@ -469,7 +510,7 @@ function AccessedLeadsContent() {
           <div className="md:hidden grid grid-cols-1 gap-4">
             {filteredLeads.length === 0 ? (
               <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
-                {selectedAccessDate ? `No leads accessed on ${formatDate(selectedAccessDate)}` : 'No accessed leads found'}
+                No accessed leads found
               </div>
             ) : (
               filteredLeads.map((lead) => (
@@ -599,6 +640,140 @@ function AccessedLeadsContent() {
             </div>
           )}
         </>
+      )}
+
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Export Leads</h2>
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">Choose export option:</p>
+
+              {/* Export All Option */}
+              <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                <input
+                  type="radio"
+                  name="exportType"
+                  value="all"
+                  checked={exportType === 'all'}
+                  onChange={(e) => setExportType(e.target.value as 'all' | 'current' | 'custom')}
+                  className="mt-1 w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
+                />
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">Export All Leads</div>
+                  <div className="text-sm text-gray-500">Export all leads from the database (not just current page)</div>
+                </div>
+              </label>
+
+              {/* Export Current Page Option */}
+              <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                <input
+                  type="radio"
+                  name="exportType"
+                  value="current"
+                  checked={exportType === 'current'}
+                  onChange={(e) => setExportType(e.target.value as 'all' | 'current' | 'custom')}
+                  className="mt-1 w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
+                />
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">Export Current Page</div>
+                  <div className="text-sm text-gray-500">Export only the leads on page {page}</div>
+                </div>
+              </label>
+
+              {/* Export Custom Pages Option */}
+              <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                <input
+                  type="radio"
+                  name="exportType"
+                  value="custom"
+                  checked={exportType === 'custom'}
+                  onChange={(e) => setExportType(e.target.value as 'all' | 'current' | 'custom')}
+                  className="mt-1 w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
+                />
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">Export Custom Page Range</div>
+                  <div className="text-sm text-gray-500">Export leads from specific page range</div>
+                </div>
+              </label>
+
+              {/* Custom Page Range Inputs */}
+              {exportType === 'custom' && (
+                <div className="ml-7 p-3 bg-gray-50 rounded-lg space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Start Page
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={totalPages}
+                        value={customStartPage}
+                        onChange={(e) => setCustomStartPage(parseInt(e.target.value) || 1)}
+                        className="w-full px-3 py-2 border border-black rounded-lg text-black text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        End Page
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max={totalPages}
+                        value={customEndPage}
+                        onChange={(e) => setCustomEndPage(parseInt(e.target.value) || 1)}
+                        className="w-full px-3 py-2 border text-black border-black rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Total pages available: {totalPages}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowExportModal(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={isExporting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkExport}
+                disabled={isExporting}
+                className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isExporting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    Export
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Email Composer */}
