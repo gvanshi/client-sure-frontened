@@ -120,15 +120,9 @@ export async function POST(request: NextRequest) {
     // Try Gemini AI first
     const apiKey = process.env.GEMINI_API_KEY;
     
-    console.log('🔑 API Key Status:', {
-      exists: !!apiKey,
-      length: apiKey?.length || 0,
-      preview: apiKey ? `${apiKey.substring(0, 10)}...${apiKey.substring(apiKey.length - 5)}` : 'NOT_FOUND'
-    });
     
     if (apiKey) {
       try {
-        console.log('🤖 Initializing Gemini AI...');
         const { GoogleGenerativeAI } = await import('@google/generative-ai');
         const genAI = new GoogleGenerativeAI(apiKey);
         
@@ -145,13 +139,13 @@ export async function POST(request: NextRequest) {
         // Try each model until one works
         for (const modelName of modelNames) {
           try {
-            console.log('🎯 Trying model:', modelName);
+            
             const testModel = genAI.getGenerativeModel({ model: modelName });
             selectedModel = modelName;
-            console.log('✅ Model available:', selectedModel);
+            
             break;
           } catch (modelError) {
-            console.log('❌ Model not available:', modelName);
+            
             continue;
           }
         }
@@ -166,15 +160,12 @@ export async function POST(request: NextRequest) {
           }
         });
         
-        console.log('📤 Sending prompt to Gemini (length:', prompt.length, 'chars)');
-        console.log('📝 Prompt preview:', prompt.substring(0, 150) + '...');
         
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
         
-        console.log('✅ Gemini response received (length:', text.length, 'chars)');
-        console.log('📝 Response preview:', text.substring(0, 200) + '...');
+        
         
         if (text && text.trim()) {
           // Cache the response
@@ -191,17 +182,10 @@ export async function POST(request: NextRequest) {
           });
         }
       } catch (geminiError: any) {
-        console.error('❌ Gemini API error:', geminiError.message || geminiError);
-        console.error('🔍 Error details:', {
-          name: geminiError.name,
-          code: geminiError.code,
-          status: geminiError.status
-        });
+        console.log(geminiError);
         // Continue to fallback
       }
-    } else {
-      console.error('⚠️ No Gemini API key found in environment variables');
-    }
+    } 
     
     // Enhanced fallback responses based on actual prompt content
     const fallbackResponse = generateSmartFallback(prompt, tool, expectJson);
