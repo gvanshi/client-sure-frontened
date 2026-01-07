@@ -60,6 +60,12 @@ export default function UsersContent() {
     loadUsers()
   }, [])
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(10)
+
+  // ... (stats logic)
+
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -73,6 +79,11 @@ export default function UsersContent() {
     return matchesSearch && matchesStatus
   })
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage)
+
   if (selectedUserId) {
     return (
       <UserDetailView 
@@ -84,6 +95,7 @@ export default function UsersContent() {
 
   return (
     <div className="p-8">
+      {/* ... (Header and Stats Cards remain same) */}
       <div className="bg-white border-l-4 border-blue-600 rounded-lg shadow-sm p-6 mb-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -114,7 +126,6 @@ export default function UsersContent() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-lg border shadow-sm p-6">
           <div className="flex items-center">
@@ -180,16 +191,22 @@ export default function UsersContent() {
           </div>
           <input
             type="text"
-            className="block  text-black w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            className="block text-black w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             placeholder="Search by name or email..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value)
+              setCurrentPage(1) // Reset to first page on search
+            }}
           />
         </div>
         <div className="flex items-center space-x-4">
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => {
+              setStatusFilter(e.target.value)
+              setCurrentPage(1) // Reset to first page on filter change
+            }}
             className="block w-full md:w-48 pl-3 pr-10 py-2 text-base text-black border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg"
           >
             <option value="all">All Status</option>
@@ -229,7 +246,7 @@ export default function UsersContent() {
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((user, index) => (
+                paginatedUsers.map((user, index) => (
                   <tr key={user._id || index} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center">
@@ -279,6 +296,29 @@ export default function UsersContent() {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="p-6 border-t flex items-center justify-between text-black">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="flex items-center px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-gray-600">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="flex items-center px-4 py-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

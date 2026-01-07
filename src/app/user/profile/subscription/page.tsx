@@ -62,10 +62,10 @@ export default function SubscriptionPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <div className="flex max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row max-w-7xl mx-auto">
         <ProfileSidebar />
         
-        <div className="flex-1 p-8 bg-gray-50">
+        <div className="flex-1 p-4 md:p-8 bg-gray-50">
           <h1 className="text-2xl font-bold text-gray-900 mb-8 flex items-center space-x-2">
             <FileText className="w-6 h-6 text-blue-600" />
             <span>Subscription Plan</span>
@@ -73,7 +73,7 @@ export default function SubscriptionPage() {
 
           <div className="space-y-8">
           {subscription?.plan ? (
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg p-8 text-white shadow-lg">
+            <div className="bg-purple-600 rounded-lg p-8 text-white shadow-lg">
               <div className="text-center">
                 <div className="inline-block bg-white bg-opacity-20 rounded-full px-4 py-1 mb-3">
                   <span className="text-sm font-semibold text-black">CURRENT PLAN</span>
@@ -84,7 +84,7 @@ export default function SubscriptionPage() {
               </div>
             </div>
           ) : (
-            <div className="bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg p-8 text-center border border-gray-300">
+            <div className="bg-gray-100 rounded-lg p-8 text-center border border-gray-300">
               <div className="text-6xl mb-4">📋</div>
               <h3 className="text-2xl font-bold text-gray-900 mb-2">No Active Plan</h3>
               <p className="text-gray-600 mb-4">Subscribe to a plan to access premium features</p>

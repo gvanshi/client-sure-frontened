@@ -94,17 +94,17 @@ export default function ReferralsPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <div className="flex max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row max-w-7xl mx-auto">
         <ProfileSidebar />
         
-        <div className="flex-1 p-8 bg-gray-50">
+        <div className="flex-1 p-4 md:p-8 bg-gray-50">
           <h1 className="text-2xl font-bold text-gray-900 mb-8 flex items-center space-x-2">
             <Gift className="w-6 h-6 text-blue-600" />
             <span>Referral Program</span>
           </h1>
 
           <div className="space-y-8">
-          <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-lg p-8 text-white shadow-lg">
+          <div className="bg-green-600 rounded-lg p-8 text-white shadow-lg">
             <div className="text-center">
               <h3 className="text-3xl font-bold mb-2">Refer & Earn</h3>
               <p className="text-green-100 mb-6">Share your referral code and earn rewards</p>
@@ -168,7 +168,7 @@ export default function ReferralsPage() {
                 {referralData.referrals.map((referral, index) => (
                   <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100">
                     <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                      <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
                         {referral.user?.name ? referral.user.name.charAt(0).toUpperCase() : '?'}
                       </div>
                       <div>

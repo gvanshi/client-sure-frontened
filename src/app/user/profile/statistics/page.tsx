@@ -53,10 +53,10 @@ export default function StatisticsPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <div className="flex max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row max-w-7xl mx-auto">
         <ProfileSidebar />
         
-        <div className="flex-1 p-8 bg-gray-50">
+        <div className="flex-1 p-4 md:p-8 bg-gray-50">
           <h1 className="text-2xl font-bold text-gray-900 mb-8 flex items-center space-x-2">
             <BarChart3 className="w-6 h-6 text-blue-600" />
             <span>Usage Statistics</span>

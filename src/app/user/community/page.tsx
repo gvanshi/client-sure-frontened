@@ -436,196 +436,195 @@ export default function CommunityPage() {
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex gap-8">
-          {/* Main Content */}
-          <div className="flex-1 max-w-4xl">
-            {/* Header */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-              <div className="bg-white border-b border-gray-200 p-6">
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                      <Users className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h1 className="text-2xl font-bold text-gray-900 mb-1">Community</h1>
-                      <p className="text-gray-600 flex items-center gap-2 text-sm">
-                        <MessageSquare className="w-4 h-4" />
-                        {communityStats.totalPosts || 0} posts • 
-                        <Users className="w-4 h-4 ml-1" />
-                        {communityStats.activeMembers || 0} members
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Search discussions..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && fetchData(false)}
-                        className="pl-10 pr-4 py-2 rounded-lg text-gray-900 w-64 bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    </div>
-                    <button
-                      onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                        showAdvancedSearch 
-                          ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      <Filter className="w-4 h-4" /> Filters
-                    </button>
-                    <button
-                      onClick={() => { setShowTrending(!showTrending); fetchData(false); }}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                        showTrending 
-                          ? 'bg-orange-500 text-white hover:bg-orange-600' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {showTrending ? <><TrendingUp className="w-4 h-4" /> Trending</> : <><Calendar className="w-4 h-4" /> Latest</>}
-                    </button>
-                    <button
-                      onClick={() => {
-                        fetchData(false)
-                        toast.success('Community refreshed!')
-                      }}
-                      className="p-2 rounded-lg transition-all bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      title="Refresh community posts"
-                    >
-                      <RefreshCw className="w-5 h-5" />
-                    </button>
-                  </div>
+        {/* Header - Moved outside flex container to stay at top */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+          <div className="bg-white border-b border-gray-200 p-4 md:p-6">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900 mb-1">Community</h1>
+                  <p className="text-gray-600 flex items-center gap-2 text-sm">
+                    <MessageSquare className="w-4 h-4" />
+                    {communityStats.totalPosts || 0} posts • 
+                    <Users className="w-4 h-4 ml-1" />
+                    {communityStats.activeMembers || 0} members
+                  </p>
                 </div>
               </div>
               
-              {/* Daily Limits Display */}
-              <div className="px-6 pb-6">
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-blue-600" />
-                      Daily Limits
-                    </h3>
-                    <button
-                      onClick={() => fetchDailyLimits(false)}
-                      className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-                    >
-                      Refresh
-                    </button>
-                  </div>
-                  
-                  <div className="grid grid-cols-3 gap-4">
-                    {/* Posts Limit */}
-                    <div className="text-center">
-                      <div className="relative w-12 h-12 mx-auto mb-2">
-                        <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
-                          <path
-                            className="text-gray-200"
-                            stroke="currentColor"
-                            strokeWidth="3"
-                            fill="none"
-                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                          />
-                          <path
-                            className={`${dailyLimits.posts > 3 ? 'text-green-500' : dailyLimits.posts > 0 ? 'text-yellow-500' : 'text-red-500'}`}
-                            stroke="currentColor"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                            fill="none"
-                            strokeDasharray={`${(dailyLimits.posts / maxLimits.posts) * 100}, 100`}
-                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-xs font-bold text-gray-700">{dailyLimits.posts}</span>
-                        </div>
-                      </div>
-                      <div className="text-xs font-medium text-gray-700">Posts</div>
-                      <div className="text-xs text-gray-500">{dailyLimits.posts}/{maxLimits.posts}</div>
-                    </div>
-                    
-                    {/* Likes Limit */}
-                    <div className="text-center">
-                      <div className="relative w-12 h-12 mx-auto mb-2">
-                        <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
-                          <path
-                            className="text-gray-200"
-                            stroke="currentColor"
-                            strokeWidth="3"
-                            fill="none"
-                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                          />
-                          <path
-                            className={`${dailyLimits.likes > 3 ? 'text-green-500' : dailyLimits.likes > 0 ? 'text-yellow-500' : 'text-red-500'}`}
-                            stroke="currentColor"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                            fill="none"
-                            strokeDasharray={`${(dailyLimits.likes / maxLimits.likes) * 100}, 100`}
-                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-xs font-bold text-gray-700">{dailyLimits.likes}</span>
-                        </div>
-                      </div>
-                      <div className="text-xs font-medium text-gray-700">Likes</div>
-                      <div className="text-xs text-gray-500">{dailyLimits.likes}/{maxLimits.likes}</div>
-                    </div>
-                    
-                    {/* Comments Limit */}
-                    <div className="text-center">
-                      <div className="relative w-12 h-12 mx-auto mb-2">
-                        <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
-                          <path
-                            className="text-gray-200"
-                            stroke="currentColor"
-                            strokeWidth="3"
-                            fill="none"
-                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                          />
-                          <path
-                            className={`${dailyLimits.comments > 3 ? 'text-green-500' : dailyLimits.comments > 0 ? 'text-yellow-500' : 'text-red-500'}`}
-                            stroke="currentColor"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                            fill="none"
-                            strokeDasharray={`${(dailyLimits.comments / maxLimits.comments) * 100}, 100`}
-                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-xs font-bold text-gray-700">{dailyLimits.comments}</span>
-                        </div>
-                      </div>
-                      <div className="text-xs font-medium text-gray-700">Comments</div>
-                      <div className="text-xs text-gray-500">{dailyLimits.comments}/{maxLimits.comments}</div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-3 text-center">
-                    <p className="text-xs text-gray-600">
-                      Limits reset daily at midnight • 
-                      {dailyLimits.posts === 0 && dailyLimits.likes === 0 && dailyLimits.comments === 0 
-                        ? <span className="text-red-600 font-medium">All limits exhausted</span>
-                        : <span className="text-green-600 font-medium">Active</span>
-                      }
-                    </p>
-                  </div>
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search discussions..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && fetchData(false)}
+                    className="pl-10 pr-4 py-2 rounded-lg text-gray-900 w-full sm:w-64 bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 </div>
+                <button
+                  onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                    showAdvancedSearch 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <Filter className="w-4 h-4" /> Filters
+                </button>
+                <button
+                  onClick={() => { setShowTrending(!showTrending); fetchData(false); }}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                    showTrending 
+                      ? 'bg-orange-500 text-white hover:bg-orange-600' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {showTrending ? <><TrendingUp className="w-4 h-4" /> Trending</> : <><Calendar className="w-4 h-4" /> Latest</>}
+                </button>
+                <button
+                  onClick={() => {
+                    fetchData(false)
+                    toast.success('Community refreshed!')
+                  }}
+                  className="p-2 rounded-lg transition-all bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  title="Refresh community posts"
+                >
+                  <RefreshCw className="w-5 h-5" />
+                </button>
               </div>
             </div>
+          </div>
+          
+          {/* Daily Limits Display */}
+          <div className="px-4 pb-4 md:px-6 md:pb-6">
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-blue-600" />
+                  Daily Limits
+                </h3>
+                <button
+                  onClick={() => fetchDailyLimits(false)}
+                  className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Refresh
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-4">
+                {/* Posts Limit */}
+                <div className="text-center">
+                  <div className="relative w-12 h-12 mx-auto mb-2">
+                    <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        className="text-gray-200"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        fill="none"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                      <path
+                        className={`${dailyLimits.posts > 3 ? 'text-green-500' : dailyLimits.posts > 0 ? 'text-yellow-500' : 'text-red-500'}`}
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        fill="none"
+                        strokeDasharray={`${(dailyLimits.posts / maxLimits.posts) * 100}, 100`}
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xs font-bold text-gray-700">{dailyLimits.posts}</span>
+                    </div>
+                  </div>
+                  <div className="text-xs font-medium text-gray-700">Posts</div>
+                  <div className="text-xs text-gray-500">{dailyLimits.posts}/{maxLimits.posts}</div>
+                </div>
+                
+                {/* Likes Limit */}
+                <div className="text-center">
+                  <div className="relative w-12 h-12 mx-auto mb-2">
+                    <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        className="text-gray-200"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        fill="none"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                      <path
+                        className={`${dailyLimits.likes > 3 ? 'text-green-500' : dailyLimits.likes > 0 ? 'text-yellow-500' : 'text-red-500'}`}
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        fill="none"
+                        strokeDasharray={`${(dailyLimits.likes / maxLimits.likes) * 100}, 100`}
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xs font-bold text-gray-700">{dailyLimits.likes}</span>
+                    </div>
+                  </div>
+                  <div className="text-xs font-medium text-gray-700">Likes</div>
+                  <div className="text-xs text-gray-500">{dailyLimits.likes}/{maxLimits.likes}</div>
+                </div>
+                
+                {/* Comments Limit */}
+                <div className="text-center">
+                  <div className="relative w-12 h-12 mx-auto mb-2">
+                    <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        className="text-gray-200"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        fill="none"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                      <path
+                        className={`${dailyLimits.comments > 3 ? 'text-green-500' : dailyLimits.comments > 0 ? 'text-yellow-500' : 'text-red-500'}`}
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        fill="none"
+                        strokeDasharray={`${(dailyLimits.comments / maxLimits.comments) * 100}, 100`}
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xs font-bold text-gray-700">{dailyLimits.comments}</span>
+                    </div>
+                  </div>
+                  <div className="text-xs font-medium text-gray-700">Comments</div>
+                  <div className="text-xs text-gray-500">{dailyLimits.comments}/{maxLimits.comments}</div>
+                </div>
+              </div>
+              
+              <div className="mt-3 text-center">
+                <p className="text-xs text-gray-600">
+                  Limits reset daily at midnight • 
+                  {dailyLimits.posts === 0 && dailyLimits.likes === 0 && dailyLimits.comments === 0 
+                    ? <span className="text-red-600 font-medium">All limits exhausted</span>
+                    : <span className="text-green-600 font-medium">Active</span>
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
-            {/* Advanced Search Filters */}
+        <div className="flex flex-col-reverse lg:flex-row gap-8">
+          {/* Main Content */}
+          <div className="flex-1 max-w-4xl">
             {showAdvancedSearch && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-                <div className="p-6">
+                <div className="p-4 md:p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <Filter className="w-5 h-5 text-blue-600" /> Advanced Filters
                   </h3>
@@ -711,7 +710,7 @@ export default function CommunityPage() {
             {/* Create Post */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
               {showCreatePost ? (
-                <form onSubmit={createPost} className="p-6">
+                <form onSubmit={createPost} className="p-4 md:p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white">
                       <Edit3 className="w-5 h-5" />
@@ -736,9 +735,9 @@ export default function CommunityPage() {
                       required
                     />
                     
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap gap-4">
                       <div className="flex items-center gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition-colors">
+                        <label className="flex items-center gap-2 cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition-colors h-10 whitespace-nowrap">
                           <ImageIcon className="w-5 h-5 text-gray-600" />
                           <span className="text-sm font-medium text-gray-700">Add Image</span>
                           <input
@@ -781,14 +780,14 @@ export default function CommunityPage() {
                         <button
                           type="button"
                           onClick={() => setShowCreatePost(false)}
-                          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors"
+                          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors h-10 whitespace-nowrap"
                         >
                           Cancel
                         </button>
                         <button 
                           type="submit"
                           disabled={isSubmitting}
-                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 h-10 whitespace-nowrap"
                         >
                           {isSubmitting ? (
                             <><RefreshCw className="w-4 h-4 animate-spin" /> Posting...</>
@@ -825,7 +824,7 @@ export default function CommunityPage() {
                   </div>
                 </form>
               ) : (
-                <div className="p-6">
+                <div className="p-4 md:p-6">
                   <button
                     onClick={() => {
                       if (dailyLimits.posts === 0) {
@@ -871,7 +870,7 @@ export default function CommunityPage() {
               ) : (
                 posts.map((post) => (
                   <div key={post._id} className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
-                    <div className="p-6">
+                    <div className="p-4 md:p-6">
                       {/* Post Header */}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -1032,8 +1031,8 @@ export default function CommunityPage() {
           </div>
 
           {/* Leaderboard Sidebar */}
-          <div className="w-80 bg-white rounded-lg shadow-sm border border-gray-200 h-fit sticky top-8">
-            <div className="bg-white border-b border-gray-200 p-6 rounded-t-lg">
+          <div className="w-full lg:w-80 bg-white rounded-lg shadow-sm border border-gray-200 h-fit lg:sticky lg:top-8">
+            <div className="bg-white border-b border-gray-200 p-4 md:p-6 rounded-t-lg">
               <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <Award className="w-5 h-5 text-yellow-500" /> Leaderboard
               </h2>
@@ -1165,6 +1164,7 @@ export default function CommunityPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

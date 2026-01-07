@@ -673,7 +673,7 @@ export default function AdminLeaderboardPage() {
                   <p className="text-gray-600">Community members will appear here once they start earning points</p>
                 </div>
               ) : (
-                <table className="w-full">
+                <table className="w-full min-w-[1000px]">
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>

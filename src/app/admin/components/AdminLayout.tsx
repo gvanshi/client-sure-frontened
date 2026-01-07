@@ -32,7 +32,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       />
 
       {/* Main Content */}
-      <div className="flex-1 w-full md:w-auto pt-16 md:pt-0">
+      <div className="flex-1 min-w-0 w-full md:w-auto pt-16 md:pt-0">
         {children}
       </div>
     </div>

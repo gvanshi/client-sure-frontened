@@ -277,9 +277,9 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       
-      <div className="flex max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row max-w-7xl mx-auto">
         {/* Sidebar */}
-        <div className="w-80 bg-white border-r shadow-lg p-6">
+        <div className="w-full md:w-80 bg-white border-r shadow-lg p-4 md:p-6">
           <div className="text-center mb-8">
             {avatarPreview ? (
               <img src={avatarPreview} alt="Avatar" className="w-20 h-20 rounded-full mx-auto mb-4 object-cover" />
@@ -340,19 +340,19 @@ export default function ProfilePage() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-8 bg-gray-50">
+        <div className="flex-1 p-4 md:p-8 bg-gray-50">
           {loading ? (
             <div className="bg-white rounded-lg shadow-sm p-8 text-center">
               <div className="text-gray-500">Loading profile...</div>
             </div>
           ) : (
-            <div className="bg-white rounded-lg shadow-sm p-8">
+            <div className="bg-white rounded-lg shadow-sm p-4 md:p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-8">{activeSection}</h2>
             
               {activeSection === 'Account Details' && userProfile && (
                 <div>
-                  <div className="bg-blue-600 rounded-lg p-8 text-white mb-8 shadow-lg">
-                    <div className="flex items-center space-x-6">
+                  <div className="bg-blue-600 rounded-lg p-6 md:p-8 text-white mb-8 shadow-lg">
+                    <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
                       <div className="relative">
                         {avatarPreview ? (
                           <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white border-opacity-30">
@@ -379,10 +379,10 @@ export default function ProfilePage() {
                           className="hidden"
                         />
                       </div>
-                      <div className="flex-1 ">
+                      <div className="flex-1 text-center md:text-left">
                         <h3 className="text-3xl font-bold mb-1">{userProfile.name}</h3>
                         <p className="text-blue-100 text-lg mb-3">{userProfile.email}</p>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap justify-center md:justify-start items-center gap-3">
                           <span className={`px-4 py-1.5 rounded-full text-sm font-semibold shadow-md ${
                             userProfile.subscription.isActive 
                               ? 'bg-green-500 text-white' 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Download, Filter, Calendar, ArrowLeft, Mail, Linkedin, Instagram, Facebook, Globe, MapPin } from "lucide-react"
+import { Search, Download, Filter, Calendar, ArrowLeft, Mail, Linkedin, Instagram, Facebook, Globe, MapPin, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { toast } from "sonner"
 import Navbar from "../../components/Navbar"
 import Footer from "../../components/Footer"
@@ -53,11 +53,20 @@ function AccessedLeadsContent() {
   const loadAccessedLeads = async () => {
     setLoading(true)
     try {
-      let url = `/leads/accessed?page=${page}&limit=20`
-      if (selectedAccessDate) {
-        url += `&date=${selectedAccessDate}`
-      }
-      const response = await Axios.get(url)
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: '10' // Reduced limit as requested
+      })
+
+      if (searchTerm) params.append('search', searchTerm)
+      if (selectedCategory) params.append('category', selectedCategory)
+      if (selectedCity) params.append('city', selectedCity)
+      if (selectedCountry) params.append('country', selectedCountry)
+      if (selectedAccessDate) params.append('date', selectedAccessDate)
+      if (startDate) params.append('startDate', startDate)
+      if (endDate) params.append('endDate', endDate)
+
+      const response = await Axios.get(`/leads/accessed?${params.toString()}`)
       setAccessedLeads(response.data.leads)
       setTotalPages(response.data.pagination.totalPages)
     } catch (error: any) {
@@ -94,15 +103,15 @@ function AccessedLeadsContent() {
   }
 
   const handleBulkExport = async () => {
-    const accessedLeadIds = filteredLeads.map(lead => lead.id)
+    const leadIds = accessedLeads.map(lead => lead.id)
 
-    if (accessedLeadIds.length === 0) {
-      toast.error('No accessed leads to export')
+    if (leadIds.length === 0) {
+      toast.error('No leads to export')
       return
     }
 
     try {
-      const response = await Axios.post('/auth/leads/bulk-export', { leadIds: accessedLeadIds }, {
+      const response = await Axios.post('/auth/leads/bulk-export', { leadIds }, {
         responseType: 'blob'
       })
 
@@ -115,7 +124,7 @@ function AccessedLeadsContent() {
       link.remove()
       window.URL.revokeObjectURL(url)
 
-      toast.success(`${accessedLeadIds.length} leads exported successfully!`)
+      toast.success(`${leadIds.length} leads exported successfully!`)
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to export leads data')
     }
@@ -152,6 +161,7 @@ function AccessedLeadsContent() {
       const response = await Axios.post('/leads/send-email', payload)
       toast.success(response.data.message || 'Emails sent successfully')
       setSelectedEmailLeads([])
+      setShowEmailModal(false)
     } catch (error: any) {
       console.error('Email sending error:', error)
       if (error.code === 'ECONNABORTED' || error.message === 'Network Error') {
@@ -168,46 +178,21 @@ function AccessedLeadsContent() {
     )
   }
 
+  // Reload when any filter changes
+  useEffect(() => {
+    setPage(1)
+  }, [searchTerm, selectedCategory, selectedCity, selectedCountry, selectedAccessDate, startDate, endDate])
+
   useEffect(() => {
     loadAccessedLeads()
-  }, [page, selectedAccessDate])
+  }, [page, searchTerm, selectedCategory, selectedCity, selectedCountry, selectedAccessDate, startDate, endDate])
 
   const cities = Array.from(new Set(accessedLeads.map(l => l.city).filter(Boolean))) as string[]
   const countries = Array.from(new Set(accessedLeads.map(l => l.country).filter(Boolean))) as string[]
   const categories = Array.from(new Set(accessedLeads.map(l => l.category).filter(Boolean))) as string[]
 
-  const filteredLeads = accessedLeads.filter(lead => {
-    const searchLower = searchTerm.toLowerCase()
-    const matchesSearch = !searchTerm ||
-      lead.name?.toLowerCase().includes(searchLower) ||
-      lead.leadId?.toLowerCase().includes(searchLower) ||
-      lead.email?.toLowerCase().includes(searchLower) ||
-      lead.phone?.toLowerCase().includes(searchLower) ||
-      lead.city?.toLowerCase().includes(searchLower) ||
-      lead.country?.toLowerCase().includes(searchLower) ||
-      lead.category?.toLowerCase().includes(searchLower)
-    
-    const matchesCity = !selectedCity || lead.city === selectedCity
-    const matchesCountry = !selectedCountry || lead.country === selectedCountry
-    const matchesCategory = !selectedCategory || lead.category === selectedCategory
-
-    let matchesDate = true
-    if (startDate || endDate) {
-      const leadDate = new Date(lead.createdAt)
-      if (startDate) {
-        const start = new Date(startDate)
-        start.setHours(0, 0, 0, 0)
-        matchesDate = matchesDate && leadDate >= start
-      }
-      if (endDate) {
-        const end = new Date(endDate)
-        end.setHours(23, 59, 59, 999)
-        matchesDate = matchesDate && leadDate <= end
-      }
-    }
-
-    return matchesSearch && matchesCity && matchesCountry && matchesCategory && matchesDate
-  }).sort((a, b) => a.leadId.localeCompare(b.leadId))
+  // Use accessedLeads directly as backend now handles filtering
+  const filteredLeads = accessedLeads;
 
   return (
     <div className="w-full px-2 py-4">
@@ -256,66 +241,77 @@ function AccessedLeadsContent() {
             />
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap">
-            <Filter className="w-4 h-4 text-gray-500" />
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
-            >
-              <option value="">All Categories</option>
-              {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
+          <div className="flex flex-col md:flex-row md:items-center gap-3 flex-wrap w-full">
+            <div className="flex items-center gap-2 mb-1 md:mb-0">
+                <Filter className="w-4 h-4 text-gray-500" />
+                <span className="md:hidden text-sm font-medium text-gray-700">Filters</span>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:flex md:items-center gap-3 w-full md:w-auto">
+                <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 w-full md:w-auto"
+                >
+                <option value="">All Categories</option>
+                {categories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                ))}
+                </select>
 
-            <select
-              value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
-            >
-              <option value="">All Cities</option>
-              {cities.map(city => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
+                <select
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 w-full md:w-auto"
+                >
+                <option value="">All Cities</option>
+                {cities.map(city => (
+                    <option key={city} value={city}>{city}</option>
+                ))}
+                </select>
 
-            <select
-              value={selectedCountry}
-              onChange={(e) => setSelectedCountry(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
-            >
-              <option value="">All Countries</option>
-              {countries.map(country => (
-                <option key={country} value={country}>{country}</option>
-              ))}
-            </select>
+                <select
+                value={selectedCountry}
+                onChange={(e) => setSelectedCountry(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 w-full md:w-auto"
+                >
+                <option value="">All Countries</option>
+                {countries.map(country => (
+                    <option key={country} value={country}>{country}</option>
+                ))}
+                </select>
+            </div>
 
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-gray-500" />
-              <input
-                type="date"
-                value={selectedAccessDate}
-                onChange={(e) => setSelectedAccessDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
-                placeholder="Access Date"
-                title="Filter by access date (DD/MM/YYYY)"
-              />
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
-                placeholder="Start Date"
-              />
-              <span className="text-gray-500 text-sm">to</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
-                placeholder="End Date"
-              />
+            <div className="flex flex-col md:flex-row md:items-center gap-2 w-full md:w-auto border-t md:border-t-0 pt-3 md:pt-0 mt-1 md:mt-0">
+              <div className="hidden md:block"><Calendar className="w-4 h-4 text-gray-500" /></div>
+              <div className="grid grid-cols-1 sm:grid-cols-1 md:flex md:items-center gap-2 w-full">
+                  <input
+                    type="date"
+                    value={selectedAccessDate}
+                    onChange={(e) => setSelectedAccessDate(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 w-full md:w-auto"
+                    placeholder="Access Date"
+                    title="Filter by access date (DD/MM/YYYY)"
+                  />
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full md:w-auto">
+                    <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 w-full md:w-auto"
+                        placeholder="Start Date"
+                    />
+                    <span className="hidden md:inline text-gray-500 text-sm">to</span>
+                    <span className="md:hidden text-center text-gray-500 text-sm">to</span>
+                    <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 w-full md:w-auto"
+                        placeholder="End Date"
+                    />
+                  </div>
+              </div>
             </div>
 
             {(selectedCountry || selectedCategory || selectedCity || startDate || endDate || selectedAccessDate) && (
@@ -328,7 +324,7 @@ function AccessedLeadsContent() {
                   setEndDate("")
                   setSelectedAccessDate("")
                 }}
-                className="text-sm text-gray-600 hover:text-gray-900"
+                className="text-sm text-gray-600 hover:text-gray-900 mt-2 md:mt-0 w-full md:w-auto text-center"
               >
                 Clear Filters
               </button>
@@ -344,7 +340,7 @@ function AccessedLeadsContent() {
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hidden md:block">
             <div className="w-full">
               <table className="w-full table-auto">
                 <thead className="bg-gray-50 border-b">
@@ -469,36 +465,136 @@ function AccessedLeadsContent() {
             </div>
           </div>
 
+          {/* Mobile Card Layout */}
+          <div className="md:hidden grid grid-cols-1 gap-4">
+            {filteredLeads.length === 0 ? (
+              <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
+                {selectedAccessDate ? `No leads accessed on ${formatDate(selectedAccessDate)}` : 'No accessed leads found'}
+              </div>
+            ) : (
+              filteredLeads.map((lead) => (
+                <div key={lead.id} className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedEmailLeads.includes(lead.id)}
+                        onChange={() => handleSelectEmailLead(lead.id)}
+                        className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <div>
+                        <h3 className="font-bold text-gray-900">{lead.name}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{lead.leadId}</span>
+                          <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">{lead.category || 'No Category'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase">Location</p>
+                      <p className="font-medium text-gray-900 truncate">
+                        {lead.city && lead.country ? `${lead.city}, ${lead.country}` : (lead.city || lead.country || '-')}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase">Access Date</p>
+                      <p className="font-medium text-gray-900">{lead.accessedAt ? formatDate(lead.accessedAt) : '-'}</p>
+                    </div>
+                    <div className="col-span-2">
+                       <p className="text-xs text-gray-500 uppercase">Contact</p>
+                       <p className="font-medium text-gray-900 truncate">{lead.email}</p>
+                       <p className="font-medium text-gray-900">{lead.phone || '-'}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between border-t border-gray-100 pt-3">
+                    <div className="flex items-center gap-3">
+                      {lead.websiteLink && (
+                        <a href={lead.websiteLink} target="_blank" rel="noopener noreferrer" title="Website">
+                          <Globe className="w-5 h-5 text-blue-600" />
+                        </a>
+                      )}
+                      {lead.linkedin && (
+                        <a href={lead.linkedin} target="_blank" rel="noopener noreferrer" title="LinkedIn">
+                          <Linkedin className="w-5 h-5 text-blue-700" />
+                        </a>
+                      )}
+                      {lead.facebookLink && (
+                        <a href={lead.facebookLink} target="_blank" rel="noopener noreferrer" title="Facebook">
+                          <Facebook className="w-5 h-5 text-blue-600" />
+                        </a>
+                      )}
+                      {lead.instagram && (
+                        <a href={lead.instagram.startsWith('http') ? lead.instagram : `https://instagram.com/${lead.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" title="Instagram">
+                          <Instagram className="w-5 h-5 text-pink-600" />
+                        </a>
+                      )}
+                      {lead.googleMapLink && (
+                        <a href={lead.googleMapLink} target="_blank" rel="noopener noreferrer" title="Google Maps">
+                          <MapPin className="w-5 h-5 text-green-600" />
+                        </a>
+                      )}
+                    </div>
+                    
+                    <div className="flex gap-2">
+                        <button onClick={() => handleExportLead(lead.id)} className="p-2 bg-green-50 text-green-600 rounded-lg border border-green-200 hover:bg-green-100">
+                          <Download className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => { setSelectedEmailLeads([lead.id]); setEmailDefaultType('selected'); setShowEmailModal(true); }} className="p-2 bg-blue-50 text-blue-600 rounded-lg border border-blue-200 hover:bg-blue-100">
+                          <Mail className="w-4 h-4" />
+                        </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
           {totalPages > 1 && (
-            <div className="mt-6 flex items-center justify-center gap-2">
+            <div className="mt-6 flex items-center justify-center gap-2 flex-wrap">
               <button
                 onClick={() => setPage(1)}
                 disabled={page === 1}
-                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 flex items-center justify-center min-w-[40px]"
+                title="First Page"
               >
-                First
+                <span className="hidden md:inline">First</span>
+                <span className="md:hidden"><ChevronsLeft className="w-4 h-4" /></span>
               </button>
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                className="px-3 md:px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 flex items-center justify-center min-w-[40px]"
+                title="Previous Page"
               >
-                Previous
+                <span className="hidden md:inline">Previous</span>
+                <span className="md:hidden"><ChevronLeft className="w-4 h-4" /></span>
               </button>
-              <span className="text-sm text-gray-700">Page {page} of {totalPages}</span>
+              
+              <span className="text-sm text-gray-700 px-2 font-medium">
+                Page {page} of {totalPages}
+              </span>
+              
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                className="px-3 md:px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 flex items-center justify-center min-w-[40px]"
+                title="Next Page"
               >
-                Next
+                <span className="hidden md:inline">Next</span>
+                <span className="md:hidden"><ChevronRight className="w-4 h-4" /></span>
               </button>
               <button
                 onClick={() => setPage(totalPages)}
                 disabled={page === totalPages}
-                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 flex items-center justify-center min-w-[40px]"
+                title="Last Page"
               >
-                Last
+                <span className="hidden md:inline">Last</span>
+                <span className="md:hidden"><ChevronsRight className="w-4 h-4" /></span>
               </button>
             </div>
           )}

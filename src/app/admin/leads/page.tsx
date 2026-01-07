@@ -42,7 +42,7 @@ export default function LeadsPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [totalLeads, setTotalLeads] = useState(0)
   const [searchTerm, setSearchTerm] = useState("")
-  const [limit] = useState(100)
+  const [limit, setLimit] = useState(10)
   const [viewLead, setViewLead] = useState<Lead | null>(null)
   const [editLead, setEditLead] = useState<Lead | null>(null)
   const [editForm, setEditForm] = useState<Partial<Lead>>({})
@@ -453,7 +453,7 @@ export default function LeadsPage() {
                   )}
 
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1600px]">
+            <table className="w-full min-w-[1000px]">
               <thead className="bg-[#BDDDFC]/20 border-b">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase whitespace-nowrap">

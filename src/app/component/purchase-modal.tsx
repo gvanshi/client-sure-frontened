@@ -77,9 +77,9 @@ export default function PurchaseModal({ isOpen, onClose, plan }: PurchaseModalPr
       } else {
         // Always fallback to dummy checkout for development/testing
         const orderId = response.data.orderId || response.data.clientOrderId || `order_${Date.now()}`
-        const baseUrl = isLocalhost 
-          ? 'http://localhost:5000' 
-          : 'https://client-sure-backend.vercel.app'
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+        // Remove /api from the end to get the base URL
+        const baseUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
         const dummyCheckoutUrl = `${baseUrl}/dummy-checkout?order=${orderId}`
         console.log('Redirecting to dummy checkout:', dummyCheckoutUrl)
         window.location.href = dummyCheckoutUrl

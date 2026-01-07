@@ -1,6 +1,6 @@
 // Admin API utility functions
 // const API_BASE =  "https://client-sure-backend.vercel.app/api/admin";
-const API_BASE = "http://localhost:5001/api/admin";
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api") + "/admin";
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('adminToken')

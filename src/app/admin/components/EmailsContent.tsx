@@ -98,7 +98,7 @@ export default function EmailsContent() {
       const { userName, ...backendFilters } = filters
       const params = {
         page: currentPage.toString(),
-        limit: "20",
+        limit: "10",
         ...Object.fromEntries(Object.entries(backendFilters).filter(([_, v]) => v))
       }
 
@@ -201,7 +201,7 @@ export default function EmailsContent() {
             <h3 className="text-xl font-semibold">Recipients ({selectedEmail.recipients.length})</h3>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-[1000px]">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Lead</th>
@@ -360,7 +360,7 @@ export default function EmailsContent() {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[1000px]">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>

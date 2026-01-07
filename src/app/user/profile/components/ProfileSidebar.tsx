@@ -54,7 +54,7 @@ export default function ProfileSidebar() {
   }, [])
 
   return (
-    <div className="w-80 bg-white border-r shadow-lg p-6">
+    <div className="w-full md:w-80 bg-white border-r shadow-lg p-6">
       <div className="text-center mb-8">
         {userProfile?.avatar ? (
           <img src={userProfile.avatar} alt="Avatar" className="w-20 h-20 rounded-full mx-auto mb-4 object-cover" />

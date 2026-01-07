@@ -229,7 +229,7 @@ function DashboardContent() {
         )}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">
           <div className={`bg-white rounded-xl shadow-lg p-6 text-center relative ${
             (userStats?.tokens || 0) <= 5 ? 'ring-2 ring-orange-500 ring-opacity-50' : ''
           }`}>
@@ -297,73 +297,73 @@ function DashboardContent() {
         </div>
 
         {/* Hero Sections */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">
           {/* Lead Information Section */}
-          <div className="bg-blue-100 rounded-xl shadow-lg p-6 border border-blue-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-blue-600 p-3 rounded-lg">
-                <Database className="w-6 h-6 text-white" />
+          <div className="group bg-white rounded-xl shadow-sm hover:shadow-md p-5 border border-gray-200 transition-all duration-300 flex flex-col h-full">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="hidden md:block bg-blue-50 p-3 rounded-xl group-hover:bg-blue-100 transition-colors">
+                <Database className="w-6 h-6 text-blue-600" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Lead Information</h2>
+              <h2 className="text-lg font-bold text-gray-900 leading-tight">Lead Information</h2>
             </div>
-            <p className="text-gray-700 mb-4">Access verified business leads with complete contact details and social profiles.</p>
-            <button onClick={() => handleNavigation('/user/leads/information')} className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors w-full">
+            <p className="hidden md:block text-gray-500 text-sm mb-6 flex-grow">Access verified business leads with complete contact details and social profiles.</p>
+            <button onClick={() => handleNavigation('/user/leads/information')} className="w-full py-2.5 rounded-lg border border-blue-100 bg-blue-50 text-blue-700 font-semibold text-sm hover:bg-blue-100 transition-all">
               Browse Leads
             </button>
           </div>
 
           {/* Accessed Leads Section */}
-          <div className="bg-green-100 rounded-xl shadow-lg p-6 border border-green-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-green-600 p-3 rounded-lg">
-                <Users className="w-6 h-6 text-white" />
+          <div className="group bg-white rounded-xl shadow-sm hover:shadow-md p-5 border border-gray-200 transition-all duration-300 flex flex-col h-full">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="hidden md:block bg-green-50 p-3 rounded-xl group-hover:bg-green-100 transition-colors">
+                <Users className="w-6 h-6 text-green-600" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Accessed Leads</h2>
+              <h2 className="text-lg font-bold text-gray-900 leading-tight">Accessed Leads</h2>
             </div>
-            <p className="text-gray-700 mb-4">View and manage all your unlocked leads with full contact information.</p>
-            <button onClick={() => handleNavigation('/user/leads/accessed')} className="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors w-full">
+            <p className="hidden md:block text-gray-500 text-sm mb-6 flex-grow">View and manage all your unlocked leads with full contact information.</p>
+            <button onClick={() => handleNavigation('/user/leads/accessed')} className="w-full py-2.5 rounded-lg border border-green-100 bg-green-50 text-green-700 font-semibold text-sm hover:bg-green-100 transition-all">
               View Accessed
             </button>
           </div>
 
           {/* External Tools Section */}
-          <div className="bg-purple-100 rounded-xl shadow-lg p-6 border border-purple-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-purple-600 p-3 rounded-lg">
-                <ExternalLink className="w-6 h-6 text-white" />
+          <div className="group bg-white rounded-xl shadow-sm hover:shadow-md p-5 border border-gray-200 transition-all duration-300 flex flex-col h-full">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="hidden md:block bg-purple-50 p-3 rounded-xl group-hover:bg-purple-100 transition-colors">
+                <ExternalLink className="w-6 h-6 text-purple-600" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">External Tools</h2>
+              <h2 className="text-lg font-bold text-gray-900 leading-tight">External Tools</h2>
             </div>
-            <p className="text-gray-700 mb-4">Explore powerful tools and integrations to boost your business growth.</p>
-            <button onClick={() => handleNavigation('/user/tools')} className="bg-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-purple-700 transition-colors w-full">
+            <p className="hidden md:block text-gray-500 text-sm mb-6 flex-grow">Explore powerful tools and integrations to boost your business growth.</p>
+            <button onClick={() => handleNavigation('/user/tools')} className="w-full py-2.5 rounded-lg border border-purple-100 bg-purple-50 text-purple-700 font-semibold text-sm hover:bg-purple-100 transition-all">
               Explore Tools
             </button>
           </div>
 
           {/* Community Section */}
-          <div className="bg-orange-100 rounded-xl shadow-lg p-6 border border-orange-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-orange-600 p-3 rounded-lg">
-                <MessageCircle className="w-6 h-6 text-white" />
+          <div className="group bg-white rounded-xl shadow-sm hover:shadow-md p-5 border border-gray-200 transition-all duration-300 flex flex-col h-full">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="hidden md:block bg-orange-50 p-3 rounded-xl group-hover:bg-orange-100 transition-colors">
+                <MessageCircle className="w-6 h-6 text-orange-600" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Community</h2>
+              <h2 className="text-lg font-bold text-gray-900 leading-tight">Community</h2>
             </div>
-            <p className="text-gray-700 mb-4">Connect with other members, share insights, and grow together.</p>
-            <button onClick={() => handleNavigation('/user/community')} className="bg-orange-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-orange-700 transition-colors w-full">
+            <p className="hidden md:block text-gray-500 text-sm mb-6 flex-grow">Connect with other members, share insights, and grow together.</p>
+            <button onClick={() => handleNavigation('/user/community')} className="w-full py-2.5 rounded-lg border border-orange-100 bg-orange-50 text-orange-700 font-semibold text-sm hover:bg-orange-100 transition-all">
               Join Community
             </button>
           </div>
 
           {/* Chatbot Tools Section */}
-          <div className="bg-cyan-100 rounded-xl shadow-lg p-6 border border-cyan-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-cyan-600 p-3 rounded-lg">
-                <Bot className="w-6 h-6 text-white" />
+          <div className="group bg-white rounded-xl shadow-sm hover:shadow-md p-5 border border-gray-200 transition-all duration-300 flex flex-col h-full">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="hidden md:block bg-cyan-50 p-3 rounded-xl group-hover:bg-cyan-100 transition-colors">
+                <Bot className="w-6 h-6 text-cyan-600" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Chatbot Tools</h2>
+              <h2 className="text-lg font-bold text-gray-900 leading-tight">Chatbot Tools</h2>
             </div>
-            <p className="text-gray-700 mb-4">Access AI-powered chatbot tools to automate customer interactions and support.</p>
-            <button onClick={() => handleNavigation('/user/dashboard/chatbot')} className="bg-cyan-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-cyan-700 transition-colors w-full">
+            <p className="hidden md:block text-gray-500 text-sm mb-6 flex-grow">Access AI-powered chatbot tools to automate customer interactions and support.</p>
+            <button onClick={() => handleNavigation('/user/dashboard/chatbot')} className="w-full py-2.5 rounded-lg border border-cyan-100 bg-cyan-50 text-cyan-700 font-semibold text-sm hover:bg-cyan-100 transition-all">
               Launch Chatbot
             </button>
           </div>

@@ -117,16 +117,16 @@ export default function AccountDetailsPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <div className="flex max-w-7xl mx-auto">
+      <div className="flex flex-col md:flex-row max-w-7xl mx-auto">
         <ProfileSidebar />
         
-        <div className="flex-1 p-8 bg-gray-50">
+        <div className="flex-1 p-4 md:p-8 bg-gray-50">
           <h1 className="text-2xl font-bold text-gray-900 mb-8">Account Details</h1>
 
         {userProfile && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-white mb-8 shadow-lg">
-              <div className="flex items-center space-x-6">
+            <div className="bg-blue-600 rounded-lg p-8 text-white mb-8 shadow-lg">
+              <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
                 <div className="relative">
                   {avatarPreview ? (
                     <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white border-opacity-30">
@@ -153,10 +153,10 @@ export default function AccountDetailsPage() {
                     className="hidden"
                   />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 text-center md:text-left">
                   <h3 className="text-3xl font-bold mb-1">{userProfile.name}</h3>
                   <p className="text-blue-100 text-lg mb-3">{userProfile.email}</p>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap justify-center md:justify-start items-center gap-3">
                     <span className={`px-4 py-1.5 rounded-full text-sm font-semibold shadow-md ${
                       userProfile.subscription.isActive 
                         ? 'bg-green-500 text-white' 
