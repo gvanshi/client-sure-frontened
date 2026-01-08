@@ -347,7 +347,7 @@ function EmailsScreen() {
                    value={String(wordLimit)} onChange={e=>setWordLimit(e.target.value === '' ? '' : Number(e.target.value))} />
           </div>
 
-          {/* <details className="ml-2">
+          <details className="ml-2">
             <summary className="cursor-pointer text-sm text-blue-900 font-semibold">Advanced options</summary>
             <div className="mt-2 flex flex-wrap items-center gap-4">
               <label className="inline-flex items-center gap-2 text-blue-900">
@@ -362,7 +362,7 @@ function EmailsScreen() {
                        type="number" min={1} max={5} value={variants} onChange={e=>setVariants(Number(e.target.value))} />
               </div>
             </div>
-          </details> */}
+          </details>
         </FieldRow>
 
         {/* <div className="mt-3 flex flex-wrap gap-2">
