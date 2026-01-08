@@ -6,17 +6,18 @@ import Link from "next/link"
 interface TokenLimitBannerProps {
   effectiveTokens: number
   dailyLimit: number
+  dailyUsed: number
 }
 
-export default function TokenLimitBanner({ effectiveTokens, dailyLimit }: TokenLimitBannerProps) {
-  // Only show banner when tokens >= 30
-  if (effectiveTokens < 30) {
+export default function TokenLimitBanner({ effectiveTokens, dailyLimit, dailyUsed }: TokenLimitBannerProps) {
+  // Only show banner when user has used 30 or more tokens
+  if (dailyUsed < 30) {
     return null
   }
 
-  // Determine severity level
-  const isWarning = effectiveTokens >= 30 && effectiveTokens < 70
-  const isCritical = effectiveTokens >= 70
+  // Determine severity level based on tokens USED
+  const isWarning = dailyUsed >= 30 && dailyUsed < 70
+  const isCritical = dailyUsed >= 70
 
   return (
     <div 
@@ -44,7 +45,7 @@ export default function TokenLimitBanner({ effectiveTokens, dailyLimit }: TokenL
               <span className={`text-sm ${
                 isCritical ? 'text-red-700' : 'text-yellow-700'
               }`}>
-                You've used <span className="font-bold">{effectiveTokens}</span> of your <span className="font-bold">{dailyLimit}</span> daily tokens
+                You've used <span className="font-bold">{dailyUsed}</span> tokens. <span className="font-bold">{effectiveTokens}</span> remaining of <span className="font-bold">{dailyLimit}</span> daily limit
               </span>
             </div>
           </div>

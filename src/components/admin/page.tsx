@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import Axios from "../../../utils/Axios"
+import Axios from "../../utils/Axios"
 
 export default function AdminLoginPage() {
   const [formData, setFormData] = useState({

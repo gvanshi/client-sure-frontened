@@ -576,7 +576,7 @@ export default function AdminLeaderboardPage() {
                           {prizeInfo.icon}
                         </div>
 
-                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-2xl font-bold text-gray-700 mx-auto mb-4 shadow-md">
+                        <div className="w-20 h-20 bg-white text-black rounded-full flex items-center justify-center text-2xl font-bold text-gray-700 mx-auto mb-4 shadow-md">
                           {user.name.charAt(0).toUpperCase()}
                         </div>
 
@@ -584,22 +584,22 @@ export default function AdminLeaderboardPage() {
                           {prizeInfo.badge}
                         </div>
 
-                        <h3 className="text-xl font-bold text-white mb-1">{user.name}</h3>
-                        <p className="text-white text-opacity-90 text-sm mb-3">{user.email}</p>
+                        <h3 className="text-xl font-bold text-black mb-1">{user.name}</h3>
+                        <p className="text-black text-opacity-90 text-sm mb-3">{user.email}</p>
 
                         <div className="bg-white bg-opacity-20 rounded-lg p-3 mb-4">
-                          <div className="text-3xl font-bold text-white">{user.points}</div>
-                          <div className="text-white text-opacity-90 text-sm">Points</div>
+                          <div className="text-3xl font-bold text-black">{user.points}</div>
+                          <div className="text-black text-opacity-90 text-sm">Points</div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-2 text-xs mb-4">
                           <div className="bg-white bg-opacity-20 rounded-lg p-2">
-                            <div className="font-bold text-white">{user.communityActivity.postsCreated}</div>
-                            <div className="text-white text-opacity-80">Posts</div>
+                            <div className="font-bold text-black">{user.communityActivity.postsCreated}</div>
+                            <div className="text-black text-opacity-80">Posts</div>
                           </div>
                           <div className="bg-white bg-opacity-20 rounded-lg p-2">
-                            <div className="font-bold text-white">{user.communityActivity.commentsMade}</div>
-                            <div className="text-white text-opacity-80">Comments</div>
+                            <div className="font-bold text-black">{user.communityActivity.commentsMade}</div>
+                            <div className="text-black text-opacity-80">Comments</div>
                           </div>
                         </div>
 

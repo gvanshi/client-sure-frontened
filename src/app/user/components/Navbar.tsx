@@ -22,7 +22,7 @@ interface Notification {
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
-  const [tokens, setTokens] = useState({ daily: 0, dailyLimit: 100, prizeTokens: 0, effectiveTokens: 0 })
+  const [tokens, setTokens] = useState({ daily: 0, dailyLimit: 100, dailyUsed: 0, prizeTokens: 0, effectiveTokens: 0 })
   const [userName, setUserName] = useState('')
   const [notificationCount, setNotificationCount] = useState(0)
   const [showNotifications, setShowNotifications] = useState(false)
@@ -47,6 +47,7 @@ export default function Navbar() {
         setTokens({
           daily: response.data.tokens.daily,
           dailyLimit: response.data.tokens.dailyLimit,
+          dailyUsed: response.data.tokens.dailyUsed || 0,
           prizeTokens: response.data.tokens.prizeTokens || 0,
           effectiveTokens: response.data.tokens.effectiveTokens || response.data.tokens.daily
         })
@@ -431,7 +432,8 @@ export default function Navbar() {
       {/* Token Limit Banner */}
       <TokenLimitBanner 
         effectiveTokens={tokens.effectiveTokens} 
-        dailyLimit={tokens.dailyLimit} 
+        dailyLimit={tokens.dailyLimit}
+        dailyUsed={tokens.dailyUsed}
       />
     </nav>
   )

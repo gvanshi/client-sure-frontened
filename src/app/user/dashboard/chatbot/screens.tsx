@@ -399,7 +399,7 @@ function EmailsScreen() {
                    value={String(wordLimit)} onChange={e=>setWordLimit(e.target.value === '' ? '' : Number(e.target.value))} />
           </div>
 
-          <details className="ml-2">
+          {/* <details className="ml-2">
             <summary className="cursor-pointer text-sm text-blue-900 font-semibold">Advanced options</summary>
             <div className="mt-2 flex flex-wrap items-center gap-4">
               <label className="inline-flex items-center gap-2 text-blue-900">
@@ -414,16 +414,16 @@ function EmailsScreen() {
                        type="number" min={1} max={5} value={variants} onChange={e=>setVariants(Number(e.target.value))} />
               </div>
             </div>
-          </details>
+          </details> */}
         </FieldRow>
 
-        <div className="mt-3 flex flex-wrap gap-2">
+        {/* <div className="mt-3 flex flex-wrap gap-2">
           <button className="px-3 py-2 rounded-lg bg-white border border-blue-300 hover:bg-blue-50 text-blue-900 font-medium transition-colors shadow-sm" onClick={fillExample}>Use Template</button>
           <button className="px-3 py-2 rounded-lg bg-white border border-blue-300 hover:bg-blue-50 text-blue-900 font-medium transition-colors shadow-sm" onClick={() => { safeCopy(prompt); }}>Copy Prompt</button>
           <button className="px-3 py-2 rounded-lg bg-white border border-blue-300 hover:bg-blue-50 text-blue-900 font-medium transition-colors shadow-sm" onClick={onSaveTemplate}>Save Template</button>
           <button className="px-3 py-2 rounded-lg bg-white border border-blue-300 hover:bg-blue-50 text-blue-900 font-medium transition-colors shadow-sm" onClick={onLoadTemplate}>Load Template</button>
           <button className="px-3 py-2 rounded-lg bg-white border border-blue-300 hover:bg-blue-50 text-blue-900 font-medium transition-colors shadow-sm" onClick={onReset}>Reset</button>
-        </div>
+        </div> */}
       </Card>
 
       <label className="block text-xs text-blue-900 font-semibold">Preview prompt (editable)</label>

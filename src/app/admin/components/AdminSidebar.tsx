@@ -46,7 +46,7 @@ export default function AdminSidebar({ isMobileOpen = false, onMobileClose }: Ad
     localStorage.removeItem('userToken')
     localStorage.removeItem('adminToken')
     localStorage.removeItem('user')
-    router.push('/auth/admin')
+    router.push('/auth/login')
   }
 
   const handleNavigation = (path: string) => {
