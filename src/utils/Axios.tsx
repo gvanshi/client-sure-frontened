@@ -41,7 +41,7 @@ const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001/api";
 const Axios = axios.create({
   baseURL: baseURL,
   withCredentials: true,
-  timeout: 10000,
+  timeout: 60000, // 60 seconds for AI generation
 });
 
 // Add connection test

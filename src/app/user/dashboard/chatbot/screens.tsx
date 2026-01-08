@@ -1,110 +1,29 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useEditorShortcuts, FieldRow, Card, SenderBlock } from './components';
 import Axios from '@/utils/Axios';
+import {
+  estimateTokens,
+  spamHints,
+  robustJsonParse,
+  saveTemplate,
+  loadTemplate,
+  safeCopy,
+  buildStructuredPayload,
+  type SenderData,
+  type EmailToolData,
+  type WhatsAppToolData,
+  type LinkedInToolData,
+  type ContractToolData
+} from './utils';
 
-async function generateTextOnServer(prompt: string, tool: string, expectJson: boolean, variants: number): Promise<string[]> {
-  const res = await Axios.post('/compose', {
-    prompt,
-    tool,
-    expectJson,
-    variants
-  });
+// Updated API call function to support both legacy and structured formats
+async function generateTextOnServer(payload: any): Promise<string[]> {
+  const res = await Axios.post('/compose', payload);
 
   if (res.data.variants) {
     return res.data.variants;
   }
   return [res.data.text || ''];
-}
-
-async function safeCopy(text: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch {
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-  }
-  
-  // Create custom alert with black text
-  const alertDiv = document.createElement('div');
-  alertDiv.innerHTML = 'Copied!';
-  alertDiv.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: white;
-    color: black;
-    padding: 12px 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    z-index: 10000;
-    font-family: system-ui;
-    font-weight: 500;
-  `;
-  document.body.appendChild(alertDiv);
-  setTimeout(() => document.body.removeChild(alertDiv), 2000);
-}
-
-function estimateTokens(s: string) {
-  return Math.ceil(s.length / 4);
-}
-
-function spamHints(txt: string) {
-  const issues: string[] = [];
-  const linkCount = (txt.match(/https?:\/\//g) || []).length;
-  if (linkCount > 1) issues.push('Too many links (≤ 1 recommended)');
-  if (/[A-Z]{6,}/.test(txt)) issues.push('ALL-CAPS detected');
-  if (/\b(guarantee|buy now|free!!!|act now|risk[- ]?free)\b/i.test(txt)) issues.push('Spammy wording found');
-  return issues;
-}
-
-function robustJsonParse<T = any>(raw: string): T {
-  let src = (raw ?? '').trim();
-  
-  // Remove markdown code blocks
-  const fence = src.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-  if (fence) src = fence[1].trim();
-  
-  // Extract JSON from text
-  if (!fence) {
-    const start = src.indexOf('{');
-    const end = src.lastIndexOf('}');
-    if (start !== -1 && end !== -1 && end > start) src = src.slice(start, end + 1);
-  }
-  
-  // Handle plain text format
-  if (!/^\s*\{/.test(src)) {
-    const subj = src.match(/^\s*Subject:\s*(.*)$/im)?.[1]?.trim();
-    const prev = src.match(/^\s*Preview:\s*(.*)$/im)?.[1]?.trim();
-    const body = src.match(/^\s*Body:\s*([\s\S]*)$/im)?.[1]?.trim();
-    if (subj || body) {
-      return { subject: subj ?? '', preview: prev ?? '', body: body ?? src } as T;
-    }
-    // If no structured format, treat as body
-    return { subject: '', preview: '', body: src } as T;
-  }
-  
-  // Clean up JSON
-  src = src.replace(/[\u2018-\u201B]/g, "'").replace(/[\u201C-\u201F]/g, '"');
-  src = src.replace(/(\n|{|,)\s*([A-Za-z0-9_]+)\s*:/g, (_m, p1, p2) => `${p1} "${p2}":`);
-  src = src.replace(/,\s*([}\]])/g, '$1');
-  
-  try {
-    return JSON.parse(src);
-  } catch {
-    // Final fallback - return as body text
-    return { subject: '', preview: '', body: raw } as T;
-  }
-}
-
-function saveTemplate(key: string, data: Record<string, any>) {
-  try { localStorage.setItem(key, JSON.stringify(data)); } catch {}
-}
-function loadTemplate<T = any>(key: string): T | null {
-  try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : null; } catch { return null; }
 }
 
 function EmailsScreen() {
@@ -207,13 +126,42 @@ function EmailsScreen() {
 
     setLoading(true);
     try {
-      const outs = await generateTextOnServer(prompt, 'emails', jsonMode, variants);
+      // Build structured payload
+      const payload = buildStructuredPayload('emails', {
+        role,
+        senderName,
+        senderEmail,
+        language,
+        level
+      }, {
+        niche,
+        target,
+        tone,
+        prospectName,
+        company,
+        prospectEmail,
+        ctaText,
+        wordLimit,
+        variants
+      });
+
+      const outs = await generateTextOnServer(payload);
       setResults(outs);
 
       if (jsonMode) {
         try {
           const parsed = outs.map(o => {
-            const j = robustJsonParse(o);
+            // Backend already returns parsed JSON objects, just validate structure
+            if (typeof o === 'object' && o !== null) {
+              const obj = o as any;
+              return {
+                subject: String(obj.subject ?? ''),
+                preview: String(obj.preview ?? ''),
+                body: String(obj.body ?? '')
+              };
+            }
+            // Fallback: if backend returned string, parse it
+            const j = robustJsonParse(o as string);
             return {
               subject: String(j.subject ?? ''),
               preview: String(j.preview ?? ''),
@@ -232,7 +180,7 @@ function EmailsScreen() {
     } finally {
       setLoading(false);
     }
-  }, [role, niche, target, ctaText, wordLimit, variants, jsonMode, prompt]);
+  }, [role, senderName, senderEmail, language, level, niche, target, tone, prospectName, company, prospectEmail, ctaText, wordLimit, variants, jsonMode]);
 
   useEffect(() => {
     const h = () => onGenerateInner();
@@ -582,7 +530,25 @@ function WhatsAppScreen() {
     if (!ctaText.trim()) { setError('Please provide a CTA'); return; }
     setLoading(true);
     try {
-      const outs = await generateTextOnServer(prompt, 'whatsapp', false, variants);
+      // Build structured payload
+      const payload = buildStructuredPayload('whatsapp', {
+        role,
+        senderName,
+        senderEmail,
+        language,
+        level
+      }, {
+        niche,
+        target,
+        variant,
+        prospectName,
+        ctaText,
+        wordLimit,
+        spamFree,
+        variants
+      });
+
+      const outs = await generateTextOnServer(payload);
       setResults(outs);
       textareaRef.current?.blur();
     } catch (e: any) {
@@ -590,7 +556,7 @@ function WhatsAppScreen() {
     } finally {
       setLoading(false);
     }
-  }, [role, niche, target, ctaText, variants, prompt]);
+  }, [role, senderName, senderEmail, language, level, niche, target, variant, prospectName, ctaText, wordLimit, spamFree, variants]);
 
   useEffect(() => {
     const h = () => onGenerate();
@@ -797,7 +763,25 @@ function LinkedInScreen() {
     if (!ctaText.trim()) { setError('Please provide a CTA'); return; }
     setLoading(true);
     try {
-      const outs = await generateTextOnServer(prompt, 'linkedin', false, variants);
+      // Build structured payload
+      const payload = buildStructuredPayload('linkedin', {
+        role,
+        senderName,
+        senderEmail,
+        language,
+        level
+      }, {
+        niche,
+        target,
+        variant,
+        prospectName,
+        ctaText,
+        wordLimit,
+        spamFree,
+        variants
+      });
+
+      const outs = await generateTextOnServer(payload);
       setResults(outs);
       textareaRef.current?.blur();
     } catch (e: any) {
@@ -805,7 +789,7 @@ function LinkedInScreen() {
     } finally {
       setLoading(false);
     }
-  }, [role, niche, target, ctaText, variants, prompt]);
+  }, [role, senderName, senderEmail, language, level, niche, target, variant, prospectName, ctaText, wordLimit, spamFree, variants]);
 
   useEffect(() => {
     const h = () => onGenerate();
@@ -1008,7 +992,24 @@ function ContractsScreen() {
     if (!projectScope.trim()) { setError('Please enter project scope'); return; }
     setLoading(true);
     try {
-      const outs = await generateTextOnServer(prompt, 'contracts', false, variants);
+      // Build structured payload
+      const payload = buildStructuredPayload('contracts', {
+        role,
+        senderName,
+        senderEmail,
+        language,
+        level
+      }, {
+        niche,
+        projectScope,
+        variant,
+        clientName,
+        ctaText,
+        wordLimit,
+        variants
+      });
+
+      const outs = await generateTextOnServer(payload);
       setResults(outs);
       textareaRef.current?.blur();
     } catch (e: any) {
@@ -1016,7 +1017,7 @@ function ContractsScreen() {
     } finally {
       setLoading(false);
     }
-  }, [role, projectScope, variants, prompt]);
+  }, [role, senderName, senderEmail, language, level, niche, projectScope, variant, clientName, ctaText, wordLimit, variants]);
 
   useEffect(() => {
     const h = () => onGenerate();
@@ -1137,6 +1138,23 @@ function ContractsScreen() {
                   >
                     Download
                   </button>
+                </div>
+              </div>
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 rounded-r-lg">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-semibold text-yellow-800">
+                      ⚠️ Legal Disclaimer
+                    </p>
+                    <p className="text-sm text-yellow-700 mt-1">
+                      This is an AI-generated draft. Review by a legal professional before use.
+                    </p>
+                  </div>
                 </div>
               </div>
               <pre className="whitespace-pre-wrap mt-2">{r}</pre>
