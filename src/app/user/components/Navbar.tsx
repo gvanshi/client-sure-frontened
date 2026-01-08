@@ -51,7 +51,7 @@ export default function Navbar() {
           prizeTokens: response.data.tokens.prizeTokens || 0,
           effectiveTokens: response.data.tokens.effectiveTokens || response.data.tokens.daily
         })
-        setUserName(response.data.name || '')
+        setUserName(response.data.user?.name || response.data.name || '')
       } catch (error) {
         console.error('Error loading tokens:', error)
       }
@@ -304,7 +304,7 @@ export default function Navbar() {
                     {userName?.split(' ').map(n => n.charAt(0)).join('').toUpperCase() || 'U'}
                   </span>
                 </div>
-                <span className="text-sm font-medium text-gray-700">{userName?.split(' ')[0] || 'User'}</span>
+                <span className="text-sm font-medium text-gray-700">{userName || 'User'}</span>
                 <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
               </button>
               
