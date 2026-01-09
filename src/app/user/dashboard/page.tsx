@@ -108,8 +108,14 @@ function DashboardContent() {
   const loadResources = async () => {
     try {
       const response = await Axios.get('/resources')
-      const resourcesData = response.data?.resources || []
-      setResources(resourcesData)
+      // Backend returns array directly, not wrapped in {resources: [...]}
+      const resourcesData = Array.isArray(response.data) ? response.data : (response.data?.resources || [])
+      // Map _id to id for frontend compatibility
+      const mappedResources = resourcesData.map(r => ({
+        ...r,
+        id: r._id || r.id
+      }))
+      setResources(mappedResources)
     } catch (error) {
       console.error('Error loading resources:', error)
     } finally {
