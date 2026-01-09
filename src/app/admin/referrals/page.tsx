@@ -92,6 +92,9 @@ export default function ReferralsManagement() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 0 })
+  const [selectedUser, setSelectedUser] = useState<any>(null)
+  const [showUserModal, setShowUserModal] = useState(false)
+  const [loadingDetails, setLoadingDetails] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -145,6 +148,22 @@ export default function ReferralsManagement() {
       month: 'short',
       day: 'numeric'
     })
+  }
+
+  const loadUserDetails = async (userId: string) => {
+    setLoadingDetails(true)
+    try {
+      const response = await AdminAPI.get(`/referrals/referred-user/${userId}`)
+      if (response.success) {
+        setSelectedUser(response.data)
+        setShowUserModal(true)
+      }
+    } catch (error) {
+      console.error('Error loading user details:', error)
+      toast.error('Failed to load user details')
+    } finally {
+      setLoadingDetails(false)
+    }
   }
 
   const getStatusBadge = (isActive: boolean) => {
@@ -490,6 +509,9 @@ export default function ReferralsManagement() {
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Status
                           </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -518,6 +540,15 @@ export default function ReferralsManagement() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               {getStatusBadge(user.subscription.isActive)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <button
+                                onClick={() => loadUserDetails(user._id)}
+                                className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                              >
+                                <Eye className="w-4 h-4 mr-1" />
+                                View Details
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -557,6 +588,226 @@ export default function ReferralsManagement() {
           </div>
         </div>
         </div>
+
+        {/* User Details Modal */}
+        {showUserModal && selectedUser && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-gray-900">User Details</h2>
+                <button
+                  onClick={() => setShowUserModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6 space-y-6">
+                {/* Basic Info */}
+                <div className="bg-blue-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <Users className="w-5 h-5 mr-2 text-blue-600" />
+                    Basic Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Name</p>
+                      <p className="text-base font-medium text-gray-900">{selectedUser.user.name}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Email</p>
+                      <p className="text-base font-medium text-gray-900">{selectedUser.user.email}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Phone</p>
+                      <p className="text-base font-medium text-gray-900">{selectedUser.user.phone || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Referral Code</p>
+                      <p className="text-base font-mono font-bold text-blue-600">{selectedUser.user.referralCode}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Joined Date</p>
+                      <p className="text-base font-medium text-gray-900">{formatDate(selectedUser.user.joinedAt)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Last Updated</p>
+                      <p className="text-base font-medium text-gray-900">{formatDate(selectedUser.user.lastUpdated)}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Referred By Info */}
+                {selectedUser.referredBy && (
+                  <div className="bg-purple-50 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <UserPlus className="w-5 h-5 mr-2 text-purple-600" />
+                      Referred By
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-600">Name</p>
+                        <p className="text-base font-medium text-gray-900">{selectedUser.referredBy.name}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Email</p>
+                        <p className="text-base font-medium text-gray-900">{selectedUser.referredBy.email}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Referral Code</p>
+                        <p className="text-base font-mono font-bold text-purple-600">{selectedUser.referredBy.referralCode}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Subscription Info */}
+                <div className="bg-green-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Subscription Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">Plan</p>
+                      <p className="text-base font-medium text-gray-900">{selectedUser.subscription.planName}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Price</p>
+                      <p className="text-base font-bold text-green-600">₹{selectedUser.subscription.planPrice}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Status</p>
+                      {getStatusBadge(selectedUser.subscription.isActive)}
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Start Date</p>
+                      <p className="text-base font-medium text-gray-900">
+                        {selectedUser.subscription.startDate ? formatDate(selectedUser.subscription.startDate) : 'N/A'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">End Date</p>
+                      <p className="text-base font-medium text-gray-900">
+                        {selectedUser.subscription.endDate ? formatDate(selectedUser.subscription.endDate) : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Token Information */}
+                <div className="bg-orange-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Token Details</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center p-4 bg-white rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Available</p>
+                      <p className="text-2xl font-bold text-blue-600">{selectedUser.tokens.available}</p>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Daily</p>
+                      <p className="text-2xl font-bold text-green-600">{selectedUser.tokens.dailyTokens}</p>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Prize</p>
+                      <p className="text-2xl font-bold text-orange-600">{selectedUser.tokens.prizeTokens}</p>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Status</p>
+                      <p className="text-sm font-medium">
+                        {selectedUser.tokens.hasActiveTokens ? (
+                          <span className="text-green-600">Active</span>
+                        ) : (
+                          <span className="text-gray-500">Inactive</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  {selectedUser.tokens.temporaryTokens && (
+                    <div className="mt-4 p-4 bg-yellow-100 rounded-lg">
+                      <p className="text-sm font-semibold text-gray-900 mb-2">Temporary Tokens Active</p>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div>
+                          <span className="text-gray-600">Amount:</span>
+                          <span className="ml-2 font-bold text-orange-600">{selectedUser.tokens.temporaryTokens.amount}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Type:</span>
+                          <span className="ml-2 font-medium">{selectedUser.tokens.temporaryTokens.prizeType}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Expires in:</span>
+                          <span className="ml-2 font-medium text-red-600">{selectedUser.tokens.temporaryTokens.timeUntilExpiry}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Milestone Rewards */}
+                <div className="bg-yellow-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Milestone Rewards</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center p-4 bg-white rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">8-Cycles</p>
+                      <p className="text-2xl font-bold text-yellow-600">{selectedUser.milestoneRewards.referral8Cycles}</p>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">15-Cycles</p>
+                      <p className="text-2xl font-bold text-orange-600">{selectedUser.milestoneRewards.referral15Cycles}</p>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">25-Cycles</p>
+                      <p className="text-2xl font-bold text-red-600">{selectedUser.milestoneRewards.referral25Cycles}</p>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Total Earned</p>
+                      <p className="text-2xl font-bold text-green-600">{selectedUser.milestoneRewards.totalTokensEarned}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Referral Stats */}
+                <div className="bg-indigo-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Referral Statistics</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="text-center p-4 bg-white rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Total Referrals</p>
+                      <p className="text-3xl font-bold text-indigo-600">{selectedUser.referralStats.totalReferrals}</p>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-lg">
+                      <p className="text-sm text-gray-600 mb-1">Active Referrals</p>
+                      <p className="text-3xl font-bold text-green-600">{selectedUser.referralStats.activeReferrals}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Users Referred by This User */}
+                {selectedUser.referredUsers && selectedUser.referredUsers.length > 0 && (
+                  <div className="bg-gray-50 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Users Referred by This User ({selectedUser.referredUsers.length})</h3>
+                    <div className="space-y-3 max-h-60 overflow-y-auto">
+                      {selectedUser.referredUsers.map((ref: any) => (
+                        <div key={ref._id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">{ref.name}</p>
+                            <p className="text-sm text-gray-500">{ref.email}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm font-medium text-gray-900">{ref.subscription.planName}</p>
+                            <p className="text-xs text-gray-500">{formatDate(ref.joinedAt)}</p>
+                            {getStatusBadge(ref.subscription.isActive)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </AdminLayout>
     )
   }
