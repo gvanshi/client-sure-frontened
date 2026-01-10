@@ -111,7 +111,7 @@ function DashboardContent() {
       // Backend returns array directly, not wrapped in {resources: [...]}
       const resourcesData = Array.isArray(response.data) ? response.data : (response.data?.resources || [])
       // Map _id to id for frontend compatibility
-      const mappedResources = resourcesData.map(r => ({
+      const mappedResources = resourcesData.map((r: Resource & { _id?: string }) => ({
         ...r,
         id: r._id || r.id
       }))
@@ -312,7 +312,7 @@ function DashboardContent() {
               </div>
               <h2 className="text-lg font-bold text-gray-900 leading-tight">Lead Information</h2>
             </div>
-            <p className="hidden md:block text-gray-500 text-sm mb-6 flex-grow">Access verified business leads with complete contact details and social profiles.</p>
+            <p className="hidden md:block text-gray-500 text-sm mb-6 grow">Access verified business leads with complete contact details and social profiles.</p>
             <button onClick={() => handleNavigation('/user/leads/information')} className="w-full py-2.5 rounded-lg border border-blue-100 bg-blue-50 text-blue-700 font-semibold text-sm hover:bg-blue-100 transition-all">
               Browse Leads
             </button>
@@ -326,7 +326,7 @@ function DashboardContent() {
               </div>
               <h2 className="text-lg font-bold text-gray-900 leading-tight">Accessed Leads</h2>
             </div>
-            <p className="hidden md:block text-gray-500 text-sm mb-6 flex-grow">View and manage all your unlocked leads with full contact information.</p>
+            <p className="hidden md:block text-gray-500 text-sm mb-6 grow">View and manage all your unlocked leads with full contact information.</p>
             <button onClick={() => handleNavigation('/user/leads/accessed')} className="w-full py-2.5 rounded-lg border border-green-100 bg-green-50 text-green-700 font-semibold text-sm hover:bg-green-100 transition-all">
               View Accessed
             </button>
@@ -340,7 +340,7 @@ function DashboardContent() {
               </div>
               <h2 className="text-lg font-bold text-gray-900 leading-tight">External Tools</h2>
             </div>
-            <p className="hidden md:block text-gray-500 text-sm mb-6 flex-grow">Explore powerful tools and integrations to boost your business growth.</p>
+            <p className="hidden md:block text-gray-500 text-sm mb-6 grow">Explore powerful tools and integrations to boost your business growth.</p>
             <button onClick={() => handleNavigation('/user/tools')} className="w-full py-2.5 rounded-lg border border-purple-100 bg-purple-50 text-purple-700 font-semibold text-sm hover:bg-purple-100 transition-all">
               Explore Tools
             </button>
@@ -354,7 +354,7 @@ function DashboardContent() {
               </div>
               <h2 className="text-lg font-bold text-gray-900 leading-tight">Community</h2>
             </div>
-            <p className="hidden md:block text-gray-500 text-sm mb-6 flex-grow">Connect with other members, share insights, and grow together.</p>
+            <p className="hidden md:block text-gray-500 text-sm mb-6 grow">Connect with other members, share insights, and grow together.</p>
             <button onClick={() => handleNavigation('/user/community')} className="w-full py-2.5 rounded-lg border border-orange-100 bg-orange-50 text-orange-700 font-semibold text-sm hover:bg-orange-100 transition-all">
               Join Community
             </button>
@@ -368,7 +368,7 @@ function DashboardContent() {
               </div>
               <h2 className="text-lg font-bold text-gray-900 leading-tight">Chatbot Tools</h2>
             </div>
-            <p className="hidden md:block text-gray-500 text-sm mb-6 flex-grow">Access AI-powered chatbot tools to automate customer interactions and support.</p>
+            <p className="hidden md:block text-gray-500 text-sm mb-6 grow">Access AI-powered chatbot tools to automate customer interactions and support.</p>
             <button onClick={() => handleNavigation('/user/dashboard/chatbot')} className="w-full py-2.5 rounded-lg border border-cyan-100 bg-cyan-50 text-cyan-700 font-semibold text-sm hover:bg-cyan-100 transition-all">
               Launch Chatbot
             </button>
@@ -408,7 +408,7 @@ function DashboardContent() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {resources.filter(r => r.type === 'pdf').map((resource) => (
                     <div key={resource.id} onClick={() => handleNavigation(`/user/resource/${resource.id}`)} className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer">
-                      <div className="relative h-48 bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center">
+                      <div className="relative h-48 bg-linear-to-br from-red-50 to-orange-50 flex items-center justify-center">
                         {resource.isAccessedByUser && resource.thumbnailUrl ? (
                           // Show PDF thumbnail preview for accessed resources
                           <div className="w-full h-full p-4">
