@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, Users, UserPlus, TrendingUp, Eye, Filter, Download, RefreshCw } from "lucide-react"
+import { Search, Users, UserPlus, TrendingUp, Eye, RefreshCw } from "lucide-react"
 import { toast } from "sonner"
 import AdminLayout from "../components/AdminLayout"
 import { AdminAPI } from "@/utils/AdminAPI"
@@ -82,6 +82,51 @@ interface ReferredUser {
   joinedAt: string
 }
 
+interface UserDetails {
+  user: {
+    name: string
+    email: string
+    phone?: string
+    referralCode: string
+    joinedAt: string
+    lastUpdated: string
+  }
+  referredBy?: {
+    name: string
+    email: string
+    referralCode: string
+  }
+  subscription: {
+    planName: string
+    planPrice?: number
+    isActive: boolean
+    startDate?: string
+    endDate: string
+  }
+  tokens?: {
+    available: number
+    dailyTokens: number
+    prizeTokens: number
+    hasActiveTokens: boolean
+    temporaryTokens?: {
+      amount: number
+      prizeType: string
+      timeUntilExpiry: string
+    }
+  }
+  milestoneRewards?: {
+    referral8Cycles: number
+    referral15Cycles: number
+    referral25Cycles: number
+    totalTokensEarned: number
+  }
+  referralStats?: {
+    totalReferrals: number
+    activeReferrals: number
+  }
+  referredUsers?: ReferredUser[]
+}
+
 export default function ReferralsManagement() {
   const [analytics, setAnalytics] = useState<ReferralAnalytics | null>(null)
   const [referrers, setReferrers] = useState<Referrer[]>([])
@@ -92,12 +137,12 @@ export default function ReferralsManagement() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 0 })
-  const [selectedUser, setSelectedUser] = useState<any>(null)
+  const [selectedUser, setSelectedUser] = useState<UserDetails | null>(null)
   const [showUserModal, setShowUserModal] = useState(false)
-  const [loadingDetails, setLoadingDetails] = useState(false)
 
   useEffect(() => {
     loadData()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, searchTerm, statusFilter, currentPage])
 
   const loadData = async () => {
@@ -151,7 +196,6 @@ export default function ReferralsManagement() {
   }
 
   const loadUserDetails = async (userId: string) => {
-    setLoadingDetails(true)
     try {
       const response = await AdminAPI.get(`/referrals/referred-user/${userId}`)
       if (response.success) {
@@ -161,8 +205,6 @@ export default function ReferralsManagement() {
     } catch (error) {
       console.error('Error loading user details:', error)
       toast.error('Failed to load user details')
-    } finally {
-      setLoadingDetails(false)
     }
   }
 
@@ -466,7 +508,7 @@ export default function ReferralsManagement() {
                                 <div className="text-xs">
                                   <div className="font-bold text-orange-600">{referrer.temporaryTokens.amount} tokens</div>
                                   <div className="text-gray-500">Expires: {referrer.temporaryTokens.timeUntilExpiry}</div>
-                                  <div className="text-gray-400 truncate max-w-[100px]" title={referrer.temporaryTokens.prizeType}>
+                                  <div className="text-gray-400 truncate max-w-25" title={referrer.temporaryTokens.prizeType}>
                                     {referrer.temporaryTokens.prizeType}
                                   </div>
                                 </div>
@@ -703,20 +745,20 @@ export default function ReferralsManagement() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="text-center p-4 bg-white rounded-lg">
                       <p className="text-sm text-gray-600 mb-1">Available</p>
-                      <p className="text-2xl font-bold text-blue-600">{selectedUser.tokens.available}</p>
+                      <p className="text-2xl font-bold text-blue-600">{selectedUser.tokens?.available || 0}</p>
                     </div>
                     <div className="text-center p-4 bg-white rounded-lg">
                       <p className="text-sm text-gray-600 mb-1">Daily</p>
-                      <p className="text-2xl font-bold text-green-600">{selectedUser.tokens.dailyTokens}</p>
+                      <p className="text-2xl font-bold text-green-600">{selectedUser.tokens?.dailyTokens || 0}</p>
                     </div>
                     <div className="text-center p-4 bg-white rounded-lg">
                       <p className="text-sm text-gray-600 mb-1">Prize</p>
-                      <p className="text-2xl font-bold text-orange-600">{selectedUser.tokens.prizeTokens}</p>
+                      <p className="text-2xl font-bold text-orange-600">{selectedUser.tokens?.prizeTokens || 0}</p>
                     </div>
                     <div className="text-center p-4 bg-white rounded-lg">
                       <p className="text-sm text-gray-600 mb-1">Status</p>
                       <p className="text-sm font-medium">
-                        {selectedUser.tokens.hasActiveTokens ? (
+                        {selectedUser.tokens?.hasActiveTokens ? (
                           <span className="text-green-600">Active</span>
                         ) : (
                           <span className="text-gray-500">Inactive</span>
@@ -724,21 +766,21 @@ export default function ReferralsManagement() {
                       </p>
                     </div>
                   </div>
-                  {selectedUser.tokens.temporaryTokens && (
+                  {selectedUser.tokens?.temporaryTokens && (
                     <div className="mt-4 p-4 bg-yellow-100 rounded-lg">
                       <p className="text-sm font-semibold text-gray-900 mb-2">Temporary Tokens Active</p>
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div>
                           <span className="text-gray-600">Amount:</span>
-                          <span className="ml-2 font-bold text-orange-600">{selectedUser.tokens.temporaryTokens.amount}</span>
+                          <span className="ml-2 font-bold text-orange-600">{selectedUser.tokens?.temporaryTokens?.amount}</span>
                         </div>
                         <div>
                           <span className="text-gray-600">Type:</span>
-                          <span className="ml-2 font-medium">{selectedUser.tokens.temporaryTokens.prizeType}</span>
+                          <span className="ml-2 font-medium">{selectedUser.tokens?.temporaryTokens?.prizeType}</span>
                         </div>
                         <div>
                           <span className="text-gray-600">Expires in:</span>
-                          <span className="ml-2 font-medium text-red-600">{selectedUser.tokens.temporaryTokens.timeUntilExpiry}</span>
+                          <span className="ml-2 font-medium text-red-600">{selectedUser.tokens?.temporaryTokens?.timeUntilExpiry}</span>
                         </div>
                       </div>
                     </div>
@@ -751,19 +793,19 @@ export default function ReferralsManagement() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="text-center p-4 bg-white rounded-lg">
                       <p className="text-sm text-gray-600 mb-1">8-Cycles</p>
-                      <p className="text-2xl font-bold text-yellow-600">{selectedUser.milestoneRewards.referral8Cycles}</p>
+                      <p className="text-2xl font-bold text-yellow-600">{selectedUser.milestoneRewards?.referral8Cycles || 0}</p>
                     </div>
                     <div className="text-center p-4 bg-white rounded-lg">
                       <p className="text-sm text-gray-600 mb-1">15-Cycles</p>
-                      <p className="text-2xl font-bold text-orange-600">{selectedUser.milestoneRewards.referral15Cycles}</p>
+                      <p className="text-2xl font-bold text-orange-600">{selectedUser.milestoneRewards?.referral15Cycles || 0}</p>
                     </div>
                     <div className="text-center p-4 bg-white rounded-lg">
                       <p className="text-sm text-gray-600 mb-1">25-Cycles</p>
-                      <p className="text-2xl font-bold text-red-600">{selectedUser.milestoneRewards.referral25Cycles}</p>
+                      <p className="text-2xl font-bold text-red-600">{selectedUser.milestoneRewards?.referral25Cycles || 0}</p>
                     </div>
                     <div className="text-center p-4 bg-white rounded-lg">
                       <p className="text-sm text-gray-600 mb-1">Total Earned</p>
-                      <p className="text-2xl font-bold text-green-600">{selectedUser.milestoneRewards.totalTokensEarned}</p>
+                      <p className="text-2xl font-bold text-green-600">{selectedUser.milestoneRewards?.totalTokensEarned || 0}</p>
                     </div>
                   </div>
                 </div>
@@ -774,11 +816,11 @@ export default function ReferralsManagement() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="text-center p-4 bg-white rounded-lg">
                       <p className="text-sm text-gray-600 mb-1">Total Referrals</p>
-                      <p className="text-3xl font-bold text-indigo-600">{selectedUser.referralStats.totalReferrals}</p>
+                      <p className="text-3xl font-bold text-indigo-600">{selectedUser.referralStats?.totalReferrals || 0}</p>
                     </div>
                     <div className="text-center p-4 bg-white rounded-lg">
                       <p className="text-sm text-gray-600 mb-1">Active Referrals</p>
-                      <p className="text-3xl font-bold text-green-600">{selectedUser.referralStats.activeReferrals}</p>
+                      <p className="text-3xl font-bold text-green-600">{selectedUser.referralStats?.activeReferrals || 0}</p>
                     </div>
                   </div>
                 </div>
@@ -788,7 +830,7 @@ export default function ReferralsManagement() {
                   <div className="bg-gray-50 rounded-xl p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Users Referred by This User ({selectedUser.referredUsers.length})</h3>
                     <div className="space-y-3 max-h-60 overflow-y-auto">
-                      {selectedUser.referredUsers.map((ref: any) => (
+                      {selectedUser.referredUsers.map((ref: ReferredUser) => (
                         <div key={ref._id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
                           <div className="flex-1">
                             <p className="font-medium text-gray-900">{ref.name}</p>
