@@ -81,6 +81,13 @@ export default function CommunityPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Edit post state
+  const [editingPostId, setEditingPostId] = useState<string | null>(null)
+  const [editPostData, setEditPostData] = useState<{ title: string; description: string }>({ title: '', description: '' })
+  const [editSelectedImage, setEditSelectedImage] = useState<File | null>(null)
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null)
+  const [isUpdating, setIsUpdating] = useState(false)
   const [dailyLimits, setDailyLimits] = useState({
     posts: 10,
     likes: 10,
@@ -342,6 +349,52 @@ export default function CommunityPage() {
     }
   }
 
+  const startEdit = (post: Post) => {
+    setEditingPostId(post._id)
+    setEditPostData({ title: post.post_title, description: post.description })
+    setEditSelectedImage(null)
+    setEditImagePreview(post.image || null)
+  }
+
+  const cancelEdit = () => {
+    setEditingPostId(null)
+    setEditPostData({ title: '', description: '' })
+    setEditSelectedImage(null)
+    setEditImagePreview(null)
+    setIsUpdating(false)
+  }
+
+  const submitEdit = async (postId: string) => {
+    if (isUpdating) return
+    setIsUpdating(true)
+    try {
+      const formData = new FormData()
+      formData.append('post_title', editPostData.title)
+      formData.append('description', editPostData.description)
+      if (editSelectedImage) formData.append('image', editSelectedImage)
+
+      const response = await Axios.put(`/community/post/${postId}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+
+      if (response.data.success) {
+        toast.success('Post updated successfully')
+        fetchData(false)
+        cancelEdit()
+      } else {
+        toast.success('Post updated successfully')
+        fetchData(false)
+        cancelEdit()
+      }
+    } catch (error: any) {
+      console.error('Update post error:', error)
+      const errorMessage = error.response?.data?.message || 'Error updating post'
+      toast.error(errorMessage)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
   const likePost = async (postId: string) => {
     try {
       const post = posts.find(p => p._id === postId)
@@ -451,6 +504,19 @@ export default function CommunityPage() {
       fetchData(false)
     } catch (error) {
       toast.error('Error deleting comment')
+    }
+  }
+
+  // Focus the comment input for a given post
+  const focusCommentInput = (postId: string) => {
+    if (dailyLimits.comments === 0) {
+      toast.error('Aaj ke liye aapki comment limit khatam ho gayi hai')
+      return
+    }
+    const el = document.getElementById(`comment-input-${postId}`) as HTMLInputElement | null
+    if (el) {
+      el.focus()
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   }
 
@@ -951,28 +1017,89 @@ export default function CommunityPage() {
                           </div>
                         </div>
                         {post.user_id._id === currentUserId && (
-                          <button
-                            onClick={() => deletePost(post._id)}
-                            className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => startEdit(post)}
+                              className="text-gray-400 hover:text-gray-700 p-2 rounded-lg transition-colors"
+                              title="Edit post"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => deletePost(post._id)}
+                              className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                              title="Delete post"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         )}
                       </div>
                       
                       {/* Post Content */}
                       <div className="mb-4">
-                        <h3 className="font-semibold text-gray-900 text-lg mb-2">{post.post_title}</h3>
-                        <p className="text-gray-700 leading-relaxed">{post.description}</p>
-                        
-                        {post.image && (
-                          <div className="mt-3">
-                            <img 
-                              src={post.image} 
-                              alt="Post image" 
-                              className="rounded-lg max-w-full h-auto max-h-80 object-cover border border-gray-200"
+                        {editingPostId === post._id ? (
+                          <div className="space-y-4">
+                            <input
+                              type="text"
+                              value={editPostData.title}
+                              onChange={(e) => setEditPostData({ ...editPostData, title: e.target.value })}
+                              className="w-full p-3 border border-gray-300 rounded-lg text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
                             />
+                            <textarea
+                              value={editPostData.description}
+                              onChange={(e) => setEditPostData({ ...editPostData, description: e.target.value })}
+                              className="w-full p-3 border border-gray-300 rounded-lg text-gray-900 h-32 resize-none focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
+                            />
+
+                            <div className="flex items-center gap-4">
+                              <label className="flex items-center gap-2 cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition-colors h-10 whitespace-nowrap">
+                                <ImageIcon className="w-4 h-4 text-gray-600" />
+                                <span className="text-sm font-medium text-gray-700">Change Image</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0] || null
+                                    setEditSelectedImage(file)
+                                    if (file) {
+                                      const reader = new FileReader()
+                                      reader.onload = (ev) => setEditImagePreview(ev.target?.result as string)
+                                      reader.readAsDataURL(file)
+                                    }
+                                  }}
+                                  className="hidden"
+                                />
+                              </label>
+
+                              {editImagePreview && (
+                                <div className="relative inline-block">
+                                  <img src={editImagePreview} alt="Preview" className="max-w-xs max-h-48 rounded-lg shadow-md object-cover" />
+                                  <button type="button" onClick={() => { setEditSelectedImage(null); setEditImagePreview(null); }} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"><X className="w-4 h-4" /></button>
+                                </div>
+                              )}
+
+                              <div className="ml-auto flex gap-2">
+                                <button onClick={() => cancelEdit()} type="button" className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium">Cancel</button>
+                                <button onClick={() => submitEdit(post._id)} type="button" disabled={isUpdating} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed">{isUpdating ? 'Updating...' : 'Save'}</button>
+                              </div>
+                            </div>
                           </div>
+                        ) : (
+                          <>
+                            <h3 className="font-semibold text-gray-900 text-lg mb-2">{post.post_title}</h3>
+                            <p className="text-gray-700 leading-relaxed">{post.description}</p>
+                            
+                            {post.image && (
+                              <div className="mt-3">
+                                <img 
+                                  src={post.image} 
+                                  alt="Post image" 
+                                  className="rounded-lg max-w-full h-auto max-h-80 object-cover border border-gray-200"
+                                />
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                       
@@ -1004,8 +1131,15 @@ export default function CommunityPage() {
                           <span>{post.likes.length}</span>
                         </button>
                         <div className="flex items-center gap-2 text-gray-500 text-sm">
-                          <MessageCircle className="w-4 h-4" />
-                          <span>{post.comments.length} comments</span>
+                          <button
+                            type="button"
+                            onClick={() => focusCommentInput(post._id)}
+                            className="flex items-center gap-2 text-gray-500 text-sm hover:text-gray-700"
+                            title="Jump to comment box"
+                          >
+                            <MessageCircle className="w-4 h-4" />
+                            <span>{post.comments.length} comments</span>
+                          </button>
                         </div>
                       </div>
 
@@ -1050,6 +1184,7 @@ export default function CommunityPage() {
                           <MessageCircle className="w-4 h-4" />
                         </div>
                         <input
+                          id={`comment-input-${post._id}`}
                           type="text"
                           placeholder={dailyLimits.comments === 0 ? 'Comment limit reached' : 'Write a comment...'}
                           value={commentTexts[post._id] || ''}

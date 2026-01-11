@@ -28,7 +28,8 @@ interface Lead {
   isAccessedByUser: boolean
   createdAt: string
   updatedAt?: string
-}
+  accessedAt?: string
+} 
 
 function LeadsContent() {
   const router = useRouter()
@@ -79,12 +80,23 @@ function LeadsContent() {
   }
 
   const loadAccessedLeads = async () => {
+    setLoading(true)
     try {
-      const response = await Axios.get(`/auth/get-accesse-leads/accessed?page=${accessedPage}&limit=20`)
+      const params = new URLSearchParams({ page: accessedPage.toString(), limit: '20' })
+      if (searchTerm) params.append('search', searchTerm)
+      if (selectedCategory) params.append('category', selectedCategory)
+      if (selectedCity) params.append('city', selectedCity)
+      if (selectedCountry) params.append('country', selectedCountry)
+      if (startDate) params.append('startDate', startDate)
+      if (endDate) params.append('endDate', endDate)
+
+      const response = await Axios.get(`/leads/accessed?${params.toString()}`)
       setAccessedLeads(response.data.leads)
       setAccessedTotalPages(response.data.pagination.totalPages)
     } catch (error) {
       console.error('Error loading accessed leads:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -287,11 +299,19 @@ function LeadsContent() {
     }
   }, [page])
 
+  // Reset accessed page when filters change (only when in accessed tab)
+  useEffect(() => {
+    if (activeTab === 'accessed') {
+      setAccessedPage(1)
+    }
+  }, [searchTerm, selectedCategory, selectedCity, selectedCountry, startDate, endDate, activeTab])
+
+  // Load accessed leads whenever page or any filter changes (only when in accessed tab)
   useEffect(() => {
     if (activeTab === 'accessed') {
       loadAccessedLeads()
     }
-  }, [accessedPage])
+  }, [accessedPage, searchTerm, selectedCategory, selectedCity, selectedCountry, startDate, endDate, activeTab])
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -345,7 +365,8 @@ function LeadsContent() {
 
     let matchesDate = true
     if (startDate || endDate) {
-      const leadDate = new Date(lead.createdAt)
+      const dateStr = activeTab === 'accessed' ? (lead.accessedAt || lead.createdAt) : lead.createdAt
+      const leadDate = new Date(dateStr)
       if (startDate) {
         const start = new Date(startDate)
         start.setHours(0, 0, 0, 0)
