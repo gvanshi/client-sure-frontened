@@ -5,7 +5,7 @@ import AdminLayout from "../components/AdminLayout"
 import Axios from "@/utils/Axios"
 import { Upload, Search, Trash2, Edit, Eye, X, Filter, AlertTriangle, Linkedin, Instagram, Facebook, Globe, MapPin } from "lucide-react"
 import { toast } from "sonner"
-import Script from "next/script"
+import * as XLSX from "xlsx"
 
 interface Lead {
   _id: string
@@ -25,13 +25,6 @@ interface Lead {
   lastVerifiedAt?: string
   createdAt: string
   updatedAt?: string
-}
-
-// Declare XLSX as global
-declare global {
-  interface Window {
-    XLSX: any;
-  }
 }
 
 export default function LeadsPage() {
@@ -248,11 +241,6 @@ export default function LeadsPage() {
 
   return (
     <>
-      <Script 
-        src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" 
-        strategy="beforeInteractive"
-      />
-      
       {uploading && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 flex flex-col items-center">
@@ -308,14 +296,10 @@ export default function LeadsPage() {
                   }
                 ]
                 
-                const ws = window.XLSX?.utils.json_to_sheet(template)
-                const wb = window.XLSX?.utils.book_new()
-                window.XLSX?.utils.book_append_sheet(wb, ws, 'Leads Template')
-                window.XLSX?.writeFile(wb, 'leads_template.xlsx')
-                
-                if (!window.XLSX) {
-                  toast.error('Excel library not loaded. Please refresh the page.')
-                }
+                const ws = XLSX.utils.json_to_sheet(template)
+                const wb = XLSX.utils.book_new()
+                XLSX.utils.book_append_sheet(wb, ws, 'Leads Template')
+                XLSX.writeFile(wb, 'leads_template.xlsx')
               }}
               className="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm font-medium transition-colors shadow-sm"
             >
@@ -414,7 +398,7 @@ export default function LeadsPage() {
                 </div>
 
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                  {totalPages > 1 && (
+                  {totalPages > 1 && filteredLeads.length > 0 && (
                     <div className="px-4 py-3 border-b flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#BDDDFC]/20">
                       <div className="flex gap-2">
                         <button 

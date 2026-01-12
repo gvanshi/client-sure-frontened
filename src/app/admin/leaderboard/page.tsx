@@ -625,7 +625,7 @@ export default function AdminLeaderboardPage() {
 
                             if (confirm(message)) {
                               try {
-                                const response = await AdminAPI.awardPrizeTokens(user._id, tokenAmount, prizeType)
+                                const response = await AdminAPI.awardPrizeTokens(user._id, tokenAmount, prizeType, rank)
 
                                 if (response.success) {
                                   toast.success(`🎉 ${tokenAmount} ${prizeType} tokens awarded to ${user.name}! (Expires in 24 hours)`)
@@ -773,7 +773,7 @@ export default function AdminLeaderboardPage() {
 
                                   if (confirm(message)) {
                                     try {
-                                      const response = await AdminAPI.awardPrizeTokens(user._id, tokenAmount, prizeType)
+                                      const response = await AdminAPI.awardPrizeTokens(user._id, tokenAmount, prizeType, rank)
 
                                       if (response.success) {
                                         toast.success(`🎉 ${tokenAmount} ${prizeType} tokens awarded to ${user.name}! (Expires in 24 hours)`)

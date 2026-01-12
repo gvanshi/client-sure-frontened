@@ -14,6 +14,7 @@ interface UserDetail {
     }
     status: string
     expiresAt?: string
+    isActive?: boolean
   }
   isActive: boolean
   createdAt: string
@@ -30,6 +31,7 @@ interface UserDetailViewProps {
 export default function UserDetailView({ userId, onBack }: UserDetailViewProps) {
   const [user, setUser] = useState<UserDetail | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showStatusModal, setShowStatusModal] = useState(false)
 
   const loadUser = async () => {
     try {
@@ -42,11 +44,17 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
     }
   }
 
-  const toggleUserStatus = async () => {
+  const handleStatusClick = () => {
+    setShowStatusModal(true)
+  }
+
+  const confirmStatusChange = async () => {
     if (!user) return
     try {
-      await Axios.put(`/admin/users/${userId}`, { isActive: !user.isActive })
-      setUser({ ...user, isActive: !user.isActive })
+      const newStatus = !user.subscription?.isActive;
+      const response = await Axios.put(`/admin/users/${userId}/status`, { isActive: newStatus })
+      setUser(response.data.user)
+      setShowStatusModal(false)
     } catch (error) {
       console.error('Error updating user status:', error)
     }
@@ -80,7 +88,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
   }
 
   return (
-    <div className="p-8">
+    <div className="p-8 relative">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center space-x-4">
@@ -93,14 +101,14 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
           <h1 className="text-2xl font-bold text-gray-900">User Details</h1>
         </div>
         <button
-          onClick={toggleUserStatus}
-          className={`px-4 py-2 rounded-lg font-medium ${
-            user.isActive 
+          onClick={handleStatusClick}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            user.subscription?.isActive 
               ? 'bg-red-100 text-red-800 hover:bg-red-200' 
               : 'bg-green-100 text-green-800 hover:bg-green-200'
           }`}
         >
-          {user.isActive ? 'Deactivate User' : 'Activate User'}
+          {user.subscription?.isActive ? 'Deactivate User' : 'Activate User'}
         </button>
       </div>
 
@@ -117,9 +125,9 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
                 <p className="text-gray-600">{user.email}</p>
                 <div className="flex items-center space-x-4 mt-2">
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    user.subscription?.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                   }`}>
-                    {user.isActive ? 'Active' : 'Inactive'}
+                    {user.subscription?.isActive ? 'Active' : 'Inactive'}
                   </span>
                   <span className="text-sm text-gray-500">
                     Joined {new Date(user.createdAt).toLocaleDateString()}
@@ -164,7 +172,7 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
                     {user.subscription.planId.name}
                   </span>
                   <span className="text-lg font-bold text-gray-900">
-                    ${user.subscription.planId.price}/month
+                    ₹{user.subscription.planId.price}/month
                   </span>
                 </div>
                 <div className="text-sm text-gray-600">
@@ -195,6 +203,43 @@ export default function UserDetailView({ userId, onBack }: UserDetailViewProps) 
          
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showStatusModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">
+              Confirm {user.subscription?.isActive ? 'Deactivation' : 'Activation'}
+            </h3>
+            
+            <p className="text-gray-600 mb-6">
+              {user.subscription?.isActive 
+                ? "Are you sure you want to deactivate this user? They will immediately lose access to premium features, including tokens and dashboard access."
+                : "Are you sure you want to activate this user? This will reactivate their subscription. If the plan is expired, it will be automatically extended by 30 days."
+              }
+            </p>
+
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowStatusModal(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmStatusChange}
+                className={`px-4 py-2 rounded-lg text-white font-medium ${
+                  user.subscription?.isActive
+                    ? 'bg-red-600 hover:bg-red-700'
+                    : 'bg-green-600 hover:bg-green-700'
+                }`}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -141,6 +141,7 @@ export default function ReferralsManagement() {
   const [showUserModal, setShowUserModal] = useState(false)
 
   useEffect(() => {
+    console.log("ReferralsManagement: Rendered with activeTab:", activeTab);
     loadData()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, searchTerm, statusFilter, currentPage])
@@ -470,6 +471,9 @@ export default function ReferralsManagement() {
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Status
                           </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -518,6 +522,16 @@ export default function ReferralsManagement() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               {getStatusBadge(referrer.subscription.isActive)}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              <button
+                                onClick={() => loadUserDetails(referrer._id)}
+                                className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                              >
+                                {/* View Details Button */}
+                                <Eye className="w-4 h-4 mr-1" />
+                                View Details
+                              </button>
                             </td>
                           </tr>
                         ))}

@@ -154,7 +154,7 @@ export const AdminAPI = {
   },
 
   // Prize Token Management
-  awardPrizeTokens: async (userId: string, tokenAmount: number, prizeType: string) => {
+  awardPrizeTokens: async (userId: string, tokenAmount: number, prizeType: string, position?: number) => {
     try {
       const response = await fetch(`${API_BASE}/award-prize-tokens`, {
         method: 'POST',
@@ -163,7 +163,8 @@ export const AdminAPI = {
         body: JSON.stringify({
           userId,
           tokenAmount,
-          prizeType
+          prizeType,
+          position
         })
       })
       return await handleResponse(response)

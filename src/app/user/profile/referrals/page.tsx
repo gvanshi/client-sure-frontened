@@ -180,13 +180,20 @@ export default function ReferralsPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        referral.isActive 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        {referral.isActive ? 'Active' : 'Pending'}
-                      </span>
+                      <div className="group relative inline-block">
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium cursor-help ${
+                          referral.isActive 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {referral.isActive ? 'Active' : 'Pending'}
+                        </span>
+                        <div className="absolute right-0 bottom-full mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded hidden group-hover:block z-10 shadow-lg">
+                          {referral.isActive 
+                            ? "User has an active subscription plan." 
+                            : "User has registered but has not purchased a plan or plan has expired."}
+                        </div>
+                      </div>
                       <div className="text-xs text-gray-500 mt-1 capitalize">
                         {referral.subscriptionStatus}
                       </div>

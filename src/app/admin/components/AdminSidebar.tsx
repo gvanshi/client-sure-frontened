@@ -27,6 +27,7 @@ interface AdminSidebarProps {
 }
 
 export default function AdminSidebar({ isMobileOpen = false, onMobileClose }: AdminSidebarProps) {
+  const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
   const pathname = usePathname()
 
@@ -40,6 +41,10 @@ export default function AdminSidebar({ isMobileOpen = false, onMobileClose }: Ad
     { name: 'Leaderboard', icon: Award, path: '/admin/leaderboard' },
     { name: 'Referrals Management', icon: UserPlus, path: '/admin/referrals' }
   ]
+
+  const filteredItems = sidebarItems.filter(item => 
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   const handleLogout = () => {
     // Clear all stored tokens and user data
@@ -77,6 +82,8 @@ export default function AdminSidebar({ isMobileOpen = false, onMobileClose }: Ad
           <input
             type="text"
             placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-slate-800 text-white placeholder-slate-400 px-4 py-2 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border border-slate-700"
           />
           <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
@@ -86,7 +93,7 @@ export default function AdminSidebar({ isMobileOpen = false, onMobileClose }: Ad
       {/* Navigation */}
       <div className="flex-1 p-4 overflow-y-auto">
         <nav className="space-y-2">
-          {sidebarItems.map((item) => (
+          {filteredItems.map((item) => (
             <div key={item.name}>
               <button
                 onClick={() => handleNavigation(item.path)}

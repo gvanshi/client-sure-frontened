@@ -13,6 +13,7 @@ interface User {
       price: number
     }
     endDate?: string
+    isActive?: boolean
   }
   tokens: number
   monthlyTokensRemaining: number
@@ -41,7 +42,13 @@ export default function UsersContent() {
       setUsers(response.data)
       
       const total = response.data.length
-      const active = response.data.filter((user: User) => user.subscription?.planId).length
+      // Active means: Has a plan AND subscription is active AND not expired
+      const active = response.data.filter((user: User) => {
+        const hasPlan = !!user.subscription?.planId
+        const isActive = !!user.subscription?.isActive
+        const isNotExpired = user.subscription?.endDate ? new Date(user.subscription.endDate) > new Date() : false
+        return hasPlan && isActive && isNotExpired
+      }).length
       const inactive = total - active
       const currentMonth = new Date().getMonth()
       const newThisMonth = response.data.filter((user: User) => 
@@ -73,8 +80,16 @@ export default function UsersContent() {
     
     const matchesStatus = 
       statusFilter === 'all' ? true :
-      statusFilter === 'active' ? !!user.subscription?.planId :
-      statusFilter === 'inactive' ? !user.subscription?.planId : true
+      statusFilter === 'active' ? (
+        !!user.subscription?.planId && 
+        !!user.subscription?.isActive && 
+        (user.subscription?.endDate ? new Date(user.subscription.endDate) > new Date() : false)
+      ) :
+      statusFilter === 'inactive' ? (
+        !user.subscription?.planId || 
+        !user.subscription?.isActive || 
+        (user.subscription?.endDate ? new Date(user.subscription.endDate) <= new Date() : true)
+      ) : true
 
     return matchesSearch && matchesStatus
   })
@@ -259,20 +274,37 @@ export default function UsersContent() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      {user.subscription?.planId ? (
-                        <div>
-                          <span className="px-2 py-1 rounded text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
-                            {user.subscription.planId.name}
-                          </span>
-                          <p className="text-xs text-gray-500 mt-1">₹{user.subscription.planId.price}</p>
-                        </div>
-                      ) : (
-                        <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-600">
-                          No Plan
-                        </span>
-                      )}
-                    </td>
+                      <td className="px-6 py-4">
+                        {user.subscription?.planId ? (
+                          <div className="flex flex-col">
+                            <span className={`px-2 py-1 rounded text-xs font-medium w-fit ${
+                              new Date(user.subscription.endDate || '') > new Date() 
+                                ? "bg-purple-50 text-purple-700 border border-purple-200"
+                                : "bg-red-50 text-red-700 border border-red-200"
+                            }`}>
+                              {user.subscription.planId.name}
+                            </span>
+                            <p className="text-xs text-gray-500 mt-1">₹{user.subscription.planId.price}</p>
+                            <p className="text-[10px] text-gray-400 mt-0.5">
+                              {user.subscription.endDate 
+                                ? (new Date(user.subscription.endDate) > new Date() 
+                                    ? `Expires: ${new Date(user.subscription.endDate).toLocaleDateString()}`
+                                    : `Expired: ${new Date(user.subscription.endDate).toLocaleDateString()}`)
+                                : 'No expiry date'
+                              }
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="group relative">
+                            <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-600 cursor-help">
+                              No Plan
+                            </span>
+                            <div className="absolute bottom-full left-0 mb-2 w-48 p-2 bg-gray-800 text-white text-xs rounded hidden group-hover:block z-10">
+                              User has not purchased a subscription. Status: Inactive.
+                            </div>
+                          </div>
+                        )}
+                      </td>
                     <td className="px-6 py-4">
                       <div>
                         <span className="text-sm font-medium text-gray-900">{user.tokens || 0}</span>
