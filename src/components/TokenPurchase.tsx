@@ -1,101 +1,181 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Coins, Zap, Star, Clock, ShoppingCart, X } from 'lucide-react'
-import Axios from '@/utils/Axios'
-import { toast } from 'sonner'
+import { useState, useEffect } from "react";
+import { Coins, Zap, Star, Clock, ShoppingCart, X } from "lucide-react";
+import Axios from "@/utils/Axios";
+import { toast } from "sonner";
 
 interface TokenPackage {
-  id: string
-  name: string
-  tokens: number
-  price: number
-  description: string
-  isPopular: boolean
-  category: string
-  pricePerToken: string
+  id: string;
+  name: string;
+  tokens: number;
+  price: number;
+  description: string;
+  isPopular: boolean;
+  category: string;
+  pricePerToken: string;
 }
 
 interface TokenPurchaseProps {
-  isOpen: boolean
-  onClose: () => void
-  onPurchaseComplete: () => void
-  currentBalance: number
+  isOpen: boolean;
+  onClose: () => void;
+  onPurchaseComplete: () => void;
+  currentBalance: number;
 }
 
-export default function TokenPurchase({ isOpen, onClose, onPurchaseComplete, currentBalance }: TokenPurchaseProps) {
-  const [packages, setPackages] = useState<TokenPackage[]>([])
-  const [loading, setLoading] = useState(true)
-  const [purchasing, setPurchasing] = useState<string | null>(null)
+export default function TokenPurchase({
+  isOpen,
+  onClose,
+  onPurchaseComplete,
+  currentBalance,
+}: TokenPurchaseProps) {
+  const [packages, setPackages] = useState<TokenPackage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [purchasing, setPurchasing] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      fetchPackages()
+      fetchPackages();
     }
-  }, [isOpen])
+  }, [isOpen]);
 
   const fetchPackages = async () => {
     try {
-      setLoading(true)
-      const response = await Axios.get('/tokens/packages')
-      setPackages(response.data.packages)
+      setLoading(true);
+      const response = await Axios.get("/tokens/packages");
+      setPackages(response.data.packages);
     } catch (error) {
-      console.error('Error fetching packages:', error)
-      toast.error('Failed to load token packages')
+      console.error("Error fetching packages:", error);
+      toast.error("Failed to load token packages");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const loadRazorpay = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
 
   const handlePurchase = async (packageId: string, packageName: string) => {
     try {
-      setPurchasing(packageId)
-      
-      const response = await Axios.post('/tokens/purchase', { packageId })
-      
+      setPurchasing(packageId);
+
+      // Get user data for prefill
+      const profileRes = await Axios.get("/auth/profile");
+      const user = profileRes.data.user;
+
+      const response = await Axios.post("/razorpay/create-token-order", {
+        packageId,
+        userId: user._id,
+      });
+
       if (response.data.success) {
-        const { paymentPayload, transaction } = response.data
-        
-        toast.success(`Order created! Redirecting to payment...`)
-        
-        // Small delay for better UX
-        setTimeout(() => {
-          // Redirect to dummy payment gateway
-          window.location.href = paymentPayload.checkoutUrl
-        }, 1000)
-        
+        const { key, amount, currency, orderId, transactionId } = response.data;
+
+        const res = await loadRazorpay();
+        if (!res) {
+          toast.error("Razorpay SDK failed to load. Are you online?");
+          setPurchasing(null);
+          return;
+        }
+
+        const options = {
+          key,
+          amount,
+          currency,
+          name: "Token Purchase",
+          description: `Purchase ${packageName}`,
+          order_id: orderId,
+          handler: async function (response: any) {
+            try {
+              const verifyResponse = await Axios.post(
+                "/razorpay/verify-token-purchase",
+                {
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  transactionId,
+                },
+              );
+
+              if (verifyResponse.data.success) {
+                toast.success("Tokens added successfully!");
+                onPurchaseComplete();
+              } else {
+                toast.error("Payment verification failed");
+              }
+            } catch (err) {
+              console.error("Verification error", err);
+              toast.error("Payment verification failed");
+            } finally {
+              setPurchasing(null);
+            }
+          },
+          prefill: {
+            name: user.name,
+            email: user.email,
+            contact: user.phone,
+          },
+          theme: {
+            color: "#3399cc",
+          },
+        };
+
+        // @ts-ignore
+        const rzp1 = new window.Razorpay(options);
+        rzp1.on("payment.failed", function (response: any) {
+          toast.error(response.error.description || "Payment failed");
+          setPurchasing(null);
+        });
+        rzp1.open();
       } else {
-        toast.error(response.data.error || 'Failed to create purchase order')
-        setPurchasing(null)
+        toast.error(response.data.error || "Failed to create purchase order");
+        setPurchasing(null);
       }
     } catch (error: any) {
-      console.error('Purchase error:', error)
-      toast.error(error.response?.data?.error || 'Failed to initiate purchase')
-      setPurchasing(null)
+      console.error("Purchase error:", error);
+      toast.error(error.response?.data?.error || "Failed to initiate purchase");
+      setPurchasing(null);
     }
-  }
+  };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'emergency': return <Zap className="w-5 h-5 text-red-500" />
-      case 'standard': return <Coins className="w-5 h-5 text-blue-500" />
-      case 'premium': return <Star className="w-5 h-5 text-purple-500" />
-      case 'bulk': return <ShoppingCart className="w-5 h-5 text-green-500" />
-      default: return <Coins className="w-5 h-5 text-gray-500" />
+      case "emergency":
+        return <Zap className="w-5 h-5 text-red-500" />;
+      case "standard":
+        return <Coins className="w-5 h-5 text-blue-500" />;
+      case "premium":
+        return <Star className="w-5 h-5 text-purple-500" />;
+      case "bulk":
+        return <ShoppingCart className="w-5 h-5 text-green-500" />;
+      default:
+        return <Coins className="w-5 h-5 text-gray-500" />;
     }
-  }
+  };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'emergency': return 'border-red-200 bg-red-50'
-      case 'standard': return 'border-blue-200 bg-blue-50'
-      case 'premium': return 'border-purple-200 bg-purple-50'
-      case 'bulk': return 'border-green-200 bg-green-50'
-      default: return 'border-gray-200 bg-gray-50'
+      case "emergency":
+        return "border-red-200 bg-red-50";
+      case "standard":
+        return "border-blue-200 bg-blue-50";
+      case "premium":
+        return "border-purple-200 bg-purple-50";
+      case "bulk":
+        return "border-green-200 bg-green-50";
+      default:
+        return "border-gray-200 bg-gray-50";
     }
-  }
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
@@ -103,9 +183,14 @@ export default function TokenPurchase({ isOpen, onClose, onPurchaseComplete, cur
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Buy More Tokens</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Buy More Tokens
+            </h2>
             <p className="text-gray-600 mt-1">
-              Current balance: <span className="font-semibold text-blue-600">{currentBalance} tokens</span>
+              Current balance:{" "}
+              <span className="font-semibold text-blue-600">
+                {currentBalance} tokens
+              </span>
             </p>
           </div>
           <button
@@ -132,7 +217,8 @@ export default function TokenPurchase({ isOpen, onClose, onPurchaseComplete, cur
                   <span className="font-medium">Token Validity</span>
                 </div>
                 <p className="text-blue-700 text-sm mt-1">
-                  Extra tokens expire at midnight and reset with your daily allowance.
+                  Extra tokens expire at midnight and reset with your daily
+                  allowance.
                 </p>
               </div>
 
@@ -142,7 +228,9 @@ export default function TokenPurchase({ isOpen, onClose, onPurchaseComplete, cur
                   <div
                     key={pkg.id}
                     className={`relative border-2 rounded-lg p-6 transition-all hover:shadow-lg ${getCategoryColor(pkg.category)} ${
-                      pkg.isPopular ? 'ring-2 ring-blue-500 ring-opacity-50' : ''
+                      pkg.isPopular
+                        ? "ring-2 ring-blue-500 ring-opacity-50"
+                        : ""
                     }`}
                   >
                     {/* Popular Badge */}
@@ -164,10 +252,14 @@ export default function TokenPurchase({ isOpen, onClose, onPurchaseComplete, cur
 
                     {/* Package Details */}
                     <div className="text-center mb-6">
-                      <h3 className="text-lg font-bold text-gray-900 mb-2">{pkg.name}</h3>
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">
+                        {pkg.name}
+                      </h3>
                       <div className="text-3xl font-bold text-gray-900 mb-1">
                         {pkg.tokens}
-                        <span className="text-sm font-normal text-gray-500 ml-1">tokens</span>
+                        <span className="text-sm font-normal text-gray-500 ml-1">
+                          tokens
+                        </span>
                       </div>
                       <div className="text-xl font-semibold text-blue-600 mb-2">
                         ₹{pkg.price}
@@ -188,8 +280,8 @@ export default function TokenPurchase({ isOpen, onClose, onPurchaseComplete, cur
                       disabled={purchasing === pkg.id}
                       className={`w-full py-3 px-4 rounded-lg font-medium transition-all ${
                         pkg.isPopular
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                          : 'bg-gray-900 hover:bg-gray-800 text-white'
+                          ? "bg-blue-600 hover:bg-blue-700 text-white"
+                          : "bg-gray-900 hover:bg-gray-800 text-white"
                       } disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
                     >
                       {purchasing === pkg.id ? (
@@ -210,9 +302,13 @@ export default function TokenPurchase({ isOpen, onClose, onPurchaseComplete, cur
 
               {/* Footer Info */}
               <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-medium text-gray-900 mb-2">Important Notes:</h4>
+                <h4 className="font-medium text-gray-900 mb-2">
+                  Important Notes:
+                </h4>
                 <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• Extra tokens are added to your current balance immediately</li>
+                  <li>
+                    • Extra tokens are added to your current balance immediately
+                  </li>
                   <li>• Unused extra tokens expire at midnight (1:00 AM)</li>
                   <li>• Your regular daily allowance resets every day</li>
                   <li>• Secure payment processing via Razorpay</li>
@@ -223,5 +319,5 @@ export default function TokenPurchase({ isOpen, onClose, onPurchaseComplete, cur
         </div>
       </div>
     </div>
-  )
+  );
 }
