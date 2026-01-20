@@ -83,6 +83,13 @@ export default function PurchaseModal({
       });
 
       const { paymentPayload } = response.data;
+      console.log("DEBUG: Payment Response Data:", response.data);
+      console.log("DEBUG: Payment Payload:", paymentPayload);
+      console.log("DEBUG: Key present?", !!paymentPayload?.key);
+      console.log(
+        "DEBUG: Checkout URL present?",
+        !!paymentPayload?.checkoutUrl,
+      );
 
       if (paymentPayload && paymentPayload.key) {
         const res = await loadRazorpay();
@@ -141,10 +148,8 @@ export default function PurchaseModal({
           toast.error(response.error.description || "Payment failed");
         });
         rzp1.open();
-      } else if (paymentPayload?.checkoutUrl) {
-        // Fallback or PhonePe legacy if still used
-        window.location.href = paymentPayload.checkoutUrl;
       } else {
+        console.error("DEBUG: Razorpay key missing in payload", paymentPayload);
         toast.error("Invalid payment configuration received from server");
       }
     } catch (error: any) {
