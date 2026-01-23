@@ -753,13 +753,31 @@ function DashboardContent() {
                       >
                         {/* ... (existing card content, unchanged logic) ... */}
                         <div className="relative h-48 bg-blue-100 overflow-hidden">
-                          {resource.isAccessedByUser && resource.url ? (
+                          {resource.isAccessedByUser &&
+                          resource.thumbnailUrl ? (
                             <div className="w-full h-full">
-                              <VideoViewer
-                                url={resource.url}
-                                title={resource.title}
-                                onClose={() => {}} // Dummy function
+                              <img
+                                src={resource.thumbnailUrl}
+                                alt={`${resource.title} thumbnail`}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = "none";
+                                  if (e.currentTarget.nextElementSibling) {
+                                    (
+                                      e.currentTarget
+                                        .nextElementSibling as HTMLElement
+                                    ).style.display = "flex";
+                                  }
+                                }}
                               />
+                              <div
+                                className="w-full h-full items-center justify-center bg-blue-100"
+                                style={{ display: "none" }}
+                              >
+                                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-md">
+                                  <Play className="w-8 h-8 text-blue-600" />
+                                </div>
+                              </div>
                             </div>
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gray-200">
@@ -768,7 +786,9 @@ function DashboardContent() {
                                   <Play className="w-8 h-8 text-blue-600" />
                                 </div>
                                 <p className="text-gray-600 text-sm font-medium">
-                                  Premium Video
+                                  {resource.isAccessedByUser
+                                    ? "Click to Play"
+                                    : "Premium Video"}
                                 </p>
                               </div>
                             </div>
