@@ -6,17 +6,19 @@ import {
   Filter,
   FileText,
   Play,
-  Download,
   Eye,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import PDFViewer from "@/components/PDFViewer";
+import VideoViewer from "@/components/VideoViewer";
+import ResourceModal from "@/components/ResourceModal";
 import Axios from "@/utils/Axios";
 
 interface Resource {
@@ -36,6 +38,9 @@ export default function ResourcesPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<"all" | "pdf" | "video">("all");
+  const [accessFilter, setAccessFilter] = useState<
+    "all" | "accessed" | "unaccessed"
+  >("all");
   const [selectedResource, setSelectedResource] = useState<Resource | null>(
     null,
   );
@@ -81,7 +86,12 @@ export default function ResourcesPage() {
 
     const matchesType = filterType === "all" || resource.type === filterType;
 
-    return matchesSearch && matchesType;
+    const matchesAccess =
+      accessFilter === "all" ||
+      (accessFilter === "accessed" && resource.isAccessedByUser) ||
+      (accessFilter === "unaccessed" && !resource.isAccessedByUser);
+
+    return matchesSearch && matchesType && matchesAccess;
   });
 
   const handleUnlock = async (resource: Resource) => {
@@ -107,21 +117,6 @@ export default function ResourcesPage() {
     } finally {
       setUnlockingId(null);
     }
-  };
-
-  const handleDownload = (resource: Resource) => {
-    if (!resource.isAccessedByUser) {
-      toast.error("Please unlock this resource first");
-      return;
-    }
-    const link = document.createElement("a");
-    link.href = resource.url;
-    link.download = `${resource.title}.${resource.type === "pdf" ? "pdf" : "mp4"}`;
-    link.target = "_blank";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success(`Downloading ${resource.title}`);
   };
 
   if (loading) {
@@ -162,46 +157,87 @@ export default function ResourcesPage() {
         </div>
 
         {/* Search and Filter */}
-        <div className="bg-white rounded-lg border shadow-sm p-4 md:p-6 mb-4 md:mb-6">
-          <div className="flex flex-col md:flex-row gap-3 md:gap-4">
-            <div className="flex-1 relative order-2 md:order-1">
-              <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+        <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+            {/* Search */}
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-black w-5 h-5" />
               <input
                 type="text"
                 placeholder="Search resources..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-black"
               />
             </div>
-            <div className="flex items-center gap-2 order-1 md:order-2 w-full md:w-auto">
-              <div className="relative w-full md:w-auto">
-                <Filter className="absolute left-3 top-2.5 w-4 h-4 text-gray-500 md:hidden" />
-                <select
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value as any)}
-                  className="w-full md:w-auto pl-9 md:pl-3 pr-8 md:pr-8 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 appearance-none bg-white"
-                  style={{ backgroundImage: "none" }}
+
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0">
+              {/* Type Filter */}
+              <div className="flex bg-gray-100 p-1 rounded-lg shrink-0">
+                <button
+                  onClick={() => setFilterType("all")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    filterType === "all"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
                 >
-                  <option value="all">All Types</option>
-                  <option value="pdf">PDFs</option>
-                  <option value="video">Videos</option>
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                  <svg
-                    className="w-4 h-4 text-gray-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    ></path>
-                  </svg>
-                </div>
+                  All Types
+                </button>
+                <button
+                  onClick={() => setFilterType("pdf")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    filterType === "pdf"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  PDFs
+                </button>
+                <button
+                  onClick={() => setFilterType("video")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    filterType === "video"
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  Videos
+                </button>
+              </div>
+
+              {/* Access Filter */}
+              <div className="flex bg-gray-100 p-1 rounded-lg shrink-0">
+                <button
+                  onClick={() => setAccessFilter("all")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    accessFilter === "all"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  Any Status
+                </button>
+                <button
+                  onClick={() => setAccessFilter("accessed")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    accessFilter === "accessed"
+                      ? "bg-white text-green-600 shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  Accessed
+                </button>
+                <button
+                  onClick={() => setAccessFilter("unaccessed")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    accessFilter === "unaccessed"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  Unaccessed
+                </button>
               </div>
             </div>
           </div>
@@ -330,22 +366,13 @@ export default function ResourcesPage() {
                             )}
                           </button>
                         ) : (
-                          <>
-                            <button
-                              onClick={() => setSelectedResource(resource)}
-                              className="flex-1 bg-blue-600 text-white text-xs md:text-sm font-medium py-1.5 px-2 md:py-2 md:px-3 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-1.5 h-8 md:h-10"
-                            >
-                              <Eye className="w-3 h-3 md:w-4 md:h-4" />
-                              <span className="hidden md:inline">View</span>
-                            </button>
-                            <button
-                              onClick={() => handleDownload(resource)}
-                              className="flex-1 text-gray-600 hover:text-gray-800 text-xs md:text-sm font-medium py-1.5 px-2 md:py-2 md:px-3 border border-gray-200 rounded hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5 h-8 md:h-10"
-                            >
-                              <Download className="w-3 h-3 md:w-4 md:h-4" />
-                              <span className="hidden md:inline">Download</span>
-                            </button>
-                          </>
+                          <button
+                            onClick={() => setSelectedResource(resource)}
+                            className="flex-1 bg-blue-600 text-white text-xs md:text-sm font-medium py-1.5 px-2 md:py-2 md:px-3 rounded hover:bg-blue-700 transition-colors flex items-center justify-center gap-1.5 h-8 md:h-10"
+                          >
+                            <Eye className="w-3 h-3 md:w-4 md:h-4" />
+                            <span className="hidden md:inline">View</span>
+                          </button>
                         )}
                       </div>
                     </div>
@@ -414,87 +441,10 @@ export default function ResourcesPage() {
 
       {/* Resource Viewer Modal */}
       {selectedResource && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-2 md:p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-lg w-full md:max-w-6xl h-[90vh] md:h-5/6 flex flex-col shadow-2xl overflow-hidden">
-            {/* Header */}
-            <div className="flex justify-between items-center p-4 md:p-6 border-b border-gray-200 bg-white">
-              <div className="pr-4">
-                <h3 className="text-lg md:text-xl font-semibold text-gray-900 line-clamp-1">
-                  {selectedResource.title}
-                </h3>
-                <p className="text-xs md:text-sm text-gray-500 mt-0.5">
-                  {selectedResource.type.toUpperCase()} Resource
-                </p>
-              </div>
-              <button
-                onClick={() => setSelectedResource(null)}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 relative bg-gray-100 overflow-hidden">
-              {selectedResource.type === "pdf" ? (
-                <PDFViewer
-                  url={selectedResource.url}
-                  title={selectedResource.title}
-                  showDownload={true}
-                  showExternal={true}
-                  className="h-full w-full"
-                />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center bg-black">
-                  <video
-                    controls
-                    className="max-w-full max-h-full w-full"
-                    src={selectedResource.url}
-                    playsInline
-                  >
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="p-4 md:p-6 border-t border-gray-200 bg-gray-50">
-              <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="flex-1 w-full md:w-auto">
-                  <p className="text-sm text-gray-700 line-clamp-2 md:line-clamp-none">
-                    {selectedResource.description}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Added on{" "}
-                    {new Date(selectedResource.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="flex gap-3 w-full md:w-auto">
-                  <button
-                    onClick={() => handleDownload(selectedResource)}
-                    className="w-full md:w-auto bg-gray-900 text-white px-4 py-2.5 rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium flex items-center justify-center gap-2"
-                  >
-                    <Download className="w-4 h-4" />
-                    Download
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ResourceModal
+          resource={selectedResource}
+          onClose={() => setSelectedResource(null)}
+        />
       )}
 
       <Footer />
