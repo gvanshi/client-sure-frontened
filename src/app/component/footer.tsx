@@ -1,168 +1,81 @@
-"use client"
-
-import { useState } from 'react'
-import { Twitter, Linkedin, Github, Mail, Send } from 'lucide-react'
-import { toast } from 'sonner'
+import { Mail, Globe } from "lucide-react";
 
 export default function Footer() {
-  const [email, setEmail] = useState('')
-  
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (email) {
-      toast.success('Successfully subscribed to newsletter!')
-      setEmail('')
-    } else {
-      toast.error('Please enter a valid email address')
-    }
-  }
   return (
-    <footer className="bg-blue-900 text-white pt-20 pb-8 px-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Main Footer Content */}
-        <div className="grid md:grid-cols-5 gap-12 mb-12">
-          {/* Brand Column */}
-          <div>
-            <h3 className="text-2xl font-bold mb-4">ClientSure</h3>
-            <p className="text-blue-200 mb-6">Empowering businesses with intelligent client management solutions.</p>
-            {/* Social Icons */}
-            <div className="flex gap-3">
-              <a href="#" className="w-10 h-10 bg-blue-700 hover:bg-blue-600 rounded-lg flex items-center justify-center transition-colors">
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-blue-700 hover:bg-blue-600 rounded-lg flex items-center justify-center transition-colors">
-                <Linkedin className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-blue-700 hover:bg-blue-600 rounded-lg flex items-center justify-center transition-colors">
-                <Github className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-blue-700 hover:bg-blue-600 rounded-lg flex items-center justify-center transition-colors">
-                <Mail className="w-5 h-5" />
-              </a>
-            </div>
+    <footer className="bg-white pt-20 pb-12 px-6 border-t border-gray-50 text-center font-sans relative z-10 w-full">
+      <div className="max-w-7xl mx-auto flex flex-col items-center">
+        {/* Logo */}
+        <div className="flex items-center gap-2 mb-8 select-none">
+          <div className="w-8 h-8 bg-[#1C9988] rounded-full flex items-center justify-center text-white font-bold text-lg">
+            <Globe className="w-5 h-5 stroke-2" />
           </div>
-
-          {/* Product Column */}
-          <div>
-            <h4 className="font-semibold text-lg mb-4">Product</h4>
-            <ul className="space-y-3 text-blue-200">
-              <li>
-                <a href="#" className="hover:text-white transition">
-                  Features
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition">
-                  Pricing
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition">
-                  Integrations
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition">
-                  API
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Company Column */}
-          <div>
-            <h4 className="font-semibold text-lg mb-4">Company</h4>
-            <ul className="space-y-3 text-blue-200">
-              <li>
-                <a href="#" className="hover:text-white transition">
-                  About Us
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition">
-                  Careers
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition">
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition">
-                  Press
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Support Column */}
-          <div>
-            <h4 className="font-semibold text-lg mb-4">Support</h4>
-            <ul className="space-y-3 text-blue-200">
-              <li>
-                <a href="#" className="hover:text-white transition">
-                  Help Center
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition">
-                  Contact Us
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition">
-                  Status
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition">
-                  Security
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Newsletter Column */}
-          <div>
-            <h4 className="font-semibold text-lg mb-4">Newsletter</h4>
-            <p className="text-blue-200 mb-4 text-sm">Stay updated with our latest features and news.</p>
-            <form onSubmit={handleNewsletterSubmit} className="flex w-full max-w-sm">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 min-w-0 px-3 py-2 rounded-l-lg bg-blue-800 border border-blue-700 text-white placeholder-blue-300 focus:outline-none text-sm"
-                required
-              />
-              <button type="submit" className="bg-white text-blue-900 font-semibold px-4 py-2 rounded-r-lg hover:bg-blue-50 transition text-sm whitespace-nowrap flex items-center gap-2">
-                <Send className="w-4 h-4" />
-                Subscribe
-              </button>
-            </form>
-          </div>
+          <span className="font-bold text-gray-900 text-lg tracking-tight">
+            ClientSure
+          </span>
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-blue-800 pt-8 mt-8"></div>
+        {/* Copyright */}
+        <p className="text-[12px] text-gray-500 mb-8 uppercase tracking-wide font-medium">
+          Copyright ClientSure™ Operated Under Snowball Media Pvt Ltd.
+        </p>
 
-        {/* Bottom Footer */}
-        <div className="flex justify-between items-center flex-wrap gap-4">
-          <p className="text-blue-200 text-sm">© 2025 ClientSure. All rights reserved.</p>
-          <div className="flex gap-6 text-blue-200 text-sm">
-            <a href="#" className="hover:text-white transition">
-              Privacy Policy
+        {/* Links */}
+        <div className="flex flex-wrap justify-center gap-6 text-[13px] text-gray-500 font-medium mb-10 w-full px-4">
+          <a href="#" className="hover:text-gray-900 transition-colors">
+            Privacy Policy
+          </a>
+          <span className="text-gray-300 w-px h-4 bg-gray-200"></span>
+          <a href="#" className="hover:text-gray-900 transition-colors">
+            Refund Policy
+          </a>
+          <span className="text-gray-300 w-px h-4 bg-gray-200"></span>
+          <a href="#" className="hover:text-gray-900 transition-colors">
+            Terms and Conditions
+          </a>
+          <span className="text-gray-300 w-px h-4 bg-gray-200"></span>
+          <a href="#" className="hover:text-gray-900 transition-colors">
+            Contact Us
+          </a>
+          <span className="text-gray-300 w-px h-4 bg-gray-200"></span>
+          <a href="#" className="hover:text-gray-900 transition-colors">
+            About Us
+          </a>
+        </div>
+
+        {/* Support Email */}
+        <div className="flex items-center justify-center gap-2 text-[13px] text-gray-500 mb-12">
+          <Mail className="w-4 h-4 text-gray-400" />
+          <span>
+            Support email:{" "}
+            <a
+              href="mailto:snoowballmedia@gmail.com"
+              className="text-[#1C9988] font-medium hover:underline"
+            >
+              snoowballmedia@gmail.com
             </a>
-            <a href="#" className="hover:text-white transition">
-              Terms of Service
-            </a>
-            <a href="#" className="hover:text-white transition">
-              Cookie Policy
-            </a>
-          </div>
+          </span>
+        </div>
+
+        {/* Disclaimer */}
+        <div className="max-w-[900px] mx-auto text-[10px] text-gray-300 leading-relaxed text-center px-4">
+          <p className="mb-2">
+            <span className="font-bold text-gray-400">Disclaimer:</span> Our
+            platform provides tools, systems, resources, and access to verified
+            leads to help freelancers and agencies connect with potential
+            clients; however, we do not guarantee results, revenue, or client
+            acquisition, as outcomes depend on individual effort and external
+            factors. The information provided is for general purposes only and
+            does not constitute business, legal, or financial advice.
+          </p>
+          <p>
+            We are not affiliated with, endorsed by, or associated with Meta
+            (Facebook, Instagram), Google, LinkedIn, or any other third-party
+            platforms or trademarks mentioned, which belong to their respective
+            owners. Use of the platform and engagement with leads is solely at
+            your own risk.
+          </p>
         </div>
       </div>
     </footer>
-  )
+  );
 }
