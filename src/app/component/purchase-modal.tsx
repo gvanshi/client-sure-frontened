@@ -1,9 +1,8 @@
-"use client";
-
 import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
 import Axios from "../../utils/Axios";
 
 interface PurchaseModalProps {
@@ -36,11 +35,9 @@ export default function PurchaseModal({
     isChecking: boolean;
   }>({ isValid: null, referrerName: null, isChecking: false });
   const [isLoading, setIsLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    setMounted(true);
     if (isOpen) {
       document.body.style.overflow = "hidden";
     } else {
@@ -50,8 +47,6 @@ export default function PurchaseModal({
       document.body.style.overflow = "unset";
     };
   }, [isOpen]);
-
-  if (!isOpen || !mounted) return null;
 
   const loadRazorpay = () => {
     return new Promise((resolve) => {
@@ -83,13 +78,6 @@ export default function PurchaseModal({
       });
 
       const { paymentPayload } = response.data;
-      console.log("DEBUG: Payment Response Data:", response.data);
-      console.log("DEBUG: Payment Payload:", paymentPayload);
-      console.log("DEBUG: Key present?", !!paymentPayload?.key);
-      console.log(
-        "DEBUG: Checkout URL present?",
-        !!paymentPayload?.checkoutUrl,
-      );
 
       if (paymentPayload && paymentPayload.key) {
         const res = await loadRazorpay();
@@ -99,7 +87,7 @@ export default function PurchaseModal({
           return;
         }
 
-        const databaseOrderId = response.data._id || paymentPayload.orderId; // Prefer DB ID from response
+        const databaseOrderId = response.data._id || paymentPayload.orderId;
 
         const options = {
           key: paymentPayload.key,
@@ -121,6 +109,16 @@ export default function PurchaseModal({
               );
 
               if (verifyResponse.data.success) {
+                if (verifyResponse.data.token) {
+                  localStorage.removeItem("adminToken");
+                  localStorage.setItem("userToken", verifyResponse.data.token);
+                  if (verifyResponse.data.user) {
+                    localStorage.setItem(
+                      "userData",
+                      JSON.stringify(verifyResponse.data.user),
+                    );
+                  }
+                }
                 window.location.href = `/payment-success?orderId=${databaseOrderId}`;
               } else {
                 toast.error("Payment verification failed");
@@ -138,7 +136,7 @@ export default function PurchaseModal({
             address: "ClientSure Corporate Office",
           },
           theme: {
-            color: "#3399cc",
+            color: "#1C9988",
           },
         };
 
@@ -149,7 +147,6 @@ export default function PurchaseModal({
         });
         rzp1.open();
       } else {
-        console.error("DEBUG: Razorpay key missing in payload", paymentPayload);
         toast.error("Invalid payment configuration received from server");
       }
     } catch (error: any) {
@@ -164,212 +161,212 @@ export default function PurchaseModal({
     }
   };
 
-  const modalContent = (
-    <div
-      className="fixed inset-0 bg-white bg-opacity-20 backdrop-blur-md flex items-center justify-center z-[9999] p-4"
-      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0 }}
-    >
-      <div className="bg-white rounded-2xl max-w-lg w-full p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] transition-opacity"
+          />
+
+          {/* Modal Container */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+            {/* Modal Content */}
+            <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl pointer-events-auto overflow-hidden flex flex-col max-h-[90vh]">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                <h3 className="text-xl font-bold text-gray-900">
+                  Complete Your Purchase
+                </h3>
+                <button
+                  onClick={onClose}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
 
-        {/* Header */}
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">
-          Complete Your Purchase
-        </h2>
+              {/* Body */}
+              <div className="p-6 overflow-y-auto">
+                {/* Plan Details */}
+                <div className="bg-gray-50 rounded-xl p-6 mb-8 border border-gray-100">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">
+                    {plan.name}
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                    <div className="bg-green-100 text-green-800 px-3 py-1.5 rounded-lg font-medium text-sm">
+                      {plan.price}
+                    </div>
+                    <div className="bg-blue-100 text-blue-800 px-3 py-1.5 rounded-lg font-medium text-sm">
+                      {plan.duration}
+                    </div>
+                    <div className="bg-purple-100 text-purple-800 px-3 py-1.5 rounded-lg font-medium text-sm">
+                      {plan.tokensPerDay}
+                    </div>
+                  </div>
+                </div>
 
-        {/* Plan Details */}
-        <div className="bg-gray-50 rounded-xl p-6 mb-8">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
-            {plan.name}
-          </h3>
-          <div className="flex gap-3">
-            <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg font-medium">
-              ₹{plan.price}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter your full name"
+                      value={formData.fullName}
+                      onChange={(e) =>
+                        setFormData({ ...formData, fullName: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1C9988] focus:border-transparent outline-none transition-all"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email Address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="Enter your email address"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1C9988] focus:border-transparent outline-none transition-all"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="Enter your phone number"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        setFormData({ ...formData, phone: e.target.value })
+                      }
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#1C9988] focus:border-transparent outline-none transition-all"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Referral Code{" "}
+                      <span className="text-gray-400 font-normal">
+                        (Optional)
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Enter referral code"
+                      value={formData.referralCode}
+                      onChange={async (e) => {
+                        const code = e.target.value.toUpperCase();
+                        setFormData({ ...formData, referralCode: code });
+
+                        if (code.length >= 6) {
+                          setReferralValidation({
+                            isValid: null,
+                            referrerName: null,
+                            isChecking: true,
+                          });
+                          try {
+                            const response = await Axios.get(
+                              `/referrals/validate/${code}`,
+                            );
+                            if (response.data.valid) {
+                              setReferralValidation({
+                                isValid: true,
+                                referrerName: response.data.referrer.name,
+                                isChecking: false,
+                              });
+                            } else {
+                              setReferralValidation({
+                                isValid: false,
+                                referrerName: null,
+                                isChecking: false,
+                              });
+                            }
+                          } catch (error) {
+                            setReferralValidation({
+                              isValid: false,
+                              referrerName: null,
+                              isChecking: false,
+                            });
+                          }
+                        } else {
+                          setReferralValidation({
+                            isValid: null,
+                            referrerName: null,
+                            isChecking: false,
+                          });
+                        }
+                      }}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 outline-none transition-all ${
+                        referralValidation.isValid === true
+                          ? "border-green-500 focus:ring-green-500"
+                          : referralValidation.isValid === false
+                            ? "border-red-500 focus:ring-red-500"
+                            : "border-gray-200 focus:ring-[#1C9988]"
+                      }`}
+                    />
+                    {referralValidation.isChecking && (
+                      <p className="text-[#1C9988] text-xs mt-1">
+                        Validating referral code...
+                      </p>
+                    )}
+                    {referralValidation.isValid === true && (
+                      <p className="text-green-600 text-xs mt-1">
+                        ✓ Valid referral code from{" "}
+                        {referralValidation.referrerName}
+                      </p>
+                    )}
+                    {referralValidation.isValid === false &&
+                      formData.referralCode && (
+                        <p className="text-red-600 text-xs mt-1">
+                          ✗ Invalid referral code
+                        </p>
+                      )}
+                  </div>
+
+                  <div className="pt-4 flex gap-3">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="flex-1 py-3 px-4 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="flex-1 py-3 px-4 bg-[#1C9988] text-white rounded-lg hover:bg-[#158f7f] font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isLoading ? "Processing..." : "Proceed to Payment"}
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
-            <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg font-medium">
-              {plan.duration}
-            </div>
-            <div className="bg-purple-100 text-purple-800 px-4 py-2 rounded-lg font-medium">
-              {plan.tokensPerDay}
-            </div>
-          </div>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Full Name */}
-          <div>
-            <label className="block text-black font-semibold mb-3 text-lg">
-              Full Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              placeholder="Enter your full name"
-              value={formData.fullName}
-              onChange={(e) =>
-                setFormData({ ...formData, fullName: e.target.value })
-              }
-              className="w-full px-5 py-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg text-black bg-white"
-              required
-            />
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-black font-semibold mb-3 text-lg">
-              Email Address <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              placeholder="Enter your email address"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              className="w-full px-5 py-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg text-black bg-white"
-              required
-            />
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="block text-black font-semibold mb-3 text-lg">
-              Phone Number <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="tel"
-              placeholder="Enter your phone number"
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
-              className="w-full px-5 py-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg text-black bg-white"
-              required
-            />
-          </div>
-
-          {/* Referral Code */}
-          <div>
-            <label className="block text-black font-semibold mb-3 text-lg">
-              Referral Code <span className="text-gray-500">(Optional)</span>
-            </label>
-            <input
-              type="text"
-              placeholder="Enter referral code if you have one"
-              value={formData.referralCode}
-              onChange={async (e) => {
-                const code = e.target.value.toUpperCase();
-                setFormData({ ...formData, referralCode: code });
-
-                if (code.length >= 6) {
-                  setReferralValidation({
-                    isValid: null,
-                    referrerName: null,
-                    isChecking: true,
-                  });
-                  try {
-                    const response = await Axios.get(
-                      `/referrals/validate/${code}`,
-                    );
-                    if (response.data.valid) {
-                      setReferralValidation({
-                        isValid: true,
-                        referrerName: response.data.referrer.name,
-                        isChecking: false,
-                      });
-                    } else {
-                      setReferralValidation({
-                        isValid: false,
-                        referrerName: null,
-                        isChecking: false,
-                      });
-                    }
-                  } catch (error) {
-                    setReferralValidation({
-                      isValid: false,
-                      referrerName: null,
-                      isChecking: false,
-                    });
-                  }
-                } else {
-                  setReferralValidation({
-                    isValid: null,
-                    referrerName: null,
-                    isChecking: false,
-                  });
-                }
-              }}
-              className={`w-full px-5 py-4 border rounded-lg focus:outline-none focus:ring-2 text-lg text-black bg-white ${
-                referralValidation.isValid === true
-                  ? "border-green-500 focus:ring-green-500"
-                  : referralValidation.isValid === false
-                    ? "border-red-500 focus:ring-red-500"
-                    : "border-gray-200 focus:ring-blue-500"
-              }`}
-            />
-            {referralValidation.isChecking && (
-              <p className="text-blue-600 text-sm mt-2">
-                Validating referral code...
-              </p>
-            )}
-            {referralValidation.isValid === true && (
-              <p className="text-green-600 text-sm mt-2">
-                ✓ Valid referral code from {referralValidation.referrerName}
-              </p>
-            )}
-            {referralValidation.isValid === false && formData.referralCode && (
-              <p className="text-red-600 text-sm mt-2">
-                ✗ Invalid referral code
-              </p>
-            )}
-          </div>
-
-          {/* Buttons */}
-          <div className="flex gap-4 pt-6">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 py-4 px-6 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold text-lg"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1 py-4 px-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Processing...
-                </>
-              ) : (
-                "Proceed to Payment"
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
-
-  return createPortal(modalContent, document.body);
 }

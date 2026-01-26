@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Plus, Minus, HelpCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -45,63 +46,96 @@ export default function FAQ() {
     },
   ];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+  };
+
   return (
-    <section className="bg-white py-20 px-6">
-      <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-16">
+    <section className="bg-white py-20 lg:py-32 px-6">
+      <div className="max-w-3xl lg:max-w-4xl mx-auto">
+        <div className="text-center mb-16 lg:mb-24">
           <div className="inline-flex items-center gap-2 bg-[#FFF8E7] px-4 py-2 rounded-full mb-6 border border-[#FFE8B9]">
             <HelpCircle className="w-4 h-4 text-[#B4822D]" />
             <span className="text-[#B4822D] font-bold text-xs uppercase tracking-wide">
               Common Questions
             </span>
           </div>
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
             Honest Answers
           </h2>
-          <p className="text-gray-500">
+          <p className="text-gray-500 text-lg lg:text-xl">
             We know you have questions. Here are straight answers.
             <br />
             No marketing speak. Just truth.
           </p>
         </div>
 
-        <div className="space-y-4">
+        <motion.div
+          className="space-y-4 lg:space-y-6"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: "-100px" }}
+        >
           {faqs.map((faq, index) => (
-            <div
+            <motion.div
               key={index}
-              className="border border-gray-100 rounded-xl bg-white overflow-hidden transition-all hover:shadow-sm"
+              variants={itemVariants}
+              className="border border-gray-100 rounded-xl bg-white overflow-hidden transition-all hover:shadow-md"
             >
               <button
-                className="w-full flex items-center justify-between p-6 text-left"
+                className="w-full flex items-center justify-between p-6 lg:p-8 text-left"
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
               >
-                <span className="text-sm font-bold text-gray-900">{faq.q}</span>
+                <span className="text-sm lg:text-lg font-bold text-gray-900 pr-8">
+                  {faq.q}
+                </span>
                 {openIndex === index ? (
-                  <Minus className="w-4 h-4 text-gray-400 shrink-0" />
+                  <Minus className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400 shrink-0" />
                 ) : (
-                  <Plus className="w-4 h-4 text-gray-400 shrink-0" />
+                  <Plus className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400 shrink-0" />
                 )}
               </button>
 
-              {openIndex === index && (
-                <div className="px-6 pb-6 text-sm text-gray-500 leading-relaxed border-t border-gray-50 pt-4">
-                  {faq.a}
-                </div>
-              )}
-            </div>
+              <AnimatePresence>
+                {openIndex === index && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                  >
+                    <div className="px-6 lg:px-8 pb-6 lg:pb-8 text-sm lg:text-base text-gray-500 leading-relaxed border-t border-gray-50 pt-4">
+                      {faq.a}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
-        <div className="bg-white border border-gray-100 rounded-2xl p-8 mt-12 text-center shadow-sm">
-          <h3 className="font-bold text-gray-900 mb-2">
+        <div className="bg-white border border-gray-100 rounded-2xl p-8 lg:p-12 mt-12 lg:mt-20 text-center shadow-sm">
+          <h3 className="font-bold text-gray-900 mb-2 text-lg lg:text-xl">
             Still have questions?
           </h3>
-          <p className="text-xs text-gray-500 mb-4">
+          <p className="text-xs lg:text-base text-gray-500 mb-6">
             Join our community. Ask real users. Get honest feedback.
           </p>
           <a
             href="#"
-            className="text-[#1C9988] font-bold text-sm hover:underline"
+            className="text-[#1C9988] font-bold text-sm lg:text-base hover:underline"
           >
             Email us
           </a>

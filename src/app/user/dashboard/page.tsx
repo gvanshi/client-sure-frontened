@@ -31,10 +31,24 @@ interface UserStats {
   tokensUsedToday: number;
   dailyTokens: number;
   totalAvailable?: number;
+  // Bonus Tokens
+  bonusTokens: number;
+  bonusTokensInitial: number;
+  bonusTokensUsed: number;
+  // Purchased Tokens
+  purchasedTokens: number;
+  purchasedTokensTotal: number;
+  // Prize Tokens
   prizeTokens?: number;
   prizeTokenType?: string;
   prizeTokenExpiresAt?: string;
   dailyLimit?: number;
+  // Plan Info
+  planBonusTokens?: number;
+  planDurationDays?: number;
+  totalPlanTokens: number;
+  totalPlanTokensRemaining: number;
+  daysRemaining: number;
   monthlyTokens: {
     total: number;
     used: number;
@@ -96,29 +110,51 @@ function DashboardContent() {
   const loadUserStats = async () => {
     try {
       const response = await Axios.get("/auth/profile");
+      const tokens = response.data.tokens;
+      const subscription = response.data.subscription;
+      const plan = subscription?.plan;
+
+      // Calculate total plan tokens and remaining
+      const totalPlanTokens = plan
+        ? plan.dailyTokens * plan.durationDays + (plan.bonusTokens || 0)
+        : 0;
+      const totalPlanTokensRemaining =
+        (tokens?.monthlyRemaining || 0) + (tokens?.bonusTokens || 0);
+
       const newStats: UserStats = {
-        tokens:
-          response.data.tokens?.effectiveTokens ||
-          response.data.tokens?.daily ||
-          0,
-        dailyTokens: response.data.tokens?.dailyLimit || 100,
-        totalAvailable: response.data.tokens?.daily || 0,
-        prizeTokens: response.data.tokens?.prizeTokens || 0,
-        prizeTokenType: response.data.tokens?.prizeTokenType,
-        prizeTokenExpiresAt: response.data.tokens?.prizeTokenExpiresAt,
-        tokensUsedTotal: response.data.tokens?.totalUsed || 0,
-        tokensUsedToday: response.data.tokens?.dailyUsed || 0,
-        dailyLimit: response.data.tokens?.dailyLimit || 100,
+        tokens: tokens?.effectiveTokens || tokens?.daily || 0,
+        dailyTokens: tokens?.dailyLimit || 100,
+        totalAvailable: tokens?.daily || 0,
+        // Bonus tokens
+        bonusTokens: tokens?.bonusTokens || 0,
+        bonusTokensInitial: tokens?.bonusTokensInitial || 0,
+        bonusTokensUsed: tokens?.bonusTokensUsed || 0,
+        // Purchased tokens
+        purchasedTokens: tokens?.purchasedTokens?.current || 0,
+        purchasedTokensTotal: tokens?.purchasedTokens?.total || 0,
+        // Prize tokens
+        prizeTokens: tokens?.prizeTokens || 0,
+        prizeTokenType: tokens?.prizeTokenType,
+        prizeTokenExpiresAt: tokens?.prizeTokenExpiresAt,
+        tokensUsedTotal: tokens?.totalUsed || 0,
+        tokensUsedToday: tokens?.dailyUsed || 0,
+        dailyLimit: tokens?.dailyLimit || 100,
+        // Plan info
+        planBonusTokens: plan?.bonusTokens || 0,
+        planDurationDays: plan?.durationDays || 0,
+        totalPlanTokens,
+        totalPlanTokensRemaining,
+        daysRemaining: subscription?.daysRemaining || 0,
         monthlyTokens: {
-          total: response.data.tokens?.monthlyTotal || 0,
-          used: response.data.tokens?.monthlyUsed || 0,
-          remaining: response.data.tokens?.monthlyRemaining || 0,
+          total: tokens?.monthlyTotal || 0,
+          used: tokens?.monthlyUsed || 0,
+          remaining: tokens?.monthlyRemaining || 0,
         },
         subscription: {
-          isActive: response.data.subscription?.isActive || false,
-          planName: response.data.subscription?.plan?.name,
-          endDate: response.data.subscription?.endDate,
-          monthlyAllocation: response.data.tokens?.monthlyTotal || 0,
+          isActive: subscription?.isActive || false,
+          planName: plan?.name,
+          endDate: subscription?.endDate,
+          monthlyAllocation: tokens?.monthlyTotal || 0,
         },
       };
 
@@ -287,106 +323,192 @@ function DashboardContent() {
           </div>
         )}
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">
-          <div
-            className={`bg-white rounded-xl shadow-lg p-6 text-center relative ${
-              (userStats?.tokens || 0) <= 5
-                ? "ring-2 ring-orange-500 ring-opacity-50"
-                : ""
-            }`}
-          >
-            {(userStats?.tokens || 0) <= 5 && (
-              <div className="absolute -top-2 -right-2 bg-orange-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
-                !
+        {/* Comprehensive Token Metrics Section */}
+        {userStats && (
+          <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 rounded-2xl shadow-lg border border-blue-100 p-8 mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                  Token Overview
+                </h2>
+                <p className="text-gray-600 text-sm">
+                  Complete breakdown of your token allocation and usage
+                </p>
               </div>
-            )}
-            <div
-              className={`text-3xl font-bold mb-2 ${
-                (userStats?.tokens || 0) <= 0
-                  ? "text-red-600"
-                  : (userStats?.tokens || 0) <= 5
-                    ? "text-orange-600"
-                    : "text-blue-600"
-              }`}
-            >
-              {userStats?.tokens || 0}
+              <div className="hidden md:block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+                {userStats.daysRemaining} days remaining
+              </div>
             </div>
-            <div className="text-gray-600">Daily Tokens</div>
-            <div className="text-xs text-gray-500 mt-1">
-              {userStats?.dailyLimit || 0} total available
-              {(userStats?.prizeTokens || 0) > 0 && (
-                <span className="text-yellow-600 font-semibold">
-                  {" "}
-                  + {userStats?.prizeTokens} prize
-                </span>
+
+            {/* Primary Metrics Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+              {/* Total Plan Tokens */}
+              <div className="bg-white rounded-xl shadow-sm p-5 border border-blue-100">
+                <div className="text-xs text-gray-500 mb-1 font-medium">
+                  Total Plan Tokens
+                </div>
+                <div className="text-3xl font-bold text-blue-600 mb-1">
+                  {userStats.totalPlanTokens.toLocaleString()}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {userStats.planDurationDays} days @ {userStats.dailyLimit}/day
+                </div>
+              </div>
+
+              {/* Plan Tokens Remaining */}
+              <div className="bg-white rounded-xl shadow-sm p-5 border border-green-100">
+                <div className="text-xs text-gray-500 mb-1 font-medium">
+                  Plan Tokens Left
+                </div>
+                <div className="text-3xl font-bold text-green-600 mb-1">
+                  {userStats.totalPlanTokensRemaining.toLocaleString()}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {(
+                    (userStats.totalPlanTokensRemaining /
+                      userStats.totalPlanTokens) *
+                    100
+                  ).toFixed(1)}
+                  % remaining
+                </div>
+              </div>
+
+              {/* Daily Tokens */}
+              <div className="bg-white rounded-xl shadow-sm p-5 border border-indigo-100">
+                <div className="text-xs text-gray-500 mb-1 font-medium">
+                  Daily Tokens
+                </div>
+                <div className="text-3xl font-bold text-indigo-600 mb-1">
+                  {userStats.tokens}
+                </div>
+                <div className="text-xs text-gray-500">
+                  of {userStats.dailyLimit} available
+                </div>
+              </div>
+
+              {/* Bonus Tokens */}
+              <div className="bg-white rounded-xl shadow-sm p-5 border border-yellow-100">
+                <div className="text-xs text-gray-500 mb-1 font-medium flex items-center gap-1">
+                  <span>Bonus Tokens</span>
+                  <span className="text-yellow-500">✨</span>
+                </div>
+                <div className="text-3xl font-bold text-yellow-600 mb-1">
+                  {userStats.bonusTokens.toLocaleString()}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {userStats.bonusTokensUsed}/{userStats.bonusTokensInitial}{" "}
+                  used
+                </div>
+              </div>
+
+              {/* Token Usage */}
+              <div className="bg-white rounded-xl shadow-sm p-5 border border-purple-100">
+                <div className="text-xs text-gray-500 mb-1 font-medium">
+                  Total Used
+                </div>
+                <div className="text-3xl font-bold text-purple-600 mb-1">
+                  {userStats.tokensUsedTotal.toLocaleString()}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {userStats.tokensUsedToday} today
+                </div>
+              </div>
+            </div>
+
+            {/* Secondary Metrics */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* Monthly Tokens */}
+              <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100">
+                <div className="text-xs text-gray-500 mb-2 font-medium">
+                  Monthly Allocation
+                </div>
+                <div className="text-xl font-bold text-gray-900">
+                  {userStats.monthlyTokens.total.toLocaleString()}
+                </div>
+                <div className="text-xs text-gray-600 mt-1">
+                  {userStats.monthlyTokens.remaining.toLocaleString()} left
+                </div>
+              </div>
+
+              {/* Purchased Tokens */}
+              {userStats.purchasedTokens > 0 && (
+                <div className="bg-white rounded-lg shadow-sm p-4 border border-orange-100">
+                  <div className="text-xs text-gray-500 mb-2 font-medium">
+                    Purchased Tokens
+                  </div>
+                  <div className="text-xl font-bold text-orange-600">
+                    {userStats.purchasedTokens.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-gray-600 mt-1">Extra tokens</div>
+                </div>
               )}
-            </div>
-            {(userStats?.prizeTokens || 0) > 0 && (
-              <div className="mt-2 bg-yellow-100 rounded-lg p-2">
-                <div className="text-xs font-bold text-yellow-700">
-                  🎉 {userStats?.prizeTokenType} Bonus!
+
+              {/* Prize Tokens */}
+              {(userStats.prizeTokens || 0) > 0 && (
+                <div className="bg-white rounded-lg shadow-sm p-4 border border-pink-100">
+                  <div className="text-xs text-gray-500 mb-2 font-medium">
+                    Prize Tokens 🎉
+                  </div>
+                  <div className="text-xl font-bold text-pink-600">
+                    {userStats.prizeTokens}
+                  </div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    {userStats.prizeTokenType}
+                  </div>
                 </div>
-                <div className="text-xs text-yellow-600">
-                  Expires:{" "}
-                  {userStats?.prizeTokenExpiresAt
-                    ? new Date(
-                        userStats.prizeTokenExpiresAt,
-                      ).toLocaleDateString()
-                    : "Soon"}
+              )}
+
+              {/* Effective Tokens */}
+              <div className="bg-white rounded-lg shadow-sm p-4 border border-teal-100">
+                <div className="text-xs text-gray-500 mb-2 font-medium">
+                  Effective Total
+                </div>
+                <div className="text-xl font-bold text-teal-600">
+                  {userStats.tokens}
+                </div>
+                <div className="text-xs text-gray-600 mt-1">Available now</div>
+              </div>
+            </div>
+
+            {/* Plan Info Bar */}
+            <div className="mt-6 bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <div className="text-xs text-blue-600 font-medium">
+                      Current Plan
+                    </div>
+                    <div className="text-lg font-bold text-blue-900">
+                      {userStats.subscription.planName}
+                    </div>
+                  </div>
+                  {userStats.planBonusTokens &&
+                    userStats.planBonusTokens > 0 && (
+                      <div className="bg-yellow-100 px-3 py-1 rounded-full">
+                        <span className="text-xs font-semibold text-yellow-700">
+                          +{userStats.planBonusTokens.toLocaleString()} Bonus
+                        </span>
+                      </div>
+                    )}
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-blue-600">Plan Valid Until</div>
+                  <div className="text-sm font-semibold text-blue-900">
+                    {userStats.subscription.endDate
+                      ? new Date(
+                          userStats.subscription.endDate,
+                        ).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })
+                      : "N/A"}
+                  </div>
                 </div>
               </div>
-            )}
-            {(userStats?.tokens || 0) <= 5 && (
-              <button
-                onClick={() => handleNavigation("/user/profile/tokens")}
-                className="mt-2 text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-full font-medium transition-colors"
-              >
-                Buy More
-              </button>
-            )}
-          </div>
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <div className="text-3xl font-bold text-green-600 mb-2">
-              {userStats?.monthlyTokens.remaining || 0}
-            </div>
-            <div className="text-gray-600">Remaining Tokens</div>
-            <div className="text-xs text-gray-500 mt-1">
-              available this month
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-2">
-              {userStats?.monthlyTokens.total || 0}
-            </div>
-            <div className="text-gray-600">Total Tokens</div>
-            <div className="text-xs text-gray-500 mt-1">monthly allocation</div>
-          </div>
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <div className="text-3xl font-bold text-purple-600 mb-2">
-              {userStats?.tokensUsedTotal || 0}
-            </div>
-            <div className="text-gray-600">Total Used</div>
-            <div className="text-xs text-gray-500 mt-1">
-              {userStats?.tokensUsedToday || 0} today
-            </div>
-          </div>
-          <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <div
-              className={`text-3xl font-bold mb-2 ${
-                userStats?.subscription.isActive
-                  ? "text-green-600"
-                  : "text-red-600"
-              }`}
-            >
-              {userStats?.subscription.isActive ? "✓" : "✗"}
-            </div>
-            <div className="text-gray-600">Subscription</div>
-            <div className="text-xs text-gray-500 mt-1">
-              {userStats?.subscription.planName || "No Plan"}
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* Hero Sections */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">

@@ -6,8 +6,20 @@ import DottedMap from "dotted-map";
 
 interface MapProps {
   dots?: Array<{
-    start: { lat: number; lng: number; label?: string };
-    end: { lat: number; lng: number; label?: string };
+    start: {
+      lat: number;
+      lng: number;
+      label?: string;
+      labelDx?: number;
+      labelDy?: number;
+    };
+    end: {
+      lat: number;
+      lng: number;
+      label?: string;
+      labelDx?: number;
+      labelDy?: number;
+    };
   }>;
   lineColor?: string;
 }
@@ -21,7 +33,7 @@ export default function WorldMap({
 
   const svgMap = map.getSVG({
     radius: 0.22,
-    color: "#D1D5DB", // text-gray-300
+    color: "#4B5563", // Dark gray (gray-600)
     shape: "circle",
     backgroundColor: "transparent",
   });
@@ -41,11 +53,39 @@ export default function WorldMap({
     return `M ${start.x} ${start.y} Q ${midX} ${midY} ${end.x} ${end.y}`;
   };
 
+  // Collect unique points to render circles and labels without duplication
+  const uniquePoints = new Map<
+    string,
+    { x: number; y: number; label?: string; labelDx?: number; labelDy?: number }
+  >();
+
+  dots.forEach((dot) => {
+    const startKey = `${dot.start.lat}-${dot.start.lng}`;
+    const endKey = `${dot.end.lat}-${dot.end.lng}`;
+
+    if (!uniquePoints.has(startKey)) {
+      uniquePoints.set(startKey, {
+        ...projectPoint(dot.start.lat, dot.start.lng),
+        label: dot.start.label,
+        labelDx: dot.start.labelDx,
+        labelDy: dot.start.labelDy,
+      });
+    }
+    if (!uniquePoints.has(endKey)) {
+      uniquePoints.set(endKey, {
+        ...projectPoint(dot.end.lat, dot.end.lng),
+        label: dot.end.label,
+        labelDx: dot.end.labelDx,
+        labelDy: dot.end.labelDy,
+      });
+    }
+  });
+
   return (
-    <div className="w-full aspect-[2/1] bg-white rounded-lg  relative font-sans h-full">
+    <div className="w-full aspect-[2/1] bg-white rounded-lg relative font-sans h-full">
       <img
         src={`data:image/svg+xml;utf8,${encodeURIComponent(svgMap)}`}
-        className="h-full w-full opacity-40 pointer-events-none select-none"
+        className="h-full w-full pointer-events-none select-none opacity-50"
         alt="world map"
         draggable={false}
       />
@@ -54,6 +94,7 @@ export default function WorldMap({
         viewBox="0 0 800 400"
         className="w-full h-full absolute inset-0 pointer-events-none select-none"
       >
+        {/* Render Lines */}
         {dots.map((dot, i) => {
           const startPoint = projectPoint(dot.start.lat, dot.start.lng);
           const endPoint = projectPoint(dot.end.lat, dot.end.lng);
@@ -71,28 +112,40 @@ export default function WorldMap({
                   delay: 0.5 * i,
                   ease: "easeOut",
                 }}
-              ></motion.path>
-              <motion.circle
-                cx={startPoint.x}
-                cy={startPoint.y}
-                r="2"
-                fill={lineColor}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 * i, duration: 0.5 }}
-              />
-              <motion.circle
-                cx={endPoint.x}
-                cy={endPoint.y}
-                r="2"
-                fill={lineColor}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 * i + 0.5, duration: 0.5 }}
               />
             </g>
           );
         })}
+
+        {/* Render Unique Points and Labels */}
+        {Array.from(uniquePoints.values()).map((point, i) => (
+          <g key={`point-${i}`}>
+            <motion.circle
+              cx={point.x}
+              cy={point.y}
+              r="2"
+              fill={lineColor}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 * i, duration: 0.5 }}
+            />
+            {point.label && (
+              <motion.text
+                x={point.x + (point.labelDx || 0)}
+                y={point.y + 15 + (point.labelDy || 0)}
+                textAnchor="middle"
+                fill="#374151" // Dark gray text
+                className="text-[10px] font-bold uppercase tracking-wider"
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 * i, duration: 0.5 }}
+              >
+                {point.label}
+              </motion.text>
+            )}
+          </g>
+        ))}
+
         <defs>
           <linearGradient id="path-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="white" stopOpacity="0" />

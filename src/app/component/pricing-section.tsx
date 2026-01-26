@@ -1,8 +1,16 @@
-import { Check, X, Zap, Crown, Flame, Lock } from "lucide-react";
+"use client";
+import { Check, X, Zap, Crown, Flame, Lock, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { useState } from "react";
+import PurchaseModal from "./purchase-modal";
 
 export default function PricingSection() {
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const plans = [
     {
+      id: "basic_plan_001",
       name: "Basic",
       desc: "Starter Access",
       duration: "30 Days",
@@ -11,6 +19,8 @@ export default function PricingSection() {
       perDay: "₹33/day",
       subtitle: "Perfect to test the system risk-free",
       tokens: "100 daily tokens",
+      tokensPerDay: "100",
+      bonusTokens: 0,
       features: [
         { text: "100 daily tokens", included: true },
         { text: "Full client details on unlock", included: true },
@@ -26,6 +36,7 @@ export default function PricingSection() {
       color: "green",
     },
     {
+      id: "standard_plan_001",
       name: "Standard",
       desc: "Global Starter",
       duration: "90 Days",
@@ -34,6 +45,8 @@ export default function PricingSection() {
       perDay: "₹27/day",
       subtitle: "Recommended to get your first global client",
       tokens: "Best for First International Client",
+      tokensPerDay: "100",
+      bonusTokens: 500,
       bonus: "+500 Bonus Tokens",
       features: [
         { text: "100 daily tokens", included: true },
@@ -50,6 +63,7 @@ export default function PricingSection() {
       color: "orange",
     },
     {
+      id: "premium_plan_001",
       name: "Premium",
       desc: "Growth Pro",
       duration: "180 Days",
@@ -57,7 +71,9 @@ export default function PricingSection() {
       price: "₹4,499",
       perDay: "₹24/day",
       subtitle: "For serious freelancers scaling up",
-      bonus: "+1,200 Bonus Tokens",
+      bonus: "+1,000 Bonus Tokens",
+      bonusTokens: 1000,
+      tokensPerDay: "100",
       features: [
         { text: "100 daily tokens", included: true },
         { text: "Full client details on unlock", included: true },
@@ -73,6 +89,7 @@ export default function PricingSection() {
       color: "green",
     },
     {
+      id: "pro_plan_001",
       name: "Pro",
       desc: "Scale Unlimited",
       duration: "365 Days",
@@ -80,7 +97,9 @@ export default function PricingSection() {
       price: "₹7,999",
       perDay: "₹21/day",
       subtitle: "Built for agencies & full-time freelancers",
-      bonus: "+12,200 Bonus Tokens",
+      bonus: "+12,000 Bonus Tokens",
+      bonusTokens: 12000,
+      tokensPerDay: "100",
       features: [
         { text: "100 daily tokens", included: true },
         { text: "Full client details on unlock", included: true },
@@ -97,45 +116,78 @@ export default function PricingSection() {
     },
   ];
 
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+      },
+    },
+  };
+
+  const handlePurchase = (plan: any) => {
+    setSelectedPlan(plan);
+    setIsModalOpen(true);
+  };
+
   return (
-    <section className="bg-white py-20 px-6 font-sans">
-      <div className="max-w-7xl mx-auto">
+    <section className="bg-white py-20 lg:py-32 px-6 font-sans">
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        className="max-w-7xl mx-auto"
+      >
         {/* Header */}
-        <div className="text-center mb-16">
-          <span className="text-[#1C9988] font-bold tracking-wider text-xs uppercase mb-4 block">
+        <motion.div variants={fadeInUp} className="text-center mb-16 lg:mb-24">
+          <span className="text-[#1C9988] font-bold tracking-wider text-xs lg:text-sm uppercase mb-4 block">
             SIMPLE PRICING
           </span>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6">
             Choose Your Plan
           </h2>
-          <p className="text-gray-500 mb-8 max-w-2xl mx-auto">
+          <p className="text-gray-500 text-lg lg:text-xl mb-8 max-w-2xl mx-auto">
             No hidden fees. No surprises. Cancel anytime.
             <br />
             One international client can recover your entire investment.
           </p>
 
-          <div className="inline-flex items-center gap-2 bg-[#E8F5F3] px-6 py-3 rounded-lg border border-[#CDE8E3]">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="inline-flex items-center gap-2 bg-[#E8F5F3] px-6 py-3 rounded-lg border border-[#CDE8E3]"
+          >
             <Flame className="w-4 h-4 text-orange-500 fill-current" />
-            <p className="text-sm text-[#1C9988] font-medium">
+            <p className="text-sm lg:text-base text-[#1C9988] font-medium">
               <span className="font-bold text-orange-500">
                 Introductory Pricing:
               </span>{" "}
               These prices are for early users only. Once we cross 5,000 active
               users, prices will increase.
             </p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Pricing Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20 items-start">
+        <motion.div
+          variants={staggerContainer}
+          className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 mb-20 lg:mb-28 items-start"
+        >
           {plans.map((plan, index) => (
-            <div
+            <motion.div
               key={index}
-              className={`relative bg-white border ${plan.highlight ? "border-orange-200 shadow-md ring-1 ring-orange-100" : "border-gray-100"} rounded-2xl p-6 hover:shadow-lg transition-shadow`}
+              variants={fadeInUp}
+              whileHover={{ y: -10 }}
+              className={`relative bg-white border ${plan.highlight ? "border-orange-200 shadow-xl ring-1 ring-orange-100" : "border-gray-100"} rounded-2xl p-6 hover:shadow-2xl transition-all duration-300`}
             >
               {/* Most Popular Badge */}
               {plan.highlight && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-[#1C9988] text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-[#1C9988] text-white text-[10px] uppercase font-bold px-3 py-1 rounded-full shadow-lg">
                   Most Popular
                 </div>
               )}
@@ -222,21 +274,24 @@ export default function PricingSection() {
                 ))}
               </ul>
 
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => handlePurchase(plan)}
                 className={`w-full py-3 rounded-xl font-bold text-sm transition-colors ${
                   plan.highlight
                     ? "bg-[#F85E2E] text-white hover:bg-[#E04D1F]"
                     : "bg-white border border-[#1C9988] text-[#1C9988] hover:bg-[#E8F5F3]"
                 }`}
               >
-                Get Started {plan.highlight ? "+" : "+"}
-              </button>
-            </div>
+                Get Started <ArrowRight className="w-4 h-4 ml-2 inline-block" />
+              </motion.button>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Footer Note */}
-        <div className="text-center mb-12">
+        <motion.div variants={fadeInUp} className="text-center mb-12">
           <p className="text-xs text-gray-400">
             No contracts. Cancel anytime. Your unlocked clients stay yours.
           </p>
@@ -253,10 +308,13 @@ export default function PricingSection() {
             Used by freelancers across India to reach global clients without
             platforms.
           </p>
-        </div>
+        </motion.div>
 
         {/* Comparison Box */}
-        <div className="bg-white border border-gray-100 rounded-3xl p-8 max-w-3xl mx-auto text-center shadow-sm">
+        <motion.div
+          variants={fadeInUp}
+          className="bg-white border border-gray-100 rounded-3xl p-8 max-w-3xl mx-auto text-center shadow-sm"
+        >
           <h3 className="font-bold text-gray-900 mb-6">
             Why This Is Underpriced
           </h3>
@@ -276,8 +334,17 @@ export default function PricingSection() {
           <p className="text-xs text-gray-900 font-bold">
             One global client can recover your entire yearly cost.
           </p>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
+
+      {/* Integration of PurchaseModal */}
+      {selectedPlan && (
+        <PurchaseModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          plan={selectedPlan}
+        />
+      )}
     </section>
   );
 }

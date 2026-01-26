@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Gift, Copy, Users, DollarSign } from "lucide-react";
+import { Gift, Copy, Users, IndianRupee } from "lucide-react";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import ProfileSidebar from "../components/ProfileSidebar";
@@ -163,7 +163,7 @@ export default function ReferralsPage() {
               </div>
               <div className="bg-white border border-gray-200 rounded-lg p-6 text-center shadow-sm">
                 <div className="flex items-center justify-center mb-3">
-                  <DollarSign className="w-8 h-8 text-purple-600" />
+                  <IndianRupee className="w-8 h-8 text-purple-600" />
                 </div>
                 <div className="text-4xl font-bold text-purple-600 mb-2">
                   {referralData?.stats.totalEarnings || 0}{" "}

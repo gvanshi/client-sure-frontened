@@ -165,8 +165,8 @@ export default function CommunityPage() {
     // Filter by author
     if (searchFilters.author) {
       filtered = filtered.filter((post) =>
-        post.user_id.name
-          .toLowerCase()
+        post.user_id?.name
+          ?.toLowerCase()
           .includes(searchFilters.author.toLowerCase()),
       );
     }
@@ -656,7 +656,6 @@ export default function CommunityPage() {
               </div>
 
               <div className="flex items-center gap-3 flex-wrap">
-            
                 <button
                   onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
                   className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
@@ -1179,18 +1178,20 @@ export default function CommunityPage() {
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-                            {post.user_id.name.charAt(0).toUpperCase()}
+                            {(post.user_id?.name || "U")
+                              .charAt(0)
+                              .toUpperCase()}
                           </div>
                           <div>
                             <div className="font-semibold text-gray-900">
-                              {post.user_id.name}
+                              {post.user_id?.name || "Unknown User"}
                             </div>
                             <div className="text-sm text-gray-500">
                               {getTimeAgo(post.createdAt)}
                             </div>
                           </div>
                         </div>
-                        {post.user_id._id === currentUserId && (
+                        {post.user_id?._id === currentUserId && (
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => startEdit(post)}
@@ -1405,12 +1406,13 @@ export default function CommunityPage() {
                                       <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
                                           <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-xs">
-                                            {comment.user_id.name
+                                            {(comment.user_id?.name || "U")
                                               .charAt(0)
                                               .toUpperCase()}
                                           </div>
                                           <span className="font-medium text-gray-900 text-sm">
-                                            {comment.user_id.name}
+                                            {comment.user_id?.name ||
+                                              "Unknown User"}
                                           </span>
                                           <span className="text-xs text-gray-500">
                                             {getTimeAgo(comment.createdAt)}
@@ -1420,7 +1422,7 @@ export default function CommunityPage() {
                                           {comment.text}
                                         </p>
                                       </div>
-                                      {comment.user_id._id ===
+                                      {comment.user_id?._id ===
                                         currentUserId && (
                                         <button
                                           onClick={() =>
@@ -1571,7 +1573,7 @@ export default function CommunityPage() {
                               isCurrentUser ? "bg-purple-600" : "bg-blue-600"
                             }`}
                           >
-                            {user.name.charAt(0).toUpperCase()}
+                            {(user.name || "U").charAt(0).toUpperCase()}
                           </div>
 
                           <div className="flex-1">
@@ -1582,7 +1584,7 @@ export default function CommunityPage() {
                                   : "text-gray-900"
                               }`}
                             >
-                              {user.name}
+                              {user.name || "Unknown User"}
                               {isCurrentUser && (
                                 <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
                                   You

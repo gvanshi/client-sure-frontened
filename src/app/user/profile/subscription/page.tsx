@@ -1,51 +1,60 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { ArrowLeft, FileText, Calendar, Award } from "lucide-react"
-import Navbar from "../../components/Navbar"
-import Footer from "../../components/Footer"
-import ProfileSidebar from "../components/ProfileSidebar"
-import Axios from "@/utils/Axios"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, FileText, Calendar, Award } from "lucide-react";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
+import ProfileSidebar from "../components/ProfileSidebar";
+import Axios from "@/utils/Axios";
 
 interface SubscriptionData {
   plan: {
-    id: string
-    name: string
-    price: number
-  } | null
-  startDate: string
-  endDate: string
-  isActive: boolean
+    id: string;
+    name: string;
+    price: number;
+    durationDays?: number;
+    dailyTokens?: number;
+    bonusTokens?: number;
+  } | null;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+  daysRemaining?: number;
 }
 
 interface TokenData {
-  monthlyTotal: number
-  dailyLimit: number
-  monthlyRemaining: number
+  monthlyTotal: number;
+  dailyLimit: number;
+  monthlyRemaining: number;
+  bonusTokens?: number;
+  bonusTokensInitial?: number;
+  bonusTokensUsed?: number;
 }
 
 export default function SubscriptionPage() {
-  const [subscription, setSubscription] = useState<SubscriptionData | null>(null)
-  const [tokens, setTokens] = useState<TokenData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
+  const [subscription, setSubscription] = useState<SubscriptionData | null>(
+    null,
+  );
+  const [tokens, setTokens] = useState<TokenData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   const loadData = async () => {
     try {
-      const response = await Axios.get('/auth/profile')
-      setSubscription(response.data.subscription)
-      setTokens(response.data.tokens)
+      const response = await Axios.get("/auth/profile");
+      setSubscription(response.data.subscription);
+      setTokens(response.data.tokens);
     } catch (error) {
-      console.error('Error loading subscription data:', error)
+      console.error("Error loading subscription data:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    loadData()
-  }, [])
+    loadData();
+  }, []);
 
   if (loading) {
     return (
@@ -55,107 +64,150 @@ export default function SubscriptionPage() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <div className="flex flex-col md:flex-row max-w-7xl mx-auto">
         <ProfileSidebar />
-        
+
         <div className="flex-1 p-4 md:p-8 bg-gray-50">
           <h1 className="text-2xl font-bold text-gray-900 mb-8 flex items-center space-x-2">
             <FileText className="w-6 h-6 text-blue-600" />
             <span>Subscription Plan</span>
           </h1>
 
-          <div className="space-y-8">
-          {subscription?.plan ? (
-            <div className="bg-purple-600 rounded-lg p-8 text-white shadow-lg">
-              <div className="text-center">
-                <div className="inline-block bg-white bg-opacity-20 rounded-full px-4 py-1 mb-3">
-                  <span className="text-sm font-semibold text-black">CURRENT PLAN</span>
+          {/* Comprehensive Subscription Overview */}
+          {subscription?.plan && (
+            <div className="bg-gradient-to-br from-purple-50 via-white to-blue-50 rounded-2xl shadow-lg border border-purple-100 p-6 md:p-8 mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">Subscription Overview</h2>
+                  <p className="text-gray-600 text-sm">Your current plan details and token allocation</p>
                 </div>
-                <h3 className="text-4xl font-bold mb-2">{subscription.plan.name}</h3>
-                <p className="text-purple-100 text-lg mb-4">Your active subscription plan</p>
-                <div className="text-5xl font-bold">${subscription.plan.price}<span className="text-2xl">/month</span></div>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-gray-100 rounded-lg p-8 text-center border border-gray-300">
-              <div className="text-6xl mb-4">📋</div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">No Active Plan</h3>
-              <p className="text-gray-600 mb-4">Subscribe to a plan to access premium features</p>
-              <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-semibold">
-                View Plans
-              </button>
-            </div>
-          )}
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-              <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center">
-                <Calendar className="w-5 h-5 mr-2" />
-                Subscription Details
-              </h4>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-gray-600 font-medium">Status</span>
-                  <span className={`font-semibold px-3 py-1 rounded-full text-sm ${
-                    subscription?.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                <div className="hidden md:block">
+                  <div className={`px-4 py-2 rounded-lg text-sm font-semibold ${
+                    subscription.isActive 
+                      ? 'bg-green-600 text-white' 
+                      : 'bg-red-600 text-white'
                   }`}>
-                    {subscription?.isActive ? '✓ Active' : '✗ Inactive'}
-                  </span>
+                    {subscription.isActive ? '✓ Active' : '✗ Inactive'}
+                  </div>
                 </div>
-                {subscription && (
-                  <>
-                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                      <span className="text-gray-600 font-medium">Start Date</span>
-                      <span className="font-semibold text-gray-900">
-                        {new Date(subscription.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </span>
+              </div>
+
+              {/* Plan Header Card */}
+              <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-6 text-white shadow-lg mb-6">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div className="text-center md:text-left">
+                    <div className="text-sm font-medium text-purple-100 mb-1">Current Plan</div>
+                    <div className="text-3xl md:text-4xl font-bold mb-2">{subscription.plan.name}</div>
+                    <div className="flex items-center gap-2 justify-center md:justify-start">
+                      <span className="text-2xl font-bold">₹{subscription.plan.price}</span>
+                      {subscription.plan.durationDays && (
+                        <span className="text-sm text-purple-100">/ {subscription.plan.durationDays} days</span>
+                      )}
                     </div>
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-gray-600 font-medium">End Date</span>
-                      <span className="font-semibold text-gray-900">
-                        {new Date(subscription.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </span>
+                  </div>
+                  {subscription.plan.bonusTokens && subscription.plan.bonusTokens > 0 && (
+                    <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg px-6 py-3 text-center">
+                      <div className="text-sm font-medium text-purple-100">Bonus Tokens</div>
+                      <div className="text-3xl font-bold">+{subscription.plan.bonusTokens.toLocaleString()}</div>
+                      <div className="text-xs text-purple-100">One-time grant</div>
                     </div>
-                  </>
+                  )}
+                </div>
+              </div>
+
+              {/* Metrics Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                {/* Total Plan Tokens */}
+                {subscription.plan.durationDays && subscription.plan.dailyTokens && (
+                  <div className="bg-white rounded-xl shadow-sm p-4 border border-blue-100">
+                    <div className="text-xs text-gray-500 mb-1 font-medium">Total Plan Tokens</div>
+                    <div className="text-2xl font-bold text-blue-600 mb-1">
+                      {((subscription.plan.dailyTokens * subscription.plan.durationDays) + (subscription.plan.bonusTokens || 0)).toLocaleString()}
+                    </div>
+                    <div className="text-xs text-gray-500">Full allocation</div>
+                  </div>
+                )}
+
+                {/* Days Remaining */}
+                {subscription.daysRemaining !== undefined && (
+                  <div className="bg-white rounded-xl shadow-sm p-4 border border-purple-100">
+                    <div className="text-xs text-gray-500 mb-1 font-medium">Days Remaining</div>
+                    <div className="text-2xl font-bold text-purple-600 mb-1">{subscription.daysRemaining}</div>
+                    <div className="text-xs text-gray-500">Until expiry</div>
+                  </div>
+                )}
+
+                {/* Daily Tokens */}
+                {subscription.plan.dailyTokens && (
+                  <div className="bg-white rounded-xl shadow-sm p-4 border border-green-100">
+                    <div className="text-xs text-gray-500 mb-1 font-medium">Daily Tokens</div>
+                    <div className="text-2xl font-bold text-green-600 mb-1">{subscription.plan.dailyTokens}</div>
+                    <div className="text-xs text-gray-500">Per day</div>
+                  </div>
+                )}
+
+                {/* Bonus Tokens */}
+                {tokens?.bonusTokens !== undefined && tokens.bonusTokens > 0 && (
+                  <div className="bg-white rounded-xl shadow-sm p-4 border border-yellow-100">
+                    <div className="text-xs text-gray-500 mb-1 font-medium">Bonus Available</div>
+                    <div className="text-2xl font-bold text-yellow-600 mb-1">{tokens.bonusTokens.toLocaleString()}</div>
+                    <div className="text-xs text-gray-500">Remaining</div>
+                  </div>
                 )}
               </div>
-            </div>
-            
-            <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-              <h4 className="font-semibold text-gray-900 mb-4 text-lg flex items-center">
-                <Award className="w-5 h-5 mr-2" />
-                Token Allocation
-              </h4>
-              {tokens && (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-gray-600 font-medium">Total Tokens</span>
-                    <span className="font-semibold text-blue-600">{tokens.monthlyTotal}</span>
+
+              {/* Subscription Timeline */}
+              <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+                <div className="flex items-center justify-between text-sm">
+                  <div>
+                    <div className="text-xs text-gray-500 mb-1">Started</div>
+                    <div className="font-semibold text-gray-900">
+                      {new Date(subscription.startDate).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      })}
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                    <span className="text-gray-600 font-medium">Daily Limit</span>
-                    <span className="font-semibold text-purple-600">{tokens.dailyLimit}</span>
+                  <div className="flex-1 mx-4">
+                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                      {subscription.plan.durationDays && subscription.daysRemaining !== undefined && (
+                        <div 
+                          className="h-full bg-gradient-to-r from-purple-600 to-blue-600 rounded-full transition-all"
+                          style={{ 
+                            width: `${Math.max(0, ((subscription.plan.durationDays - subscription.daysRemaining) / subscription.plan.durationDays) * 100)}%` 
+                          }}
+                        />
+                      )}
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center py-2">
-                    <span className="text-gray-600 font-medium">Remaining</span>
-                    <span className="font-semibold text-green-600">{tokens.monthlyRemaining}</span>
+                  <div className="text-right">
+                    <div className="text-xs text-gray-500 mb-1">Expires</div>
+                    <div className="font-semibold text-gray-900">
+                      {new Date(subscription.endDate).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      })}
+                    </div>
                   </div>
                 </div>
-              )}
               </div>
             </div>
-          </div>
+          )}
+
+          
         </div>
       </div>
-      
+
       <Footer />
     </div>
-  )
+  );
 }

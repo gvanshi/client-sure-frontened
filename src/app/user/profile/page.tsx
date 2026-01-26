@@ -24,6 +24,7 @@ import {
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Axios from "@/utils/Axios";
+import ChangePasswordModal from "./components/ChangePasswordModal";
 
 interface UserProfile {
   name: string;
@@ -104,6 +105,7 @@ export default function ProfilePage() {
   const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [referralData, setReferralData] = useState<ReferralData | null>(null);
   const [referralLoading, setReferralLoading] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
@@ -114,18 +116,18 @@ export default function ProfilePage() {
 
       // Backend returns nested structure: { user: {...}, tokens: {...}, subscription: {...} }
       const profileData = {
-        name: response.data.user.name,
-        email: response.data.user.email,
-        phone: response.data.user.phone,
-        avatar: response.data.user.avatar,
+        name: response.data.user?.name,
+        email: response.data.user?.email,
+        phone: response.data.user?.phone,
+        avatar: response.data.user?.avatar,
         tokens: response.data.tokens,
         subscription: response.data.subscription,
       };
 
       setUserProfile(profileData);
-      setEditName(response.data.user.name || "");
-      setEditPhone(response.data.user.phone || "");
-      setAvatarPreview(response.data.user.avatar || "");
+      setEditName(response.data.user?.name || "");
+      setEditPhone(response.data.user?.phone || "");
+      setAvatarPreview(response.data.user?.avatar || "");
     } catch (error) {
       console.error("Error loading user profile:", error);
     } finally {
@@ -276,7 +278,6 @@ export default function ProfilePage() {
     { name: "Token Usage", icon: Target },
     { name: "Subscription Plan", icon: FileText },
     { name: "Usage Statistics", icon: BarChart3 },
-    { name: "Notifications", icon: Bell },
     { name: "Referral Code", icon: Gift },
     { name: "Accessed Resources", icon: BookOpen },
   ];
@@ -286,6 +287,7 @@ export default function ProfilePage() {
     localStorage.removeItem("userToken");
     localStorage.removeItem("adminToken");
     localStorage.removeItem("user");
+    localStorage.removeItem("userData");
     toast.success("Logged out successfully!");
     router.push("/auth/login");
   };
@@ -539,17 +541,15 @@ export default function ProfilePage() {
                       {updating ? "Updating..." : "Update Profile"}
                     </button>
                     <button
-                      onClick={() => {
-                        setEditName(userProfile.name);
-                        setEditPhone(userProfile.phone || "");
-                        setAvatarPreview(userProfile.avatar || "");
-                        if (fileInputRef.current)
-                          fileInputRef.current.value = "";
-                      }}
+                      onClick={() => setShowPasswordModal(true)}
                       className="bg-gray-200 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-300 font-semibold shadow-md"
                     >
-                      Reset
+                      Reset Password
                     </button>
+                    <ChangePasswordModal
+                      isOpen={showPasswordModal}
+                      onClose={() => setShowPasswordModal(false)}
+                    />
                   </div>
                 </div>
               )}

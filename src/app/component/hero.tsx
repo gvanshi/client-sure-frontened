@@ -1,89 +1,181 @@
+"use client";
 import { CheckCircle2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function Hero() {
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+      },
+    },
+  };
+
   return (
-    <section className="bg-white pt-32 pb-20 px-6">
-      <div className="max-w-5xl mx-auto text-center">
+    <section className="bg-white pt-32 pb-20 lg:pt-48 lg:pb-32 px-6 overflow-hidden">
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        className="max-w-7xl mx-auto text-center"
+      >
         {/* Trusted Badge */}
-        <div className="flex justify-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-[#FFF8E7] border border-[#FFE8B9] rounded-full px-4 py-1.5">
-            <span className="w-2 h-2 rounded-full bg-green-500"></span>
+        <motion.div variants={fadeInUp} className="flex justify-center mb-8">
+          <div className="inline-flex items-center gap-2 bg-[#FFF8E7] border border-[#FFE8B9] rounded-full px-4 py-1.5 hover:shadow-md transition-shadow cursor-default">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
             <span className="text-[#B4822D] font-medium text-sm">
               Trusted by 2,400+ freelancers across India
             </span>
           </div>
-        </div>
+        </motion.div>
 
         {/* Main Heading */}
-        <h1 className="text-5xl md:text-6xl lg:text-[4rem] font-bold leading-[1.1] mb-6 tracking-tight text-gray-900">
+        <motion.h1
+          variants={fadeInUp}
+          className="text-5xl md:text-6xl lg:text-[5.5rem] font-bold leading-[1.1] mb-8 tracking-tight text-gray-900"
+        >
           Get <span className="text-[#1C9988]">Global Clients</span>.
           <br />
           Without Bidding. Without
           <br />
           Middlemen.
-        </h1>
+        </motion.h1>
 
         {/* Subheading */}
-        <p className="text-lg md:text-xl text-gray-500 mb-8 leading-relaxed max-w-3xl mx-auto">
+        <motion.p
+          variants={fadeInUp}
+          className="text-lg md:text-xl lg:text-2xl text-gray-500 mb-10 leading-relaxed max-w-4xl mx-auto"
+        >
           Access verified business contacts from US, UK, UAE, Australia & more.
           <br className="hidden md:block" />
           Reach them directly. Close deals on your terms.
-        </p>
+        </motion.p>
 
         {/* Quote */}
-        <div className="mb-10 max-w-2xl mx-auto">
-          <p className="text-sm text-gray-400 italic">
+        <motion.div variants={fadeInUp} className="mb-12 max-w-3xl mx-auto">
+          <p className="text-sm md:text-base text-gray-400 italic">
             "ClientSure was built by freelancers who were tired of bidding,
             commissions, and waiting months for replies."
           </p>
-        </div>
+        </motion.div>
 
         {/* Audience */}
-        <p className="text-sm text-gray-400 mb-6">
+        <motion.p variants={fadeInUp} className="text-sm text-gray-400 mb-8">
           Works for freelancers, agencies, and consultants.
-        </p>
+        </motion.p>
 
         {/* Flags */}
-        <div className="flex justify-center items-center gap-3 mb-10 opacity-80">
-          <span className="text-2xl">🇺🇸</span>
-          <span className="text-2xl">🇬🇧</span>
-          <span className="text-2xl">🇦🇪</span>
-          <span className="text-2xl">🇦🇺</span>
-          <span className="text-2xl">🇨🇦</span>
-          <span className="text-2xl">🇸🇬</span>
-          <span className="text-2xl">🇩🇪</span>
-          <span className="text-2xl">🇫🇷</span>
+        <motion.div
+          variants={fadeInUp}
+          className="flex justify-center items-center gap-3 mb-14 opacity-80"
+        >
+          <motion.span
+            whileHover={{ scale: 1.2, rotate: 10 }}
+            className="text-3xl cursor-default"
+          >
+            🇺🇸
+          </motion.span>
+          <motion.span
+            whileHover={{ scale: 1.2, rotate: -10 }}
+            className="text-3xl cursor-default"
+          >
+            🇬🇧
+          </motion.span>
+          <motion.span
+            whileHover={{ scale: 1.2, rotate: 10 }}
+            className="text-3xl cursor-default"
+          >
+            🇦🇪
+          </motion.span>
+          <motion.span
+            whileHover={{ scale: 1.2, rotate: -10 }}
+            className="text-3xl cursor-default"
+          >
+            🇦🇺
+          </motion.span>
+          <motion.span
+            whileHover={{ scale: 1.2, rotate: 10 }}
+            className="text-3xl cursor-default"
+          >
+            🇨🇦
+          </motion.span>
+          <motion.span
+            whileHover={{ scale: 1.2, rotate: -10 }}
+            className="text-3xl cursor-default"
+          >
+            🇸🇬
+          </motion.span>
+          <motion.span
+            whileHover={{ scale: 1.2, rotate: 10 }}
+            className="text-3xl cursor-default"
+          >
+            🇩🇪
+          </motion.span>
+          <motion.span
+            whileHover={{ scale: 1.2, rotate: -10 }}
+            className="text-3xl cursor-default"
+          >
+            🇫🇷
+          </motion.span>
           <span className="text-sm text-gray-400 font-medium ml-2">
             +12 more
           </span>
-        </div>
+        </motion.div>
 
         {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-12">
-          <button className="bg-[#F85E2E] text-white font-semibold px-8 py-4 rounded-xl hover:bg-[#e0552a] transition shadow-lg shadow-orange-100 flex items-center justify-center gap-2">
+        <motion.div
+          variants={fadeInUp}
+          className="flex flex-col sm:flex-row justify-center gap-4 mb-16"
+        >
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              document.getElementById("pricing")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            }}
+            className="bg-[#F85E2E] text-white font-semibold px-8 py-4 rounded-xl hover:bg-[#e0552a] transition shadow-lg shadow-orange-100 flex items-center justify-center gap-2 text-lg"
+          >
             Get Instant Access <span aria-hidden="true">→</span>
-          </button>
-          <button className="bg-white text-gray-800 font-semibold px-8 py-4 rounded-xl border border-gray-200 hover:bg-gray-50 transition flex items-center justify-center shadow-sm">
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-white text-gray-800 font-semibold px-8 py-4 rounded-xl border border-gray-200 hover:bg-gray-50 transition flex items-center justify-center shadow-sm text-lg"
+          >
             See How It Works
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         {/* Feature Checkmarks */}
-        <div className="flex flex-wrap justify-center gap-6 md:gap-12 text-sm text-gray-500">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-[#1C9988]" />
+        <motion.div
+          variants={fadeInUp}
+          className="flex flex-wrap justify-center gap-6 md:gap-12 text-sm md:text-base text-gray-500"
+        >
+          <div className="flex items-center gap-2 hover:text-[#1C9988] transition-colors cursor-default">
+            <CheckCircle2 className="w-5 h-5 text-[#1C9988]" />
             <span>100 Tokens Daily</span>
           </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-[#1C9988]" />
+          <div className="flex items-center gap-2 hover:text-[#1C9988] transition-colors cursor-default">
+            <CheckCircle2 className="w-5 h-5 text-[#1C9988]" />
             <span>No Commissions</span>
           </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-[#1C9988]" />
+          <div className="flex items-center gap-2 hover:text-[#1C9988] transition-colors cursor-default">
+            <CheckCircle2 className="w-5 h-5 text-[#1C9988]" />
             <span>Built-in AI Tools</span>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </section>
   );
 }
