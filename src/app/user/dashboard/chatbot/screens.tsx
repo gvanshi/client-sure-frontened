@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { useEditorShortcuts, FieldRow, Card, SenderBlock } from './components';
-import Axios from '@/utils/Axios';
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEditorShortcuts, FieldRow, Card, SenderBlock } from "./components";
+import Axios from "@/utils/Axios";
 import {
   estimateTokens,
   spamHints,
@@ -13,38 +13,40 @@ import {
   type EmailToolData,
   type WhatsAppToolData,
   type LinkedInToolData,
-  type ContractToolData
-} from './utils';
+  type ContractToolData,
+} from "./utils";
 
 // Updated API call function to support both legacy and structured formats
 async function generateTextOnServer(payload: any): Promise<string[]> {
-  const res = await Axios.post('/compose', payload);
+  const res = await Axios.post("/compose", payload);
 
   if (res.data.variants) {
     return res.data.variants;
   }
-  return [res.data.text || ''];
+  return [res.data.text || ""];
 }
 
 function EmailsScreen() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   useEditorShortcuts(textareaRef);
 
-  const [role, setRole] = useState('Founder');
-  const [senderName, setSenderName] = useState('Aman Kumar');
-  const [senderEmail, setSenderEmail] = useState('');
-  const [language, setLanguage] = useState('English');
-  const [level, setLevel] = useState<'Simple'|'Intermediate'|'Advanced'>('Simple');
+  const [role, setRole] = useState("Founder");
+  const [senderName, setSenderName] = useState("Aman Kumar");
+  const [senderEmail, setSenderEmail] = useState("");
+  const [language, setLanguage] = useState("English");
+  const [level, setLevel] = useState<"Simple" | "Intermediate" | "Advanced">(
+    "Simple",
+  );
 
-  const [niche, setNiche] = useState('Roofing');
-  const [target, setTarget] = useState('Homeowners');
-  const [prospectName, setProspectName] = useState('');
-  const [company, setCompany] = useState('');
-  const [prospectEmail, setProspectEmail] = useState('');
-  const [tone, setTone] = useState('Sales — Short');
+  const [niche, setNiche] = useState("Roofing");
+  const [target, setTarget] = useState("Homeowners");
+  const [prospectName, setProspectName] = useState("");
+  const [company, setCompany] = useState("");
+  const [prospectEmail, setProspectEmail] = useState("");
+  const [tone, setTone] = useState("Sales — Short");
 
-  const [ctaText, setCtaText] = useState('Book a 15-minute call');
-  const [wordLimit, setWordLimit] = useState<number | ''>(120);
+  const [ctaText, setCtaText] = useState("Book a 15-minute call");
+  const [wordLimit, setWordLimit] = useState<number | "">(120);
   const [spamFree, setSpamFree] = useState(true);
 
   const [variants, setVariants] = useState(3);
@@ -52,32 +54,44 @@ function EmailsScreen() {
   const [promptOverride, setPromptOverride] = useState<string | null>(null);
 
   const [results, setResults] = useState<string[]>([]);
-  const [parsedEmails, setParsedEmails] = useState<Array<{subject:string; preview?:string; body:string}>>([]);
+  const [parsedEmails, setParsedEmails] = useState<
+    Array<{ subject: string; preview?: string; body: string }>
+  >([]);
   const [softWarning, setSoftWarning] = useState<string | null>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function readingInstruction() {
-    if (level === 'Simple') return 'Write in simple, conversational language. Use short sentences and common words.';
-    if (level === 'Intermediate') return 'Write in professional, clear language suitable for business audiences.';
-    return 'Write in formal and detailed language with precise wording.';
+    if (level === "Simple")
+      return "Write in simple, conversational language. Use short sentences and common words.";
+    if (level === "Intermediate")
+      return "Write in professional, clear language suitable for business audiences.";
+    return "Write in formal and detailed language with precise wording.";
   }
 
   function buildPrompt() {
     const senderLines = [
       `Sender role: ${role}.`,
-      senderName ? `Sender name: ${senderName}.` : '',
-      senderEmail ? `Sender email: ${senderEmail}.` : '',
-    ].filter(Boolean).join(' ');
+      senderName ? `Sender name: ${senderName}.` : "",
+      senderEmail ? `Sender email: ${senderEmail}.` : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
 
     const keywordsLine = `Keywords (use naturally in the messaging): ${niche}, ${target}.`;
-    const spamInstruction = spamFree ? 'Ensure the email uses non-spammy language: avoid ALL-CAPS, excessive punctuation, words like "Buy now", "Guarantee", or long lists; sound human and helpful.' : '';
-    const wl = wordLimit && Number(wordLimit) > 0 ? `Keep it under ${wordLimit} words.` : '';
+    const spamInstruction = spamFree
+      ? 'Ensure the email uses non-spammy language: avoid ALL-CAPS, excessive punctuation, words like "Buy now", "Guarantee", or long lists; sound human and helpful.'
+      : "";
+    const wl =
+      wordLimit && Number(wordLimit) > 0
+        ? `Keep it under ${wordLimit} words.`
+        : "";
 
-    const languageInstruction = language !== 'English' 
-      ? `MANDATORY LANGUAGE REQUIREMENT: You MUST respond ONLY in ${language} language. Write the ENTIRE email (subject line, preview text, and body content) completely in ${language}. Do NOT use any English words or phrases. Use proper ${language} grammar, vocabulary, and sentence structure. If you need to use technical terms, translate them accurately to ${language}. This is a strict requirement - no exceptions allowed.`
-      : `Language: English.`;
+    const languageInstruction =
+      language !== "English"
+        ? `MANDATORY LANGUAGE REQUIREMENT: You MUST respond ONLY in ${language} language. Write the ENTIRE email (subject line, preview text, and body content) completely in ${language}. Do NOT use any English words or phrases. Use proper ${language} grammar, vocabulary, and sentence structure. If you need to use technical terms, translate them accurately to ${language}. This is a strict requirement - no exceptions allowed.`
+        : `Language: English.`;
 
     const base = [
       languageInstruction,
@@ -86,9 +100,9 @@ function EmailsScreen() {
       senderLines,
       keywordsLine,
       `Niche: ${niche}. Target audience: ${target}.`,
-      prospectName ? `Prospect name: ${prospectName}.` : '',
-      company ? `Prospect company: ${company}.` : '',
-      prospectEmail ? `Prospect email: ${prospectEmail}.` : '',
+      prospectName ? `Prospect name: ${prospectName}.` : "",
+      company ? `Prospect company: ${company}.` : "",
+      prospectEmail ? `Prospect email: ${prospectEmail}.` : "",
       `Tone/variant: ${tone}.`,
       `Include this clear CTA (exact): "${ctaText}".`,
       spamInstruction,
@@ -102,109 +116,193 @@ function EmailsScreen() {
 
     if (jsonMode) {
       base.unshift(
-        `Return only valid JSON with this exact schema: {"subject": string, "preview": string, "body": string}. No markdown or backticks.`
+        `Return only valid JSON with this exact schema: {"subject": string, "preview": string, "body": string}. No markdown or backticks.`,
       );
     }
 
-    return base.filter(Boolean).join('\n\n');
+    return base.filter(Boolean).join("\n\n");
   }
 
-  const prompt = useMemo(() => promptOverride ?? buildPrompt(), [
-    promptOverride, role, senderName, senderEmail, language, level,
-    niche, target, prospectName, company, prospectEmail, tone, ctaText, wordLimit, spamFree, jsonMode
-  ]);
+  const prompt = useMemo(
+    () => promptOverride ?? buildPrompt(),
+    [
+      promptOverride,
+      role,
+      senderName,
+      senderEmail,
+      language,
+      level,
+      niche,
+      target,
+      prospectName,
+      company,
+      prospectEmail,
+      tone,
+      ctaText,
+      wordLimit,
+      spamFree,
+      jsonMode,
+    ],
+  );
 
   const tokenEst = estimateTokens(prompt);
   const hints = useMemo(() => spamHints(prompt), [prompt]);
 
   const onGenerateInner = useCallback(async () => {
-    setError(null); setSoftWarning(null); setResults([]); setParsedEmails([]);
-    if (!role.trim()) { setError('Please enter your profession/role'); return; }
-    if (!niche.trim() || !target.trim()) { setError('Please enter niche and target'); return; }
-    if (!ctaText.trim()) { setError('Please provide a CTA'); return; }
-    if (wordLimit !== '' && (Number(wordLimit) <= 0 || Number(wordLimit) > 1000)) { setError('Word limit must be 1–1000 or empty'); return; }
+    setError(null);
+    setSoftWarning(null);
+    setResults([]);
+    setParsedEmails([]);
+    if (!role.trim()) {
+      setError("Please enter your profession/role");
+      return;
+    }
+    if (!niche.trim() || !target.trim()) {
+      setError("Please enter niche and target");
+      return;
+    }
+    if (!ctaText.trim()) {
+      setError("Please provide a CTA");
+      return;
+    }
+    if (
+      wordLimit !== "" &&
+      (Number(wordLimit) <= 0 || Number(wordLimit) > 1000)
+    ) {
+      setError("Word limit must be 1–1000 or empty");
+      return;
+    }
 
     setLoading(true);
     try {
       // Build structured payload
-      const payload = buildStructuredPayload('emails', {
-        role,
-        senderName,
-        senderEmail,
-        language,
-        level
-      }, {
-        niche,
-        target,
-        tone,
-        prospectName,
-        company,
-        prospectEmail,
-        ctaText,
-        wordLimit,
-        variants
-      });
+      const payload = buildStructuredPayload(
+        "emails",
+        {
+          role,
+          senderName,
+          senderEmail,
+          language,
+          level,
+        },
+        {
+          niche,
+          target,
+          tone,
+          prospectName,
+          company,
+          prospectEmail,
+          ctaText,
+          wordLimit,
+          variants,
+        },
+      );
 
       const outs = await generateTextOnServer(payload);
       setResults(outs);
 
       if (jsonMode) {
         try {
-          const parsed = outs.map(o => {
+          const parsed = outs.map((o) => {
             // Backend already returns parsed JSON objects, just validate structure
-            if (typeof o === 'object' && o !== null) {
+            if (typeof o === "object" && o !== null) {
               const obj = o as any;
               return {
-                subject: String(obj.subject ?? ''),
-                preview: String(obj.preview ?? ''),
-                body: String(obj.body ?? '')
+                subject: String(obj.subject ?? ""),
+                preview: String(obj.preview ?? ""),
+                body: String(obj.body ?? ""),
               };
             }
             // Fallback: if backend returned string, parse it
             const j = robustJsonParse(o as string);
             return {
-              subject: String(j.subject ?? ''),
-              preview: String(j.preview ?? ''),
-              body: String(j.body ?? (typeof j === 'string' ? j : JSON.stringify(j)))
+              subject: String(j.subject ?? ""),
+              preview: String(j.preview ?? ""),
+              body: String(
+                j.body ?? (typeof j === "string" ? j : JSON.stringify(j)),
+              ),
             };
           });
           setParsedEmails(parsed);
         } catch {
           setParsedEmails([]);
-          setSoftWarning('Model returned non-JSON. Showing raw text instead.');
+          setSoftWarning("Model returned non-JSON. Showing raw text instead.");
         }
       }
       textareaRef.current?.blur();
     } catch (e: any) {
-      setError(e?.message ?? 'Generation failed');
+      setError(e?.message ?? "Generation failed");
     } finally {
       setLoading(false);
     }
-  }, [role, senderName, senderEmail, language, level, niche, target, tone, prospectName, company, prospectEmail, ctaText, wordLimit, variants, jsonMode]);
+  }, [
+    role,
+    senderName,
+    senderEmail,
+    language,
+    level,
+    niche,
+    target,
+    tone,
+    prospectName,
+    company,
+    prospectEmail,
+    ctaText,
+    wordLimit,
+    variants,
+    jsonMode,
+  ]);
 
   useEffect(() => {
     const h = () => onGenerateInner();
-    window.addEventListener('ai-tools:generate', h);
-    return () => window.removeEventListener('ai-tools:generate', h);
+    window.addEventListener("ai-tools:generate", h);
+    return () => window.removeEventListener("ai-tools:generate", h);
   }, [onGenerateInner]);
 
   function fillExample() {
-    setRole('Founder'); setSenderName('Aman Kumar'); setSenderEmail('aman@toproof.co');
-    setLanguage('English'); setLevel('Simple');
-    setNiche('Roofing'); setTarget('Homeowners in Los Angeles');
-    setProspectName('John'); setCompany('TopRoof Co'); setTone('Sales — Short');
-    setCtaText('Book a quick 15-min call'); setWordLimit(90); setSpamFree(true);
-    setJsonMode(true); setVariants(2);
+    setRole("Founder");
+    setSenderName("Aman Kumar");
+    setSenderEmail("aman@toproof.co");
+    setLanguage("English");
+    setLevel("Simple");
+    setNiche("Roofing");
+    setTarget("Homeowners in Los Angeles");
+    setProspectName("John");
+    setCompany("TopRoof Co");
+    setTone("Sales — Short");
+    setCtaText("Book a quick 15-min call");
+    setWordLimit(90);
+    setSpamFree(true);
+    setJsonMode(true);
+    setVariants(2);
     setPromptOverride(null);
   }
 
-  const templateKey = 'aiTools:emailsTemplate';
+  const templateKey = "aiTools:emailsTemplate";
   function onSaveTemplate() {
-    const state = { role, senderName, senderEmail, language, level, niche, target, prospectName, company, prospectEmail, tone, ctaText, wordLimit, spamFree, jsonMode, variants, promptOverride };
+    const state = {
+      role,
+      senderName,
+      senderEmail,
+      language,
+      level,
+      niche,
+      target,
+      prospectName,
+      company,
+      prospectEmail,
+      tone,
+      ctaText,
+      wordLimit,
+      spamFree,
+      jsonMode,
+      variants,
+      promptOverride,
+    };
     saveTemplate(templateKey, state);
     // Create custom alert with black text
-    const alertDiv = document.createElement('div');
-    alertDiv.innerHTML = 'Template saved!';
+    const alertDiv = document.createElement("div");
+    alertDiv.innerHTML = "Template saved!";
     alertDiv.style.cssText = `
       position: fixed;
       top: 20px;
@@ -223,10 +321,10 @@ function EmailsScreen() {
   }
   function onLoadTemplate() {
     const t = loadTemplate<any>(templateKey);
-    if (!t) { 
+    if (!t) {
       // Create custom alert with black text
-      const alertDiv = document.createElement('div');
-      alertDiv.innerHTML = 'No template saved!';
+      const alertDiv = document.createElement("div");
+      alertDiv.innerHTML = "No template saved!";
       alertDiv.style.cssText = `
         position: fixed;
         top: 20px;
@@ -242,91 +340,165 @@ function EmailsScreen() {
       `;
       document.body.appendChild(alertDiv);
       setTimeout(() => document.body.removeChild(alertDiv), 2000);
-      return; 
+      return;
     }
-    setRole(t.role ?? role); setSenderName(t.senderName ?? senderName); setSenderEmail(t.senderEmail ?? '');
-    setLanguage(t.language ?? 'English'); setLevel(t.level ?? 'Simple');
-    setNiche(t.niche ?? niche); setTarget(t.target ?? target);
-    setProspectName(t.prospectName ?? ''); setCompany(t.company ?? ''); setProspectEmail(t.prospectEmail ?? '');
-    setTone(t.tone ?? 'Sales — Short'); setCtaText(t.ctaText ?? ctaText);
-    setWordLimit(t.wordLimit ?? wordLimit); setSpamFree(!!t.spamFree);
-    setJsonMode(!!t.jsonMode); setVariants(t.variants ?? 1);
+    setRole(t.role ?? role);
+    setSenderName(t.senderName ?? senderName);
+    setSenderEmail(t.senderEmail ?? "");
+    setLanguage(t.language ?? "English");
+    setLevel(t.level ?? "Simple");
+    setNiche(t.niche ?? niche);
+    setTarget(t.target ?? target);
+    setProspectName(t.prospectName ?? "");
+    setCompany(t.company ?? "");
+    setProspectEmail(t.prospectEmail ?? "");
+    setTone(t.tone ?? "Sales — Short");
+    setCtaText(t.ctaText ?? ctaText);
+    setWordLimit(t.wordLimit ?? wordLimit);
+    setSpamFree(!!t.spamFree);
+    setJsonMode(!!t.jsonMode);
+    setVariants(t.variants ?? 1);
     setPromptOverride(t.promptOverride ?? null);
   }
   function onReset() {
-    setRole('Founder'); setSenderName('Aman Kumar'); setSenderEmail('');
-    setLanguage('English'); setLevel('Simple');
-    setNiche('Roofing'); setTarget('Homeowners');
-    setProspectName(''); setCompany(''); setProspectEmail('');
-    setTone('Sales — Short'); setCtaText('Book a 15-minute call');
-    setWordLimit(120); setSpamFree(true); setJsonMode(true); setVariants(1);
-    setPromptOverride(null); setResults([]); setParsedEmails([]); setError(null); setSoftWarning(null);
+    setRole("Founder");
+    setSenderName("Aman Kumar");
+    setSenderEmail("");
+    setLanguage("English");
+    setLevel("Simple");
+    setNiche("Roofing");
+    setTarget("Homeowners");
+    setProspectName("");
+    setCompany("");
+    setProspectEmail("");
+    setTone("Sales — Short");
+    setCtaText("Book a 15-minute call");
+    setWordLimit(120);
+    setSpamFree(true);
+    setJsonMode(true);
+    setVariants(1);
+    setPromptOverride(null);
+    setResults([]);
+    setParsedEmails([]);
+    setError(null);
+    setSoftWarning(null);
   }
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-extrabold tracking-tight text-black">📧 Email Generator</h2>
+      <h2 className="text-xl font-extrabold tracking-tight text-black">
+        📧 Email Generator
+      </h2>
 
       <SenderBlock
-        role={role} setRole={setRole}
-        senderName={senderName} setSenderName={setSenderName}
-        senderEmail={senderEmail} setSenderEmail={setSenderEmail}
-        language={language} setLanguage={setLanguage}
-        level={level} setLevel={setLevel}
+        role={role}
+        setRole={setRole}
+        senderName={senderName}
+        setSenderName={setSenderName}
+        senderEmail={senderEmail}
+        setSenderEmail={setSenderEmail}
+        language={language}
+        setLanguage={setLanguage}
+        level={level}
+        setLevel={setLevel}
       />
 
       <Card>
         <FieldRow>
           <div className="flex-1 min-w-[220px]">
-            <label className="text-xs text-blue-900 font-semibold">Niche (keyword)</label>
-            <input list="nicheListEmails"
-                   className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                   value={niche} onChange={(e)=>setNiche(e.target.value)} placeholder="Type or pick a niche" />
+            <label className="text-xs text-blue-900 font-semibold">
+              Niche (keyword)
+            </label>
+            <input
+              list="nicheListEmails"
+              className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+              value={niche}
+              onChange={(e) => setNiche(e.target.value)}
+              placeholder="Type or pick a niche"
+            />
             <datalist id="nicheListEmails">
-              <option value="Roofing" /><option value="HVAC" /><option value="Solar" />
-              <option value="Realtors" /><option value="Plumbing" /><option value="Marketing" />
+              <option value="Roofing" />
+              <option value="HVAC" />
+              <option value="Solar" />
+              <option value="Realtors" />
+              <option value="Plumbing" />
+              <option value="Marketing" />
             </datalist>
           </div>
 
           <div className="flex-1 min-w-[220px]">
-            <label className="text-xs text-blue-900 font-semibold">Target (keyword)</label>
-            <input list="targetListEmails"
-                   className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                   value={target} onChange={(e)=>setTarget(e.target.value)} placeholder="Type or pick a target" />
+            <label className="text-xs text-blue-900 font-semibold">
+              Target (keyword)
+            </label>
+            <input
+              list="targetListEmails"
+              className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+              placeholder="Type or pick a target"
+            />
             <datalist id="targetListEmails">
-              <option value="Homeowners" /><option value="Commercial Owners" />
-              <option value="Property Managers" /><option value="General Contractors" /><option value="Founders" />
+              <option value="Homeowners" />
+              <option value="Commercial Owners" />
+              <option value="Property Managers" />
+              <option value="General Contractors" />
+              <option value="Founders" />
             </datalist>
           </div>
 
           <div className="w-full sm:w-[220px]">
-            <label className="text-xs text-blue-900 font-semibold">Tone / Variant</label>
+            <label className="text-xs text-blue-900 font-semibold">
+              Tone / Variant
+            </label>
             <select
               className="mt-2 w-full rounded-lg bg-white border border-blue-300 text-blue-900 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-              value={tone} onChange={(e)=>setTone(e.target.value)}
+              value={tone}
+              onChange={(e) => setTone(e.target.value)}
             >
-              <option>Sales — Short</option><option>Follow-up — Medium</option><option>Onboarding — Long</option>
+              <option>Sales — Short</option>
+              <option>Follow-up — Medium</option>
+              <option>Onboarding — Long</option>
             </select>
           </div>
         </FieldRow>
 
         <details className="mt-3">
-          <summary className="cursor-pointer text-sm text-blue-900 font-semibold">Optional prospect details</summary>
+          <summary className="cursor-pointer text-sm text-blue-900 font-semibold">
+            Optional prospect details
+          </summary>
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
             <div>
-              <label className="text-xs text-blue-900 font-semibold">Prospect name</label>
-              <input className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                     value={prospectName} onChange={e=>setProspectName(e.target.value)} placeholder="e.g., John" />
+              <label className="text-xs text-blue-900 font-semibold">
+                Prospect name
+              </label>
+              <input
+                className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                value={prospectName}
+                onChange={(e) => setProspectName(e.target.value)}
+                placeholder="e.g., John"
+              />
             </div>
             <div>
-              <label className="text-xs text-blue-900 font-semibold">Company</label>
-              <input className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                     value={company} onChange={e=>setCompany(e.target.value)} placeholder="e.g., TopRoof Co" />
+              <label className="text-xs text-blue-900 font-semibold">
+                Company
+              </label>
+              <input
+                className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                placeholder="e.g., TopRoof Co"
+              />
             </div>
             <div>
-              <label className="text-xs text-blue-900 font-semibold">Prospect email</label>
-              <input className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                     value={prospectEmail} onChange={e=>setProspectEmail(e.target.value)} placeholder="john@company.com" />
+              <label className="text-xs text-blue-900 font-semibold">
+                Prospect email
+              </label>
+              <input
+                className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                value={prospectEmail}
+                onChange={(e) => setProspectEmail(e.target.value)}
+                placeholder="john@company.com"
+              />
             </div>
           </div>
         </details>
@@ -335,31 +507,68 @@ function EmailsScreen() {
 
         <FieldRow>
           <div className="flex-1 min-w-[220px]">
-            <label className="text-xs text-blue-900 font-semibold">CTA (exact text)</label>
-            <input className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                   value={ctaText} onChange={e=>setCtaText(e.target.value)} placeholder="e.g., Book a 15-minute call" />
+            <label className="text-xs text-blue-900 font-semibold">
+              CTA (exact text)
+            </label>
+            <input
+              className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+              value={ctaText}
+              onChange={(e) => setCtaText(e.target.value)}
+              placeholder="e.g., Book a 15-minute call"
+            />
           </div>
 
           <div className="w-[160px]">
-            <label className="text-xs text-blue-900 font-semibold">Word limit</label>
-            <input type="number" min={1} max={1000}
-                   className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                   value={String(wordLimit)} onChange={e=>setWordLimit(e.target.value === '' ? '' : Number(e.target.value))} />
+            <label className="text-xs text-blue-900 font-semibold">
+              Word limit
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={1000}
+              className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+              value={String(wordLimit)}
+              onChange={(e) =>
+                setWordLimit(
+                  e.target.value === "" ? "" : Number(e.target.value),
+                )
+              }
+            />
           </div>
 
           <details className="ml-2">
-            <summary className="cursor-pointer text-sm text-blue-900 font-semibold">Advanced options</summary>
+            <summary className="cursor-pointer text-sm text-blue-900 font-semibold">
+              Advanced options
+            </summary>
             <div className="mt-2 flex flex-wrap items-center gap-4">
               <label className="inline-flex items-center gap-2 text-blue-900">
-                <input type="checkbox" checked={spamFree} onChange={e=>setSpamFree(e.target.checked)} /> Spam-free wording
+                <input
+                  type="checkbox"
+                  checked={spamFree}
+                  onChange={(e) => setSpamFree(e.target.checked)}
+                />{" "}
+                Spam-free wording
               </label>
               <label className="inline-flex items-center gap-2 text-blue-900">
-                <input type="checkbox" checked={jsonMode} onChange={e=>setJsonMode(e.target.checked)} /> Structured JSON
+                <input
+                  type="checkbox"
+                  checked={jsonMode}
+                  onChange={(e) => setJsonMode(e.target.checked)}
+                />{" "}
+                Structured JSON
               </label>
               <div className="inline-flex items-center gap-2">
-                <span className="text-blue-900 text-sm font-semibold">Variants</span>
-                <input className="w-24 rounded-lg bg-white border border-blue-300 px-3 py-2 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                       type="number" min={1} max={5} value={variants} onChange={e=>setVariants(Number(e.target.value))} />
+                <span className="text-blue-900 text-sm font-semibold">
+                  Variants
+                </span>
+                <input
+                  className="w-24 rounded-lg bg-white border border-blue-300 px-3 py-2 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                  type="number"
+                  min={1}
+                  max={5}
+                  value={variants}
+                  onChange={(e) => setVariants(Number(e.target.value))}
+                />
               </div>
             </div>
           </details>
@@ -374,18 +583,20 @@ function EmailsScreen() {
         </div> */}
       </Card>
 
-      <label className="block text-xs text-blue-900 font-semibold">Preview prompt (editable)</label>
+      <label className="block text-xs text-blue-900 font-semibold">
+        Preview prompt (editable)
+      </label>
       <textarea
         ref={textareaRef}
         className="w-full min-h-[220px] rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
         value={prompt}
-        onChange={(e)=>setPromptOverride(e.target.value)}
+        onChange={(e) => setPromptOverride(e.target.value)}
         aria-busy={loading}
       />
 
       <div className="flex flex-wrap items-center gap-3 text-sm text-blue-700">
         <span>~{tokenEst} tokens</span>
-        {hints.length ? <span>· ⚠ {hints.join(' · ')}</span> : null}
+        {hints.length ? <span>· ⚠ {hints.join(" · ")}</span> : null}
       </div>
 
       <div className="flex justify-end">
@@ -394,61 +605,103 @@ function EmailsScreen() {
           onClick={onGenerateInner}
           disabled={loading}
         >
-          {loading ? 'Generating…' : 'Generate Email(s)'}
+          {loading ? "Generating…" : "Generate Email(s)"}
         </button>
       </div>
 
-      {error && <div className="mt-3 rounded-xl bg-red-500/15 border border-red-400/30 p-3 text-sm">{error}</div>}
-      {softWarning && <div className="mt-3 rounded-xl bg-yellow-400/15 border border-yellow-400/30 p-3 text-sm">{softWarning}</div>}
+      {error && (
+        <div className="mt-3 rounded-xl bg-red-500/15 border border-red-400/30 p-3 text-sm">
+          {error}
+        </div>
+      )}
+      {softWarning && (
+        <div className="mt-3 rounded-xl bg-yellow-400/15 border border-yellow-400/30 p-3 text-sm">
+          {softWarning}
+        </div>
+      )}
 
-      {(jsonMode ? parsedEmails.length>0 : results.length>0) ? (
+      {(jsonMode ? parsedEmails.length > 0 : results.length > 0) ? (
         <div className="mt-4 space-y-3">
-          {jsonMode ? parsedEmails.map((e,i)=>(
-            <Card key={i}>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h4 className="font-semibold text-blue-700">Variant {i+1}: {e.subject || 'No subject'}</h4>
-                <div className="flex gap-2">
-                  <button className="px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium transition-colors shadow-sm" onClick={()=>safeCopy(`${e.subject}\n\n${e.body}`)}>Copy</button>
-                  <button
-                    className="px-3 py-2 rounded-lg bg-white border border-blue-300 hover:bg-blue-50 text-blue-900 font-medium transition-colors shadow-sm"
-                    onClick={()=>{
-                      const content = `Subject: ${e.subject}\n\nPreview: ${e.preview ?? ''}\n\n${e.body}`;
-                      const blob = new Blob([content], { type: 'text/plain' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a'); a.href = url; a.download = `email-variant-${i+1}.txt`; a.click(); URL.revokeObjectURL(url);
-                    }}
-                  >
-                    Download
-                  </button>
-                </div>
-              </div>
-              {e.preview ? <p className="text-blue-700 mt-1">{e.preview}</p> : null}
-              <pre className="whitespace-pre-wrap mt-2 text-blue-900">{e.body}</pre>
-            </Card>
-          )) : results.map((r,i)=>(
-            <Card key={i}>
-              <div className="flex items-center justify-between">
-                <h4 className="font-semibold text-blue-700">Variant {i+1}</h4>
-                <div className="flex gap-2">
-                  <button className="px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium transition-colors shadow-sm" onClick={()=>safeCopy(r)}>Copy</button>
-                  <button
-                    className="px-3 py-2 rounded-lg bg-white border border-blue-300 hover:bg-blue-50 text-blue-900 font-medium transition-colors shadow-sm"
-                    onClick={()=>{
-                      const blob = new Blob([r], { type: 'text/plain' });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a'); a.href = url; a.download = `email-variant-${i+1}.txt`; a.click(); URL.revokeObjectURL(url);
-                    }}
-                  >
-                    Download
-                  </button>
-                </div>
-              </div>
-              <pre className="whitespace-pre-wrap mt-2 text-blue-900">{r}</pre>
-            </Card>
-          ))}
+          {jsonMode
+            ? parsedEmails.map((e, i) => (
+                <Card key={i}>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h4 className="font-semibold text-blue-700">
+                      Variant {i + 1}: {e.subject || "No subject"}
+                    </h4>
+                    <div className="flex gap-2">
+                      <button
+                        className="px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium transition-colors shadow-sm"
+                        onClick={() => safeCopy(`${e.subject}\n\n${e.body}`)}
+                      >
+                        Copy
+                      </button>
+                      <button
+                        className="px-3 py-2 rounded-lg bg-white border border-blue-300 hover:bg-blue-50 text-blue-900 font-medium transition-colors shadow-sm"
+                        onClick={() => {
+                          const content = `Subject: ${e.subject}\n\nPreview: ${e.preview ?? ""}\n\n${e.body}`;
+                          const blob = new Blob([content], {
+                            type: "text/plain",
+                          });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement("a");
+                          a.href = url;
+                          a.download = `email-variant-${i + 1}.txt`;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        }}
+                      >
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                  {e.preview ? (
+                    <p className="text-blue-700 mt-1">{e.preview}</p>
+                  ) : null}
+                  <pre className="whitespace-pre-wrap mt-2 text-blue-900">
+                    {e.body}
+                  </pre>
+                </Card>
+              ))
+            : results.map((r, i) => (
+                <Card key={i}>
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-blue-700">
+                      Variant {i + 1}
+                    </h4>
+                    <div className="flex gap-2">
+                      <button
+                        className="px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium transition-colors shadow-sm"
+                        onClick={() => safeCopy(r)}
+                      >
+                        Copy
+                      </button>
+                      <button
+                        className="px-3 py-2 rounded-lg bg-white border border-blue-300 hover:bg-blue-50 text-blue-900 font-medium transition-colors shadow-sm"
+                        onClick={() => {
+                          const blob = new Blob([r], { type: "text/plain" });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement("a");
+                          a.href = url;
+                          a.download = `email-variant-${i + 1}.txt`;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        }}
+                      >
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                  <pre className="whitespace-pre-wrap mt-2 text-blue-900">
+                    {r}
+                  </pre>
+                </Card>
+              ))}
         </div>
       ) : (
-        <Card><div className="text-blue-700">Generated output will appear here</div></Card>
+        <Card>
+          <div className="text-blue-700">Generated output will appear here</div>
+        </Card>
       )}
     </div>
   );
@@ -458,19 +711,21 @@ function WhatsAppScreen() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   useEditorShortcuts(textareaRef);
 
-  const [role, setRole] = useState('Founder');
-  const [senderName, setSenderName] = useState('Aman Kumar');
-  const [senderEmail, setSenderEmail] = useState('');
-  const [language, setLanguage] = useState('English');
-  const [level, setLevel] = useState<'Simple'|'Intermediate'|'Advanced'>('Simple');
+  const [role, setRole] = useState("Founder");
+  const [senderName, setSenderName] = useState("Aman Kumar");
+  const [senderEmail, setSenderEmail] = useState("");
+  const [language, setLanguage] = useState("English");
+  const [level, setLevel] = useState<"Simple" | "Intermediate" | "Advanced">(
+    "Simple",
+  );
 
-  const [niche, setNiche] = useState('Roofing');
-  const [target, setTarget] = useState('Homeowners');
-  const [prospectName, setProspectName] = useState('');
-  const [variant, setVariant] = useState('Cold Outreach');
+  const [niche, setNiche] = useState("Roofing");
+  const [target, setTarget] = useState("Homeowners");
+  const [prospectName, setProspectName] = useState("");
+  const [variant, setVariant] = useState("Cold Outreach");
 
   const [ctaText, setCtaText] = useState('Reply "YES" to schedule');
-  const [wordLimit, setWordLimit] = useState<number | ''>(40);
+  const [wordLimit, setWordLimit] = useState<number | "">(40);
   const [spamFree, setSpamFree] = useState(true);
   const [variants, setVariants] = useState(3);
   const [promptOverride, setPromptOverride] = useState<string | null>(null);
@@ -480,24 +735,32 @@ function WhatsAppScreen() {
   const [error, setError] = useState<string | null>(null);
 
   function readingInstruction() {
-    if (level === 'Simple') return 'Use short sentences and plain words.';
-    if (level === 'Intermediate') return 'Use clear, professional phrasing.';
-    return 'Use formal, detailed phrasing.';
+    if (level === "Simple") return "Use short sentences and plain words.";
+    if (level === "Intermediate") return "Use clear, professional phrasing.";
+    return "Use formal, detailed phrasing.";
   }
 
   function buildPrompt() {
     const senderLines = [
       `Sender role: ${role}.`,
-      senderName ? `Sender name: ${senderName}.` : '',
-      senderEmail ? `Sender email: ${senderEmail}.` : ''
-    ].filter(Boolean).join(' ');
+      senderName ? `Sender name: ${senderName}.` : "",
+      senderEmail ? `Sender email: ${senderEmail}.` : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
     const keywordsLine = `Keywords (use naturally): ${niche}, ${target}.`;
-    const spamInstruction = spamFree ? 'Avoid spammy phrasing; sound human and brief.' : '';
-    const wl = wordLimit && Number(wordLimit) > 0 ? `Keep it under ${wordLimit} words.` : '';
+    const spamInstruction = spamFree
+      ? "Avoid spammy phrasing; sound human and brief."
+      : "";
+    const wl =
+      wordLimit && Number(wordLimit) > 0
+        ? `Keep it under ${wordLimit} words.`
+        : "";
 
-    const languageInstruction = language !== 'English' 
-      ? `MANDATORY LANGUAGE REQUIREMENT: You MUST respond ONLY in ${language} language. Write the ENTIRE WhatsApp message completely in ${language}. Do NOT use any English words or phrases. Use proper ${language} grammar, vocabulary, and sentence structure. This is a strict requirement - no exceptions allowed.`
-      : `Language: English.`;
+    const languageInstruction =
+      language !== "English"
+        ? `MANDATORY LANGUAGE REQUIREMENT: You MUST respond ONLY in ${language} language. Write the ENTIRE WhatsApp message completely in ${language}. Do NOT use any English words or phrases. Use proper ${language} grammar, vocabulary, and sentence structure. This is a strict requirement - no exceptions allowed.`
+        : `Language: English.`;
 
     return [
       languageInstruction,
@@ -506,117 +769,204 @@ function WhatsAppScreen() {
       senderLines,
       keywordsLine,
       `Niche: ${niche}. Target: ${target}.`,
-      prospectName ? `Prospect: ${prospectName}.` : '',
+      prospectName ? `Prospect: ${prospectName}.` : "",
       `Goal: ${variant}.`,
       `Include this CTA (exact): "${ctaText}".`,
       spamInstruction,
       wl,
-      `Write a 1–3 line WhatsApp message with a direct CTA (call or reply).`
-    ].filter(Boolean).join('\n\n');
+      `Write a 1–3 line WhatsApp message with a direct CTA (call or reply).`,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
   }
 
-  const prompt = useMemo(() => promptOverride ?? buildPrompt(), [
-    promptOverride, role, senderName, senderEmail, language, level,
-    niche, target, prospectName, variant, ctaText, wordLimit, spamFree
-  ]);
+  const prompt = useMemo(
+    () => promptOverride ?? buildPrompt(),
+    [
+      promptOverride,
+      role,
+      senderName,
+      senderEmail,
+      language,
+      level,
+      niche,
+      target,
+      prospectName,
+      variant,
+      ctaText,
+      wordLimit,
+      spamFree,
+    ],
+  );
 
   const tokenEst = estimateTokens(prompt);
   const hints = useMemo(() => spamHints(prompt), [prompt]);
 
   const onGenerate = useCallback(async () => {
-    setError(null); setResults([]);
-    if (!role.trim()) { setError('Please enter your profession/role'); return; }
-    if (!niche || !target) { setError('Please enter niche and target'); return; }
-    if (!ctaText.trim()) { setError('Please provide a CTA'); return; }
+    setError(null);
+    setResults([]);
+    if (!role.trim()) {
+      setError("Please enter your profession/role");
+      return;
+    }
+    if (!niche || !target) {
+      setError("Please enter niche and target");
+      return;
+    }
+    if (!ctaText.trim()) {
+      setError("Please provide a CTA");
+      return;
+    }
     setLoading(true);
     try {
       // Build structured payload
-      const payload = buildStructuredPayload('whatsapp', {
-        role,
-        senderName,
-        senderEmail,
-        language,
-        level
-      }, {
-        niche,
-        target,
-        variant,
-        prospectName,
-        ctaText,
-        wordLimit,
-        spamFree,
-        variants
-      });
+      const payload = buildStructuredPayload(
+        "whatsapp",
+        {
+          role,
+          senderName,
+          senderEmail,
+          language,
+          level,
+        },
+        {
+          niche,
+          target,
+          variant,
+          prospectName,
+          ctaText,
+          wordLimit,
+          spamFree,
+          variants,
+        },
+      );
 
       const outs = await generateTextOnServer(payload);
       setResults(outs);
       textareaRef.current?.blur();
     } catch (e: any) {
-      setError(e?.message ?? 'Generation failed');
+      setError(e?.message ?? "Generation failed");
     } finally {
       setLoading(false);
     }
-  }, [role, senderName, senderEmail, language, level, niche, target, variant, prospectName, ctaText, wordLimit, spamFree, variants]);
+  }, [
+    role,
+    senderName,
+    senderEmail,
+    language,
+    level,
+    niche,
+    target,
+    variant,
+    prospectName,
+    ctaText,
+    wordLimit,
+    spamFree,
+    variants,
+  ]);
 
   useEffect(() => {
     const h = () => onGenerate();
-    window.addEventListener('ai-tools:generate', h);
-    return () => window.removeEventListener('ai-tools:generate', h);
+    window.addEventListener("ai-tools:generate", h);
+    return () => window.removeEventListener("ai-tools:generate", h);
   }, [onGenerate]);
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-extrabold tracking-tight text-black">💬 WhatsApp Message Generator</h2>
+      <h2 className="text-xl font-extrabold tracking-tight text-black">
+        💬 WhatsApp Message Generator
+      </h2>
 
       <SenderBlock
-        role={role} setRole={setRole}
-        senderName={senderName} setSenderName={setSenderName}
-        senderEmail={senderEmail} setSenderEmail={setSenderEmail}
-        language={language} setLanguage={setLanguage}
-        level={level} setLevel={setLevel}
+        role={role}
+        setRole={setRole}
+        senderName={senderName}
+        setSenderName={setSenderName}
+        senderEmail={senderEmail}
+        setSenderEmail={setSenderEmail}
+        language={language}
+        setLanguage={setLanguage}
+        level={level}
+        setLevel={setLevel}
       />
 
       <Card>
         <FieldRow>
           <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">Niche</label>
-            <input list="nicheListWhatsapp"
+            <input
+              list="nicheListWhatsapp"
               className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-              value={niche} onChange={(e)=>setNiche(e.target.value)} placeholder="Type or pick a niche" />
+              value={niche}
+              onChange={(e) => setNiche(e.target.value)}
+              placeholder="Type or pick a niche"
+            />
             <datalist id="nicheListWhatsapp">
-              <option value="Roofing" /><option value="HVAC" /><option value="Solar" /><option value="Real Estate" /><option value="Marketing" />
+              <option value="Roofing" />
+              <option value="HVAC" />
+              <option value="Solar" />
+              <option value="Real Estate" />
+              <option value="Marketing" />
             </datalist>
           </div>
           <div className="flex-1 min-w-[220px]">
-            <label className="text-xs text-blue-900 font-semibold">Target</label>
-            <input list="targetListWhatsapp"
+            <label className="text-xs text-blue-900 font-semibold">
+              Target
+            </label>
+            <input
+              list="targetListWhatsapp"
               className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-              value={target} onChange={(e)=>setTarget(e.target.value)} placeholder="Type or pick a target" />
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+              placeholder="Type or pick a target"
+            />
             <datalist id="targetListWhatsapp">
-              <option value="Homeowners" /><option value="Commercial Owners" /><option value="Property Managers" />
+              <option value="Homeowners" />
+              <option value="Commercial Owners" />
+              <option value="Property Managers" />
             </datalist>
           </div>
           <div className="w-full sm:w-[220px]">
-            <label className="text-xs text-blue-900 font-semibold">Variant</label>
+            <label className="text-xs text-blue-900 font-semibold">
+              Variant
+            </label>
             <select
               className="mt-2 w-full rounded-lg bg-white border border-blue-300 text-blue-900 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-              value={variant} onChange={e=>setVariant(e.target.value)}
+              value={variant}
+              onChange={(e) => setVariant(e.target.value)}
             >
-              <option>Cold Outreach</option><option>Follow-up</option><option>Reminder</option>
+              <option>Cold Outreach</option>
+              <option>Follow-up</option>
+              <option>Reminder</option>
             </select>
           </div>
         </FieldRow>
 
         <details className="mt-3">
-          <summary className="cursor-pointer text-sm text-blue-700">Advanced</summary>
+          <summary className="cursor-pointer text-sm text-blue-700">
+            Advanced
+          </summary>
           <div className="mt-2 flex flex-wrap items-center gap-4">
             <div className="inline-flex items-center gap-2">
-              <span className="text-blue-700 text-sm">Variants</span>
-              <input className="w-24 rounded-xl bg-white/10 border border-blue-700 px-3 py-2 outline-none"
-                     type="number" min={1} max={5} value={variants} onChange={e=>setVariants(Number(e.target.value))} />
+              <span className="text-blue-900 text-sm font-semibold">
+                Variants
+              </span>
+              <input
+                className="w-24 rounded-lg bg-white border border-blue-300 px-3 py-2 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                type="number"
+                min={1}
+                max={5}
+                value={variants}
+                onChange={(e) => setVariants(Number(e.target.value))}
+              />
             </div>
-            <label className="inline-flex items-center gap-2 text-white/80">
-              <input type="checkbox" checked={spamFree} onChange={e=>setSpamFree(e.target.checked)} /> Spam-free wording
+            <label className="inline-flex items-center gap-2 text-blue-900">
+              <input
+                type="checkbox"
+                checked={spamFree}
+                onChange={(e) => setSpamFree(e.target.checked)}
+              />{" "}
+              Spam-free wording
             </label>
           </div>
         </details>
@@ -625,20 +975,43 @@ function WhatsAppScreen() {
 
         <FieldRow>
           <div className="flex-1 min-w-[220px]">
-            <label className="text-xs text-blue-700 font-semibold">Prospect name (optional)</label>
-            <input className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                   value={prospectName} onChange={e=>setProspectName(e.target.value)} placeholder="e.g., Priya" />
+            <label className="text-xs text-blue-700 font-semibold">
+              Prospect name (optional)
+            </label>
+            <input
+              className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+              value={prospectName}
+              onChange={(e) => setProspectName(e.target.value)}
+              placeholder="e.g., Priya"
+            />
           </div>
           <div className="flex-1 min-w-[220px]">
-            <label className="text-xs text-blue-900 font-semibold">CTA (exact)</label>
-            <input className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                   value={ctaText} onChange={e=>setCtaText(e.target.value)} placeholder='e.g., "Reply YES to schedule"' />
+            <label className="text-xs text-blue-900 font-semibold">
+              CTA (exact)
+            </label>
+            <input
+              className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+              value={ctaText}
+              onChange={(e) => setCtaText(e.target.value)}
+              placeholder='e.g., "Reply YES to schedule"'
+            />
           </div>
           <div className="w-[160px]">
-            <label className="text-xs text-blue-900 font-semibold">Word limit</label>
-            <input type="number" min={1} max={200}
-                   className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                   value={String(wordLimit)} onChange={e=>setWordLimit(e.target.value === '' ? '' : Number(e.target.value))} />
+            <label className="text-xs text-blue-900 font-semibold">
+              Word limit
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={200}
+              className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+              value={String(wordLimit)}
+              onChange={(e) =>
+                setWordLimit(
+                  e.target.value === "" ? "" : Number(e.target.value),
+                )
+              }
+            />
           </div>
         </FieldRow>
       </Card>
@@ -648,13 +1021,13 @@ function WhatsAppScreen() {
         ref={textareaRef}
         className="w-full min-h-[180px] rounded-2xl bg-white/10 border border-blue-700 px-3 py-3 outline-none text-blue-700"
         value={prompt}
-        onChange={(e)=>setPromptOverride(e.target.value)}
+        onChange={(e) => setPromptOverride(e.target.value)}
         aria-busy={loading}
-      />    
+      />
 
       <div className="flex flex-wrap items-center gap-3 text-sm text-blue-700">
         <span>~{tokenEst} tokens</span>
-        {hints.length ? <span>· ⚠ {hints.join(' · ')}</span> : null}
+        {hints.length ? <span>· ⚠ {hints.join(" · ")}</span> : null}
       </div>
 
       <div className="flex justify-end">
@@ -663,26 +1036,39 @@ function WhatsAppScreen() {
           onClick={onGenerate}
           disabled={loading}
         >
-          {loading ? 'Generating…' : 'Generate Message(s)'}
+          {loading ? "Generating…" : "Generate Message(s)"}
         </button>
       </div>
 
-      {error && <div className="mt-3 rounded-xl bg-red-500/15 border border-red-400/30 p-3 text-sm">{error}</div>}
+      {error && (
+        <div className="mt-3 rounded-xl bg-red-500/15 border border-red-400/30 p-3 text-sm">
+          {error}
+        </div>
+      )}
 
       {results.length ? (
         <div className="mt-4 space-y-3">
-          {results.map((r,i)=>(
+          {results.map((r, i) => (
             <Card key={i}>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h4 className="font-semibold text-blue-700">Variant {i+1}</h4>
-                <button className="px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium transition-colors shadow-sm" onClick={()=>safeCopy(r)}>Copy</button>
+                <h4 className="font-semibold text-blue-700">Variant {i + 1}</h4>
+                <button
+                  className="px-3 py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium transition-colors shadow-sm"
+                  onClick={() => safeCopy(r)}
+                >
+                  Copy
+                </button>
               </div>
               <pre className="whitespace-pre-wrap mt-2 text-blue-900">{r}</pre>
             </Card>
           ))}
         </div>
       ) : (
-        <Card><div className="text-blue-700">Generated message will appear here.</div></Card>
+        <Card>
+          <div className="text-blue-700">
+            Generated message will appear here.
+          </div>
+        </Card>
       )}
     </div>
   );
@@ -692,19 +1078,21 @@ function LinkedInScreen() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   useEditorShortcuts(textareaRef);
 
-  const [role, setRole] = useState('Founder');
-  const [senderName, setSenderName] = useState('Aman Kumar');
-  const [senderEmail, setSenderEmail] = useState('');
-  const [language, setLanguage] = useState('English');
-  const [level, setLevel] = useState<'Simple'|'Intermediate'|'Advanced'>('Simple');
+  const [role, setRole] = useState("Founder");
+  const [senderName, setSenderName] = useState("Aman Kumar");
+  const [senderEmail, setSenderEmail] = useState("");
+  const [language, setLanguage] = useState("English");
+  const [level, setLevel] = useState<"Simple" | "Intermediate" | "Advanced">(
+    "Simple",
+  );
 
-  const [niche, setNiche] = useState('Marketing');
-  const [target, setTarget] = useState('Founders');
-  const [prospectName, setProspectName] = useState('');
-  const [variant, setVariant] = useState('Connection Request');
+  const [niche, setNiche] = useState("Marketing");
+  const [target, setTarget] = useState("Founders");
+  const [prospectName, setProspectName] = useState("");
+  const [variant, setVariant] = useState("Connection Request");
 
-  const [ctaText, setCtaText] = useState('Can we connect for a quick chat?');
-  const [wordLimit, setWordLimit] = useState<number | ''>(40);
+  const [ctaText, setCtaText] = useState("Can we connect for a quick chat?");
+  const [wordLimit, setWordLimit] = useState<number | "">(40);
   const [spamFree, setSpamFree] = useState(true);
   const [variants, setVariants] = useState(3);
   const [promptOverride, setPromptOverride] = useState<string | null>(null);
@@ -714,24 +1102,32 @@ function LinkedInScreen() {
   const [error, setError] = useState<string | null>(null);
 
   function readingInstruction() {
-    if (level === 'Simple') return 'Use short, conversational sentences.';
-    if (level === 'Intermediate') return 'Use clear professional phrasing.';
-    return 'Use formal, polished language.';
+    if (level === "Simple") return "Use short, conversational sentences.";
+    if (level === "Intermediate") return "Use clear professional phrasing.";
+    return "Use formal, polished language.";
   }
 
   function buildPrompt() {
     const senderLines = [
       `Sender role: ${role}.`,
-      senderName ? `Sender name: ${senderName}.` : '',
-      senderEmail ? `Sender email: ${senderEmail}.` : ''
-    ].filter(Boolean).join(' ');
+      senderName ? `Sender name: ${senderName}.` : "",
+      senderEmail ? `Sender email: ${senderEmail}.` : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
     const keywordsLine = `Keywords (use naturally): ${niche}, ${target}.`;
-    const spamInstruction = spamFree ? 'Avoid spammy phrasing; keep it professional.' : '';
-    const wl = wordLimit && Number(wordLimit) > 0 ? `Keep it under ${wordLimit} words.` : '';
+    const spamInstruction = spamFree
+      ? "Avoid spammy phrasing; keep it professional."
+      : "";
+    const wl =
+      wordLimit && Number(wordLimit) > 0
+        ? `Keep it under ${wordLimit} words.`
+        : "";
 
-    const languageInstruction = language !== 'English' 
-      ? `MANDATORY LANGUAGE REQUIREMENT: You MUST respond ONLY in ${language} language. Write the ENTIRE LinkedIn message completely in ${language}. Do NOT use any English words or phrases. Use proper ${language} grammar, vocabulary, and sentence structure. This is a strict requirement - no exceptions allowed.`
-      : `Language: English.`;
+    const languageInstruction =
+      language !== "English"
+        ? `MANDATORY LANGUAGE REQUIREMENT: You MUST respond ONLY in ${language} language. Write the ENTIRE LinkedIn message completely in ${language}. Do NOT use any English words or phrases. Use proper ${language} grammar, vocabulary, and sentence structure. This is a strict requirement - no exceptions allowed.`
+        : `Language: English.`;
 
     return [
       languageInstruction,
@@ -740,116 +1136,202 @@ function LinkedInScreen() {
       senderLines,
       keywordsLine,
       `Niche: ${niche}. Target: ${target}.`,
-      prospectName ? `Prospect: ${prospectName}.` : '',
+      prospectName ? `Prospect: ${prospectName}.` : "",
       `Variant: ${variant}.`,
       `Include this CTA (exact): "${ctaText}".`,
       spamInstruction,
       wl,
-      `Write a 1–2 sentence LinkedIn message with a professional tone and a clear CTA.`
-    ].filter(Boolean).join('\n\n');
+      `Write a 1–2 sentence LinkedIn message with a professional tone and a clear CTA.`,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
   }
 
-  const prompt = useMemo(() => promptOverride ?? buildPrompt(), [
-    promptOverride, role, senderName, senderEmail, language, level, niche, target, prospectName, variant, ctaText, wordLimit, spamFree
-  ]);
+  const prompt = useMemo(
+    () => promptOverride ?? buildPrompt(),
+    [
+      promptOverride,
+      role,
+      senderName,
+      senderEmail,
+      language,
+      level,
+      niche,
+      target,
+      prospectName,
+      variant,
+      ctaText,
+      wordLimit,
+      spamFree,
+    ],
+  );
 
   const tokenEst = estimateTokens(prompt);
   const hints = useMemo(() => spamHints(prompt), [prompt]);
 
   const onGenerate = useCallback(async () => {
-    setError(null); setResults([]);
-    if (!role.trim()) { setError('Please enter your profession/role'); return; }
-    if (!niche || !target) { setError('Please enter niche and target'); return; }
-    if (!ctaText.trim()) { setError('Please provide a CTA'); return; }
+    setError(null);
+    setResults([]);
+    if (!role.trim()) {
+      setError("Please enter your profession/role");
+      return;
+    }
+    if (!niche || !target) {
+      setError("Please enter niche and target");
+      return;
+    }
+    if (!ctaText.trim()) {
+      setError("Please provide a CTA");
+      return;
+    }
     setLoading(true);
     try {
       // Build structured payload
-      const payload = buildStructuredPayload('linkedin', {
-        role,
-        senderName,
-        senderEmail,
-        language,
-        level
-      }, {
-        niche,
-        target,
-        variant,
-        prospectName,
-        ctaText,
-        wordLimit,
-        spamFree,
-        variants
-      });
+      const payload = buildStructuredPayload(
+        "linkedin",
+        {
+          role,
+          senderName,
+          senderEmail,
+          language,
+          level,
+        },
+        {
+          niche,
+          target,
+          variant,
+          prospectName,
+          ctaText,
+          wordLimit,
+          spamFree,
+          variants,
+        },
+      );
 
       const outs = await generateTextOnServer(payload);
       setResults(outs);
       textareaRef.current?.blur();
     } catch (e: any) {
-      setError(e?.message ?? 'Generation failed');
+      setError(e?.message ?? "Generation failed");
     } finally {
       setLoading(false);
     }
-  }, [role, senderName, senderEmail, language, level, niche, target, variant, prospectName, ctaText, wordLimit, spamFree, variants]);
+  }, [
+    role,
+    senderName,
+    senderEmail,
+    language,
+    level,
+    niche,
+    target,
+    variant,
+    prospectName,
+    ctaText,
+    wordLimit,
+    spamFree,
+    variants,
+  ]);
 
   useEffect(() => {
     const h = () => onGenerate();
-    window.addEventListener('ai-tools:generate', h);
-    return () => window.removeEventListener('ai-tools:generate', h);
+    window.addEventListener("ai-tools:generate", h);
+    return () => window.removeEventListener("ai-tools:generate", h);
   }, [onGenerate]);
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-extrabold tracking-tight text-black">🔗 LinkedIn Message Generator</h2>
+      <h2 className="text-xl font-extrabold tracking-tight text-black">
+        🔗 LinkedIn Message Generator
+      </h2>
 
       <SenderBlock
-        role={role} setRole={setRole}
-        senderName={senderName} setSenderName={setSenderName}
-        senderEmail={senderEmail} setSenderEmail={setSenderEmail}
-        language={language} setLanguage={setLanguage}
-        level={level} setLevel={setLevel}
+        role={role}
+        setRole={setRole}
+        senderName={senderName}
+        setSenderName={setSenderName}
+        senderEmail={senderEmail}
+        setSenderEmail={setSenderEmail}
+        language={language}
+        setLanguage={setLanguage}
+        level={level}
+        setLevel={setLevel}
       />
 
       <Card>
         <FieldRow>
           <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">Niche</label>
-            <input list="nicheListLinkedin"
+            <input
+              list="nicheListLinkedin"
               className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-              value={niche} onChange={(e)=>setNiche(e.target.value)} placeholder="Type or pick a niche" />
+              value={niche}
+              onChange={(e) => setNiche(e.target.value)}
+              placeholder="Type or pick a niche"
+            />
             <datalist id="nicheListLinkedin">
-              <option value="Marketing" /><option value="Sales" /><option value="Roofing" /><option value="Realtors" />
+              <option value="Marketing" />
+              <option value="Sales" />
+              <option value="Roofing" />
+              <option value="Realtors" />
             </datalist>
           </div>
           <div className="flex-1 min-w-[220px]">
-            <label className="text-xs text-blue-900 font-semibold">Target</label>
-            <input list="targetListLinkedin"
+            <label className="text-xs text-blue-900 font-semibold">
+              Target
+            </label>
+            <input
+              list="targetListLinkedin"
               className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-              value={target} onChange={(e)=>setTarget(e.target.value)} placeholder="Type or pick a target" />
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+              placeholder="Type or pick a target"
+            />
             <datalist id="targetListLinkedin">
-              <option value="Founders" /><option value="Operations Managers" /><option value="Property Managers" />
+              <option value="Founders" />
+              <option value="Operations Managers" />
+              <option value="Property Managers" />
             </datalist>
           </div>
           <div className="w-full sm:w-[220px]">
-            <label className="text-xs text-blue-900 font-semibold">Variant</label>
+            <label className="text-xs text-blue-900 font-semibold">
+              Variant
+            </label>
             <select
               className="mt-2 w-full rounded-lg bg-white border border-blue-300 text-blue-900 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-              value={variant} onChange={e=>setVariant(e.target.value)}
+              value={variant}
+              onChange={(e) => setVariant(e.target.value)}
             >
-              <option>Connection Request</option><option>Follow-up</option>
+              <option>Connection Request</option>
+              <option>Follow-up</option>
             </select>
           </div>
         </FieldRow>
 
         <details className="mt-3">
-          <summary className="cursor-pointer text-sm text-blue-700">Advanced</summary>
+          <summary className="cursor-pointer text-sm text-blue-700">
+            Advanced
+          </summary>
           <div className="mt-2 flex flex-wrap items-center gap-4">
             <div className="inline-flex items-center gap-2">
-              <span className="text-blue-700 text-sm">Variants</span>
-              <input className="w-24 rounded-xl bg-white/10 border border-blue-700 px-3 py-2 outline-none"
-                     type="number" min={1} max={5} value={variants} onChange={e=>setVariants(Number(e.target.value))} />
+              <span className="text-blue-900 text-sm font-semibold">
+                Variants
+              </span>
+              <input
+                className="w-24 rounded-lg bg-white border border-blue-300 px-3 py-2 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                type="number"
+                min={1}
+                max={5}
+                value={variants}
+                onChange={(e) => setVariants(Number(e.target.value))}
+              />
             </div>
             <label className="inline-flex items-center gap-2 text-white/80">
-              <input type="checkbox" checked={spamFree} onChange={e=>setSpamFree(e.target.checked)} /> Spam-free wording
+              <input
+                type="checkbox"
+                checked={spamFree}
+                onChange={(e) => setSpamFree(e.target.checked)}
+              />{" "}
+              Spam-free wording
             </label>
           </div>
         </details>
@@ -858,20 +1340,43 @@ function LinkedInScreen() {
 
         <FieldRow>
           <div className="flex-1 min-w-[220px]">
-            <label className="text-xs text-blue-900 font-semibold">Prospect name (optional)</label>
-            <input className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                   value={prospectName} onChange={e=>setProspectName(e.target.value)} placeholder="e.g., Anjali" />
+            <label className="text-xs text-blue-900 font-semibold">
+              Prospect name (optional)
+            </label>
+            <input
+              className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+              value={prospectName}
+              onChange={(e) => setProspectName(e.target.value)}
+              placeholder="e.g., Anjali"
+            />
           </div>
           <div className="flex-1 min-w-[220px]">
-            <label className="text-xs text-blue-900 font-semibold">CTA (exact)</label>
-            <input className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                   value={ctaText} onChange={e=>setCtaText(e.target.value)} placeholder='e.g., "Can we connect for a quick chat?"' />
+            <label className="text-xs text-blue-900 font-semibold">
+              CTA (exact)
+            </label>
+            <input
+              className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+              value={ctaText}
+              onChange={(e) => setCtaText(e.target.value)}
+              placeholder='e.g., "Can we connect for a quick chat?"'
+            />
           </div>
           <div className="w-[160px]">
-            <label className="text-xs text-blue-900 font-semibold">Word limit</label>
-            <input type="number" min={1} max={120}
-                   className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                   value={String(wordLimit)} onChange={e=>setWordLimit(e.target.value === '' ? '' : Number(e.target.value))} />
+            <label className="text-xs text-blue-900 font-semibold">
+              Word limit
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={120}
+              className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+              value={String(wordLimit)}
+              onChange={(e) =>
+                setWordLimit(
+                  e.target.value === "" ? "" : Number(e.target.value),
+                )
+              }
+            />
           </div>
         </FieldRow>
       </Card>
@@ -881,13 +1386,13 @@ function LinkedInScreen() {
         ref={textareaRef}
         className="w-full min-h-[180px] rounded-2xl bg-white/10 border border-blue-700 px-3 py-3 outline-none text-blue-700"
         value={prompt}
-        onChange={(e)=>setPromptOverride(e.target.value)}
+        onChange={(e) => setPromptOverride(e.target.value)}
         aria-busy={loading}
       />
 
       <div className="flex flex-wrap items-center gap-3 text-sm text-blue-700">
         <span>~{tokenEst} tokens</span>
-        {hints.length ? <span>· ⚠ {hints.join(' · ')}</span> : null}
+        {hints.length ? <span>· ⚠ {hints.join(" · ")}</span> : null}
       </div>
 
       <div className="flex justify-end">
@@ -896,26 +1401,39 @@ function LinkedInScreen() {
           onClick={onGenerate}
           disabled={loading}
         >
-          {loading ? 'Generating…' : 'Generate Message(s)'}
+          {loading ? "Generating…" : "Generate Message(s)"}
         </button>
       </div>
 
-      {error && <div className="mt-3 rounded-xl bg-red-500/15 border border-red-400/30 p-3 text-sm">{error}</div>}
+      {error && (
+        <div className="mt-3 rounded-xl bg-red-500/15 border border-red-400/30 p-3 text-sm">
+          {error}
+        </div>
+      )}
 
       {results.length ? (
         <div className="mt-4 space-y-3">
-          {results.map((r,i)=>(
+          {results.map((r, i) => (
             <Card key={i}>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h4 className="font-semibold text-blue-700">Variant {i+1}</h4>
-                <button className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-blue-700" onClick={()=>safeCopy(r)}>Copy</button>
+                <h4 className="font-semibold text-blue-700">Variant {i + 1}</h4>
+                <button
+                  className="px-3 py-2 rounded-xl bg-white/10 text-black hover:bg-white/20 border border-blue-700"
+                  onClick={() => safeCopy(r)}
+                >
+                  Copy
+                </button>
               </div>
-              <pre className="whitespace-pre-wrap mt-2">{r}</pre>
+              <pre className="whitespace-pre-wrap mt-2 text-blue-900">{r}</pre>
             </Card>
           ))}
         </div>
       ) : (
-        <Card><div className="text-blue-700">Generated LinkedIn message will appear here.</div></Card>
+        <Card>
+          <div className="text-blue-700">
+            Generated LinkedIn message will appear here.
+          </div>
+        </Card>
       )}
     </div>
   );
@@ -925,19 +1443,21 @@ function ContractsScreen() {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   useEditorShortcuts(textareaRef);
 
-  const [role, setRole] = useState('Founder');
-  const [senderName, setSenderName] = useState('Aman Kumar');
-  const [senderEmail, setSenderEmail] = useState('');
-  const [language, setLanguage] = useState('English');
-  const [level, setLevel] = useState<'Simple'|'Intermediate'|'Advanced'>('Intermediate');
+  const [role, setRole] = useState("Founder");
+  const [senderName, setSenderName] = useState("Aman Kumar");
+  const [senderEmail, setSenderEmail] = useState("");
+  const [language, setLanguage] = useState("English");
+  const [level, setLevel] = useState<"Simple" | "Intermediate" | "Advanced">(
+    "Intermediate",
+  );
 
-  const [niche, setNiche] = useState('Web Development');
-  const [clientName, setClientName] = useState('');
-  const [projectScope, setProjectScope] = useState('');
-  const [variant, setVariant] = useState('Simple SOW');
+  const [niche, setNiche] = useState("Web Development");
+  const [clientName, setClientName] = useState("");
+  const [projectScope, setProjectScope] = useState("");
+  const [variant, setVariant] = useState("Simple SOW");
 
-  const [ctaText, setCtaText] = useState('Sign to confirm and send PO');
-  const [wordLimit, setWordLimit] = useState<number | ''>(400);
+  const [ctaText, setCtaText] = useState("Sign to confirm and send PO");
+  const [wordLimit, setWordLimit] = useState<number | "">(400);
   const [variants, setVariants] = useState(3);
   const [promptOverride, setPromptOverride] = useState<string | null>(null);
 
@@ -946,23 +1466,30 @@ function ContractsScreen() {
   const [error, setError] = useState<string | null>(null);
 
   function readingInstruction() {
-    if (level === 'Simple') return 'Use plain language and short sentences.';
-    if (level === 'Intermediate') return 'Use professional and clear legal-adjacent language.';
-    return 'Use precise and detailed legal-style language.';
+    if (level === "Simple") return "Use plain language and short sentences.";
+    if (level === "Intermediate")
+      return "Use professional and clear legal-adjacent language.";
+    return "Use precise and detailed legal-style language.";
   }
 
   function buildPrompt() {
     const senderLines = [
       `Sender role: ${role}.`,
-      senderName ? `Sender name: ${senderName}.` : '',
-      senderEmail ? `Sender email: ${senderEmail}.` : ''
-    ].filter(Boolean).join(' ');
+      senderName ? `Sender name: ${senderName}.` : "",
+      senderEmail ? `Sender email: ${senderEmail}.` : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
     const keywordsLine = `Keywords (use naturally): ${niche}.`;
-    const wl = wordLimit && Number(wordLimit) > 0 ? `Aim for approximately ${wordLimit} words.` : '';
+    const wl =
+      wordLimit && Number(wordLimit) > 0
+        ? `Aim for approximately ${wordLimit} words.`
+        : "";
 
-    const languageInstruction = language !== 'English' 
-      ? `MANDATORY LANGUAGE REQUIREMENT: You MUST respond ONLY in ${language} language. Write the ENTIRE contract completely in ${language}. Do NOT use any English words or phrases. Use proper ${language} grammar, vocabulary, and legal expressions. This is a strict requirement - no exceptions allowed.`
-      : `Language: English.`;
+    const languageInstruction =
+      language !== "English"
+        ? `MANDATORY LANGUAGE REQUIREMENT: You MUST respond ONLY in ${language} language. Write the ENTIRE contract completely in ${language}. Do NOT use any English words or phrases. Use proper ${language} grammar, vocabulary, and legal expressions. This is a strict requirement - no exceptions allowed.`
+        : `Language: English.`;
 
     return [
       languageInstruction,
@@ -971,106 +1498,183 @@ function ContractsScreen() {
       senderLines,
       keywordsLine,
       `Niche: ${niche}.`,
-      clientName ? `Client: ${clientName}.` : '',
-      projectScope ? `Scope: ${projectScope}.` : 'Scope: <brief description of work>.',
+      clientName ? `Client: ${clientName}.` : "",
+      projectScope
+        ? `Scope: ${projectScope}.`
+        : "Scope: <brief description of work>.",
       `Variant: ${variant}.`,
       `Include this CTA (exact): "${ctaText}".`,
       wl,
-      `Write a clear draft with scope, deliverables, payment terms, change requests, IP/ownership basics, and a one-line sign-off. Keep it professional and concise.`
-    ].filter(Boolean).join('\n\n');
+      `Write a clear draft with scope, deliverables, payment terms, change requests, IP/ownership basics, and a one-line sign-off. Keep it professional and concise.`,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
   }
 
-  const prompt = useMemo(() => promptOverride ?? buildPrompt(), [
-    promptOverride, role, senderName, senderEmail, language, level, niche, clientName, projectScope, variant, ctaText, wordLimit
-  ]);
+  const prompt = useMemo(
+    () => promptOverride ?? buildPrompt(),
+    [
+      promptOverride,
+      role,
+      senderName,
+      senderEmail,
+      language,
+      level,
+      niche,
+      clientName,
+      projectScope,
+      variant,
+      ctaText,
+      wordLimit,
+    ],
+  );
 
   const tokenEst = estimateTokens(prompt);
 
   const onGenerate = useCallback(async () => {
-    setError(null); setResults([]);
-    if (!role.trim()) { setError('Please enter your profession/role'); return; }
-    if (!projectScope.trim()) { setError('Please enter project scope'); return; }
+    setError(null);
+    setResults([]);
+    if (!role.trim()) {
+      setError("Please enter your profession/role");
+      return;
+    }
+    if (!projectScope.trim()) {
+      setError("Please enter project scope");
+      return;
+    }
     setLoading(true);
     try {
       // Build structured payload
-      const payload = buildStructuredPayload('contracts', {
-        role,
-        senderName,
-        senderEmail,
-        language,
-        level
-      }, {
-        niche,
-        projectScope,
-        variant,
-        clientName,
-        ctaText,
-        wordLimit,
-        variants
-      });
+      const payload = buildStructuredPayload(
+        "contracts",
+        {
+          role,
+          senderName,
+          senderEmail,
+          language,
+          level,
+        },
+        {
+          niche,
+          projectScope,
+          variant,
+          clientName,
+          ctaText,
+          wordLimit,
+          variants,
+        },
+      );
 
       const outs = await generateTextOnServer(payload);
       setResults(outs);
       textareaRef.current?.blur();
     } catch (e: any) {
-      setError(e?.message ?? 'Generation failed');
+      setError(e?.message ?? "Generation failed");
     } finally {
       setLoading(false);
     }
-  }, [role, senderName, senderEmail, language, level, niche, projectScope, variant, clientName, ctaText, wordLimit, variants]);
+  }, [
+    role,
+    senderName,
+    senderEmail,
+    language,
+    level,
+    niche,
+    projectScope,
+    variant,
+    clientName,
+    ctaText,
+    wordLimit,
+    variants,
+  ]);
 
   useEffect(() => {
     const h = () => onGenerate();
-    window.addEventListener('ai-tools:generate', h);
-    return () => window.removeEventListener('ai-tools:generate', h);
+    window.addEventListener("ai-tools:generate", h);
+    return () => window.removeEventListener("ai-tools:generate", h);
   }, [onGenerate]);
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-extrabold tracking-tight text-black">📄 Contract Draft Generator</h2>
+      <h2 className="text-xl font-extrabold tracking-tight text-black">
+        📄 Contract Draft Generator
+      </h2>
 
       <SenderBlock
-        role={role} setRole={setRole}
-        senderName={senderName} setSenderName={setSenderName}
-        senderEmail={senderEmail} setSenderEmail={setSenderEmail}
-        language={language} setLanguage={setLanguage}
-        level={level} setLevel={setLevel}
+        role={role}
+        setRole={setRole}
+        senderName={senderName}
+        setSenderName={setSenderName}
+        senderEmail={senderEmail}
+        setSenderEmail={setSenderEmail}
+        language={language}
+        setLanguage={setLanguage}
+        level={level}
+        setLevel={setLevel}
       />
 
       <Card>
         <FieldRow>
           <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">Niche</label>
-            <input list="nicheListContracts"
+            <input
+              list="nicheListContracts"
               className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-              value={niche} onChange={(e)=>setNiche(e.target.value)} placeholder="Type or pick a niche" />
+              value={niche}
+              onChange={(e) => setNiche(e.target.value)}
+              placeholder="Type or pick a niche"
+            />
             <datalist id="nicheListContracts">
-              <option value="Web Development" /><option value="Design" /><option value="Marketing" /><option value="Consulting" />
+              <option value="Web Development" />
+              <option value="Design" />
+              <option value="Marketing" />
+              <option value="Consulting" />
             </datalist>
           </div>
           <div className="flex-1 min-w-[220px]">
-            <label className="text-xs text-blue-900 font-semibold">Project scope</label>
-            <input className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                   value={projectScope} onChange={e=>setProjectScope(e.target.value)} placeholder="e.g., Website + CMS" />
+            <label className="text-xs text-blue-900 font-semibold">
+              Project scope
+            </label>
+            <input
+              className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+              value={projectScope}
+              onChange={(e) => setProjectScope(e.target.value)}
+              placeholder="e.g., Website + CMS"
+            />
           </div>
           <div className="w-full sm:w-[220px]">
-            <label className="text-xs text-blue-900 font-semibold">Variant</label>
+            <label className="text-xs text-blue-900 font-semibold">
+              Variant
+            </label>
             <select
               className="mt-2 w-full rounded-lg bg-white border border-blue-300 text-blue-900 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-              value={variant} onChange={e=>setVariant(e.target.value)}
+              value={variant}
+              onChange={(e) => setVariant(e.target.value)}
             >
-              <option>Simple SOW</option><option>Payment + Retainer</option><option>Project + Milestones</option>
+              <option>Simple SOW</option>
+              <option>Payment + Retainer</option>
+              <option>Project + Milestones</option>
             </select>
           </div>
         </FieldRow>
 
         <details className="mt-3">
-          <summary className="cursor-pointer text-sm text-blue-700">Advanced</summary>
+          <summary className="cursor-pointer text-sm text-blue-700">
+            Advanced
+          </summary>
           <div className="mt-2 flex flex-wrap items-center gap-4">
             <div className="inline-flex items-center gap-2">
-              <span className="text-blue-700 text-sm">Variants</span>
-              <input className="w-24 rounded-xl bg-white/10 border border-blue-700 px-3 py-2 outline-none"
-                     type="number" min={1} max={5} value={variants} onChange={e=>setVariants(Number(e.target.value))} />
+              <span className="text-blue-900 text-sm font-semibold">
+                Variants
+              </span>
+              <input
+                className="w-24 rounded-lg bg-white border border-blue-300 px-3 py-2 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+                type="number"
+                min={1}
+                max={5}
+                value={variants}
+                onChange={(e) => setVariants(Number(e.target.value))}
+              />
             </div>
           </div>
         </details>
@@ -1079,20 +1683,43 @@ function ContractsScreen() {
 
         <FieldRow>
           <div className="flex-1 min-w-[220px]">
-            <label className="text-xs text-blue-900 font-semibold">Client name (optional)</label>
-            <input className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                   value={clientName} onChange={e=>setClientName(e.target.value)} placeholder="e.g., Acme Corp" />
+            <label className="text-xs text-blue-900 font-semibold">
+              Client name (optional)
+            </label>
+            <input
+              className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+              placeholder="e.g., Acme Corp"
+            />
           </div>
           <div className="flex-1 min-w-[220px]">
-            <label className="text-xs text-blue-900 font-semibold">CTA (exact)</label>
-            <input className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                   value={ctaText} onChange={e=>setCtaText(e.target.value)} placeholder="e.g., Sign to confirm and send PO" />
+            <label className="text-xs text-blue-900 font-semibold">
+              CTA (exact)
+            </label>
+            <input
+              className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+              value={ctaText}
+              onChange={(e) => setCtaText(e.target.value)}
+              placeholder="e.g., Sign to confirm and send PO"
+            />
           </div>
           <div className="w-[160px]">
-            <label className="text-xs text-blue-900 font-semibold">Word limit</label>
-            <input type="number" min={50} max={1000}
-                   className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                   value={String(wordLimit)} onChange={e=>setWordLimit(e.target.value === '' ? '' : Number(e.target.value))} />
+            <label className="text-xs text-blue-900 font-semibold">
+              Word limit
+            </label>
+            <input
+              type="number"
+              min={50}
+              max={1000}
+              className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+              value={String(wordLimit)}
+              onChange={(e) =>
+                setWordLimit(
+                  e.target.value === "" ? "" : Number(e.target.value),
+                )
+              }
+            />
           </div>
         </FieldRow>
       </Card>
@@ -1102,7 +1729,7 @@ function ContractsScreen() {
         ref={textareaRef}
         className="w-full min-h-[220px] rounded-2xl bg-white/10 border border-blue-700 px-3 py-3 outline-none text-blue-700"
         value={prompt}
-        onChange={(e)=>setPromptOverride(e.target.value)}
+        onChange={(e) => setPromptOverride(e.target.value)}
         aria-busy={loading}
       />
 
@@ -1114,26 +1741,39 @@ function ContractsScreen() {
           onClick={onGenerate}
           disabled={loading}
         >
-          {loading ? 'Generating…' : 'Generate Draft(s)'}
+          {loading ? "Generating…" : "Generate Draft(s)"}
         </button>
       </div>
 
-      {error && <div className="mt-3 rounded-xl bg-red-500/15 border border-red-400/30 p-3 text-sm">{error}</div>}
+      {error && (
+        <div className="mt-3 rounded-xl bg-red-500/15 border border-red-400/30 p-3 text-sm">
+          {error}
+        </div>
+      )}
 
       {results.length ? (
         <div className="mt-4 space-y-3">
-          {results.map((r,i)=>(
+          {results.map((r, i) => (
             <Card key={i}>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h4 className="font-semibold text-blue-700">Variant {i+1}</h4>
+                <h4 className="font-semibold text-blue-700">Variant {i + 1}</h4>
                 <div className="flex gap-2">
-                  <button className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-blue-700" onClick={()=>safeCopy(r)}>Copy</button>
                   <button
                     className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-blue-700"
-                    onClick={()=>{
-                      const blob = new Blob([r], { type: 'text/plain' });
+                    onClick={() => safeCopy(r)}
+                  >
+                    Copy
+                  </button>
+                  <button
+                    className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-blue-700"
+                    onClick={() => {
+                      const blob = new Blob([r], { type: "text/plain" });
                       const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a'); a.href = url; a.download = `contract-variant-${i+1}.txt`; a.click(); URL.revokeObjectURL(url);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `contract-variant-${i + 1}.txt`;
+                      a.click();
+                      URL.revokeObjectURL(url);
                     }}
                   >
                     Download
@@ -1143,8 +1783,16 @@ function ContractsScreen() {
               <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 rounded-r-lg">
                 <div className="flex items-start">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    <svg
+                      className="h-5 w-5 text-yellow-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div className="ml-3">
@@ -1152,17 +1800,20 @@ function ContractsScreen() {
                       ⚠️ Legal Disclaimer
                     </p>
                     <p className="text-sm text-yellow-700 mt-1">
-                      This is an AI-generated draft. Review by a legal professional before use.
+                      This is an AI-generated draft. Review by a legal
+                      professional before use.
                     </p>
                   </div>
                 </div>
               </div>
-              <pre className="whitespace-pre-wrap mt-2">{r}</pre>
+              <pre className="whitespace-pre-wrap mt-2 text-blue-900">{r}</pre>
             </Card>
           ))}
         </div>
       ) : (
-        <Card><div className="text-blue-700">Generated draft will appear here.</div></Card>
+        <Card>
+          <div className="text-blue-700">Generated draft will appear here.</div>
+        </Card>
       )}
     </div>
   );

@@ -214,30 +214,6 @@ export default function StatisticsPage() {
                         {formatNumber(tokens.monthlyRemaining)}
                       </span>
                     </div>
-                    <div className="border-t pt-2 mt-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 font-medium">
-                          Efficiency
-                        </span>
-                        <span
-                          className={`font-semibold ${
-                            calculatePercentage(
-                              tokens.monthlyUsed,
-                              tokens.monthlyTotal,
-                            ) < 80
-                              ? "text-green-600"
-                              : "text-orange-600"
-                          }`}
-                        >
-                          {calculatePercentage(
-                            tokens.monthlyUsed,
-                            tokens.monthlyTotal,
-                          ) < 80
-                            ? "Good"
-                            : "High Usage"}
-                        </span>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -263,24 +239,6 @@ export default function StatisticsPage() {
                       <span className="font-semibold text-green-600">
                         {formatNumber(tokens.daily)}
                       </span>
-                    </div>
-                    <div className="border-t pt-2 mt-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 font-medium">
-                          Status
-                        </span>
-                        <span
-                          className={`font-semibold ${
-                            tokens.daily > tokens.dailyLimit * 0.2
-                              ? "text-green-600"
-                              : "text-orange-600"
-                          }`}
-                        >
-                          {tokens.daily > tokens.dailyLimit * 0.2
-                            ? "Available"
-                            : "Low"}
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </div>

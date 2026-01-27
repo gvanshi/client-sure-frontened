@@ -332,7 +332,7 @@ function AccessedLeadsContent() {
             <Download className="w-4 h-4" />
             Export All
           </button>
-          <button
+          {/* <button
             onClick={() => {
               setEmailDefaultType("bulk");
               setShowEmailModal(true);
@@ -341,7 +341,7 @@ function AccessedLeadsContent() {
           >
             <Mail className="w-4 h-4" />
             Send Email
-          </button>
+          </button> */}
         </div>
       </div>
 

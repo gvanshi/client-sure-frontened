@@ -136,7 +136,7 @@ export default function Comparison() {
                   key={index}
                   variants={itemVariant}
                   whileHover={{ scale: 1.01, backgroundColor: "#F9FAFB" }}
-                  className="grid grid-cols-4 items-center py-3 lg:py-4 px-2 rounded-lg transition-colors border-b border-gray-50 last:border-0"
+                  className="grid grid-cols-4 items-center py-3  lg:py-4 px-2 rounded-lg transition-colors border-b border-gray-50 last:border-0"
                 >
                   <div className="text-sm lg:text-base font-medium text-gray-900">
                     {feature.name}

@@ -132,7 +132,7 @@ export default function SubscriptionPage() {
                   </div>
                   {subscription.plan.bonusTokens &&
                     subscription.plan.bonusTokens > 0 && (
-                      <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg px-6 py-3 text-center">
+                      <div className="bg-opacity-20 backdrop-blur-sm rounded-lg px-6 py-3 text-center">
                         <div className="text-sm font-medium text-purple-100">
                           Bonus Tokens
                         </div>
@@ -226,19 +226,7 @@ export default function SubscriptionPage() {
                       )}
                     </div>
                   </div>
-                  <div className="flex-1 mx-4">
-                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                      {subscription.plan.durationDays &&
-                        subscription.daysRemaining !== undefined && (
-                          <div
-                            className="h-full bg-gradient-to-r from-purple-600 to-blue-600 rounded-full transition-all"
-                            style={{
-                              width: `${Math.max(0, ((subscription.plan.durationDays - subscription.daysRemaining) / subscription.plan.durationDays) * 100)}%`,
-                            }}
-                          />
-                        )}
-                    </div>
-                  </div>
+                  
                   <div className="text-right">
                     <div className="text-xs text-gray-500 mb-1">Expires</div>
                     <div className="font-semibold text-gray-900">
