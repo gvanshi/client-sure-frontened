@@ -9,6 +9,7 @@ import Footer from "../../components/Footer";
 import ProfileSidebar from "../components/ProfileSidebar";
 import TokenPurchase from "../../../../components/TokenPurchase";
 import Axios from "@/utils/Axios";
+import BackButton from "../../components/BackButton";
 
 interface TokenData {
   monthlyTotal: number;
@@ -50,6 +51,19 @@ interface QuickPackage {
   tokens: number;
   price: number;
 }
+
+const calculatePercentage = (current: number, total: number) => {
+  if (total === 0) return "0.0";
+  const percentage = (current / total) * 100;
+
+  
+
+  // If we have remaining tokens < total but percentage rounds to 100, show 99.9
+  if (current < total && percentage > 99.9) {
+    return "99.9";
+  }
+  return percentage.toFixed(1);
+};
 
 export default function TokenUsagePage() {
   const [tokens, setTokens] = useState<TokenData | null>(null);
@@ -149,6 +163,9 @@ export default function TokenUsagePage() {
           <ProfileSidebar />
 
           <div className="flex-1 p-4 md:p-8 bg-gray-50">
+            <div className="mb-4">
+              <BackButton />
+            </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-8 flex items-center space-x-2">
               <Target className="w-6 h-6 text-blue-600" />
               <span>Token Usage</span>
@@ -197,12 +214,10 @@ export default function TokenUsagePage() {
                       ).toLocaleString()}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {(
-                        ((tokens.monthlyRemaining + (tokens.bonusTokens || 0)) /
-                          subscriptionData.totalPlanTokens) *
-                        100
-                      ).toFixed(1)}
-                      %
+                      {calculatePercentage(
+                        tokens.monthlyRemaining + (tokens.bonusTokens || 0),
+                        subscriptionData.totalPlanTokens,
+                      )}
                     </div>
                   </div>
 

@@ -72,6 +72,16 @@ interface Resource {
   isAccessedByUser: boolean;
 }
 
+const calculatePercentage = (current: number, total: number) => {
+  if (total === 0) return "0.0";
+  const percentage = (current / total) * 100;
+  // If we have remaining tokens < total but percentage rounds to 100, show 99.9
+  if (current < total && percentage > 99.9) {
+    return "99.9";
+  }
+  return percentage.toFixed(1);
+};
+
 function DashboardContent() {
   const router = useRouter();
   const [userStats, setUserStats] = useState<UserStats | null>(null);
@@ -364,11 +374,10 @@ function DashboardContent() {
                   {userStats.totalPlanTokensRemaining.toLocaleString()}
                 </div>
                 <div className="text-xs text-gray-500">
-                  {(
-                    (userStats.totalPlanTokensRemaining /
-                      userStats.totalPlanTokens) *
-                    100
-                  ).toFixed(1)}
+                  {calculatePercentage(
+                    userStats.totalPlanTokensRemaining,
+                    userStats.totalPlanTokens,
+                  )}
                   % remaining
                 </div>
               </div>
@@ -698,8 +707,8 @@ function DashboardContent() {
                 </div>
 
                 {filteredPdfs.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredPdfs.map((resource) => (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                    {filteredPdfs.slice(0, 4).map((resource) => (
                       <div
                         key={resource.id}
                         onClick={() => {
@@ -712,7 +721,7 @@ function DashboardContent() {
                         className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer"
                       >
                         {/* ... (existing card content, unchanged logic just using resource) ... */}
-                        <div className="relative h-48 bg-linear-to-br from-red-50 to-orange-50 flex items-center justify-center">
+                        <div className="relative h-32 bg-linear-to-br from-red-50 to-orange-50 flex items-center justify-center">
                           {resource.isAccessedByUser &&
                           resource.thumbnailUrl ? (
                             <div className="w-full h-full p-4">
@@ -734,15 +743,15 @@ function DashboardContent() {
                                 className="w-full h-full items-center justify-center"
                                 style={{ display: "none" }}
                               >
-                                <div className="bg-white rounded-2xl p-5 shadow-md mx-auto w-fit">
-                                  <FileText className="w-16 h-16 text-red-500" />
+                                <div className="bg-white rounded-2xl p-3 shadow-md mx-auto w-fit">
+                                  <FileText className="w-10 h-10 text-red-500" />
                                 </div>
                               </div>
                             </div>
                           ) : (
                             <div className="text-center">
-                              <div className="bg-white rounded-2xl p-5 shadow-md mx-auto w-fit">
-                                <FileText className="w-16 h-16 text-red-500" />
+                              <div className="bg-white rounded-2xl p-3 shadow-md mx-auto w-fit">
+                                <FileText className="w-10 h-10 text-red-500" />
                               </div>
                               {resource.isAccessedByUser && (
                                 <p className="text-red-600 text-sm font-medium mt-2">
@@ -762,7 +771,7 @@ function DashboardContent() {
                             </div>
                           )}
                         </div>
-                        <div className="p-5">
+                        <div className="p-4">
                           <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">
                             {resource.title}
                           </h3>
@@ -860,8 +869,8 @@ function DashboardContent() {
                 </div>
 
                 {filteredVideos.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredVideos.map((resource) => (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                    {filteredVideos.slice(0, 4).map((resource) => (
                       <div
                         key={resource.id}
                         onClick={() => {
@@ -874,7 +883,7 @@ function DashboardContent() {
                         className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer"
                       >
                         {/* ... (existing card content, unchanged logic) ... */}
-                        <div className="relative h-48 bg-blue-100 overflow-hidden">
+                        <div className="relative h-32 bg-blue-100 overflow-hidden">
                           {resource.isAccessedByUser &&
                           resource.thumbnailUrl ? (
                             <div className="w-full h-full">
@@ -896,16 +905,16 @@ function DashboardContent() {
                                 className="w-full h-full items-center justify-center bg-blue-100"
                                 style={{ display: "none" }}
                               >
-                                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-md">
-                                  <Play className="w-8 h-8 text-blue-600" />
+                                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md">
+                                  <Play className="w-6 h-6 text-blue-600" />
                                 </div>
                               </div>
                             </div>
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gray-200">
                               <div className="text-center">
-                                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                  <Play className="w-8 h-8 text-blue-600" />
+                                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                  <Play className="w-6 h-6 text-blue-600" />
                                 </div>
                                 <p className="text-gray-600 text-sm font-medium">
                                   {resource.isAccessedByUser
@@ -926,7 +935,7 @@ function DashboardContent() {
                             </div>
                           )}
                         </div>
-                        <div className="p-5">
+                        <div className="p-4">
                           <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">
                             {resource.title}
                           </h3>

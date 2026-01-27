@@ -20,6 +20,7 @@ import PDFViewer from "@/components/PDFViewer";
 import VideoViewer from "@/components/VideoViewer";
 import ResourceModal from "@/components/ResourceModal";
 import Axios from "@/utils/Axios";
+import BackButton from "../components/BackButton";
 
 interface Resource {
   _id: string;
@@ -140,6 +141,9 @@ export default function ResourcesPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
         {/* Header */}
+        <div className="mb-4">
+          <BackButton />
+        </div>
         <div className="bg-white border-l-4 border-blue-600 shadow-sm p-4 md:p-6 mb-4 md:mb-8">
           <div className="flex items-center space-x-3 md:space-x-4">
             <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-100 flex items-center justify-center flex-shrink-0">

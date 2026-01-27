@@ -25,6 +25,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Axios from "@/utils/Axios";
 import ChangePasswordModal from "./components/ChangePasswordModal";
+import BackButton from "../components/BackButton";
 
 interface UserProfile {
   name: string;
@@ -370,6 +371,9 @@ export default function ProfilePage() {
 
         {/* Main Content */}
         <div className="flex-1 p-4 md:p-8 bg-gray-50">
+          <div className="mb-4">
+            <BackButton />
+          </div>
           {loading ? (
             <div className="bg-white rounded-lg shadow-sm p-8 text-center">
               <div className="text-gray-500">Loading profile...</div>

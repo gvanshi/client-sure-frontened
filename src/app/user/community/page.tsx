@@ -25,6 +25,8 @@ import {
   Sparkles,
   Edit3,
 } from "lucide-react";
+import ConfirmationModal from "../components/ConfirmationModal";
+import BackButton from "../components/BackButton";
 
 interface User {
   _id: string;
@@ -126,6 +128,12 @@ export default function CommunityPage() {
   const [visibleComments, setVisibleComments] = useState<{
     [key: string]: boolean;
   }>({});
+
+  // Delete confirmation state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -391,13 +399,40 @@ export default function CommunityPage() {
     }
   };
 
-  const deletePost = async (postId: string) => {
+  const handleDeleteClick = (postId: string) => {
+    setPostToDelete(postId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeletePost = async () => {
+    if (!postToDelete) return;
+
+    setIsDeleting(true);
     try {
-      await Axios.delete(`/community/post/${postId}`);
-      toast.success("Post deleted (-5 points)");
-      fetchData(false);
-    } catch (error) {
-      toast.error("Error deleting post");
+      const response = await Axios.delete(`/community/post/${postToDelete}`);
+
+      if (response.data.success) {
+        toast.success("Post deleted (-5 points)");
+
+        // Update daily limits if returned from backend
+        if (response.data.remainingLimits) {
+          setDailyLimits(response.data.remainingLimits);
+        }
+
+        fetchData(false);
+      } else {
+        // Fallback for old API response structure
+        toast.success("Post deleted (-5 points)");
+        fetchData(false);
+      }
+
+      setShowDeleteModal(false);
+      setPostToDelete(null);
+    } catch (error: any) {
+      console.error("Delete post error:", error);
+      toast.error(error.response?.data?.message || "Error deleting post");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -635,6 +670,9 @@ export default function CommunityPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header - Moved outside flex container to stay at top */}
+        <div className="mb-4">
+          <BackButton />
+        </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
           <div className="bg-white border-b border-gray-200 p-4 md:p-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
@@ -1201,7 +1239,7 @@ export default function CommunityPage() {
                               <Edit3 className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => deletePost(post._id)}
+                              onClick={() => handleDeleteClick(post._id)}
                               className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
                               title="Delete post"
                             >
@@ -1678,6 +1716,22 @@ export default function CommunityPage() {
         </div>
       </div>
       <Footer />
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => {
+          if (!isDeleting) {
+            setShowDeleteModal(false);
+            setPostToDelete(null);
+          }
+        }}
+        onConfirm={confirmDeletePost}
+        title="Delete Post?"
+        message="Are you sure you want to delete this post? This action cannot be undone. Any points earned from this post will be deducted."
+        confirmText="Delete Post"
+        isDeleting={isDeleting}
+      />
     </div>
   );
 }
