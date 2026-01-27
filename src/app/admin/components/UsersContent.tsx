@@ -65,6 +65,35 @@ export default function UsersContent() {
     }
   };
 
+  const toggleUserStatus = async (userId: string, currentStatus: boolean) => {
+    try {
+      // Optimistic update
+      setUsers(
+        users.map((u) => {
+          if (u._id === userId) {
+            return {
+              ...u,
+              subscription: { ...u.subscription, isActive: !currentStatus },
+            };
+          }
+          return u;
+        }),
+      );
+
+      await Axios.put(`/admin/users/${userId}/status`, {
+        isActive: !currentStatus,
+      });
+
+      // Refresh to get full updated state (like new expiry date if activated)
+      loadUsers();
+    } catch (error) {
+      console.error("Error updating user status:", error);
+      // Revert on error
+      loadUsers();
+      alert("Failed to update status");
+    }
+  };
+
   useEffect(() => {
     loadUsers();
   }, []);
@@ -344,6 +373,9 @@ export default function UsersContent() {
                   Joined
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                   Actions
                 </th>
               </tr>
@@ -434,6 +466,30 @@ export default function UsersContent() {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600">
                       {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleUserStatus(
+                            user._id,
+                            !!user.subscription?.isActive,
+                          );
+                        }}
+                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                          user.subscription?.isActive
+                            ? "bg-green-500"
+                            : "bg-gray-200"
+                        }`}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                            user.subscription?.isActive
+                              ? "translate-x-5"
+                              : "translate-x-0"
+                          }`}
+                        />
+                      </button>
                     </td>
                     <td className="px-6 py-4">
                       <button
