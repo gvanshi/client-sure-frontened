@@ -168,9 +168,9 @@ export const AdminAPI = {
         })
       })
       return await handleResponse(response)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Award prize tokens error:', error)
-      return { success: false, error: 'API not available' }
+      return { success: false, error: error.message || 'API not available' }
     }
   },
 

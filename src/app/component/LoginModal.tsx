@@ -120,29 +120,53 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         return;
       }
 
+      // Handle deactivated account error
+      if (
+        response.status === 403 &&
+        data.error?.toLowerCase().includes("deactivated")
+      ) {
+        throw new Error(
+          "Your account has been deactivated. Please contact support at Snoowballmedia@gmail.com to resolve this issue.",
+        );
+      }
+
       if (!response.ok) {
         throw new Error(data.error || "Login failed");
       }
 
-      // Store token - backend returns 'userToken' property
-      localStorage.removeItem("adminToken"); // Clear potential conflicting admin token
+      // Detect admin vs user and store tokens accordingly
+      const isAdmin = data.role === "admin";
 
-      const token = data.userToken || data.token; // Support both for backward compatibility
-      if (token) {
-        localStorage.setItem("userToken", token);
-        console.log("✅ Token stored successfully");
+      if (isAdmin) {
+        // Admin login: Store only adminToken, clear user data
+        localStorage.setItem("adminToken", data.token);
+        localStorage.removeItem("userToken");
+        localStorage.removeItem("user");
+        localStorage.removeItem("userData");
+        console.log("✅ Admin token stored");
+
+        onClose();
+        router.push("/admin/dashboard");
       } else {
-        console.error("❌ No token in response:", data);
-        throw new Error("No authentication token received");
-      }
+        // User login: Store only userToken and user data, clear admin token
+        const token = data.userToken || data.token;
+        if (token) {
+          localStorage.setItem("userToken", token);
+          console.log("✅ User token stored");
+        } else {
+          throw new Error("No authentication token received");
+        }
 
-      if (data.user) {
-        localStorage.setItem("userData", JSON.stringify(data.user));
-      }
+        if (data.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+          localStorage.setItem("userData", JSON.stringify(data.user));
+        }
 
-      onClose();
-      // Redirect to user dashboard
-      router.push("/user/dashboard");
+        localStorage.removeItem("adminToken");
+
+        onClose();
+        router.push("/user/dashboard");
+      }
     } catch (err: any) {
       setError(err.message || "Failed to login");
     } finally {

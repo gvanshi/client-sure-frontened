@@ -95,9 +95,9 @@ export default function ForgotPasswordPage() {
         </form>
 
         <div className="text-center mt-6">
-          <a href="/auth/login" className="text-blue-600 hover:underline">
-            Back to Login
-          </a>
+          <p className="text-sm text-gray-500">
+            Close this tab and return to the main site to log in.
+          </p>
         </div>
       </div>
     </div>
