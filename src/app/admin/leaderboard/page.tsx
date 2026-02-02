@@ -17,6 +17,7 @@ import {
   Calendar,
   Gift,
   Coins,
+  Send,
 } from "lucide-react";
 
 interface LeaderboardUser {
@@ -63,13 +64,12 @@ export default function AdminLeaderboardPage() {
   const [filterPeriod, setFilterPeriod] = useState("alltime");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
-  const [prizeTemplates, setPrizeTemplates] = useState<any[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
-  const [customPrizes, setCustomPrizes] = useState({
-    first: 500,
-    second: 300,
-    third: 100,
-  });
+  const [awardModalOpen, setAwardModalOpen] = useState(false);
+  const [selectedUserForAward, setSelectedUserForAward] =
+    useState<LeaderboardUser | null>(null);
+  const [awardAmount, setAwardAmount] = useState("");
+  const [awardReason, setAwardReason] = useState("");
+  const [isAwarding, setIsAwarding] = useState(false);
   const [prizeHistory, setPrizeHistory] = useState<any[]>([]);
   const [prizeAnalytics, setPrizeAnalytics] = useState<any>({});
   const [showAllHistoryModal, setShowAllHistoryModal] = useState(false);
@@ -95,7 +95,6 @@ export default function AdminLeaderboardPage() {
 
   useEffect(() => {
     fetchLeaderboard();
-    fetchPrizeTemplates();
     fetchPrizeHistory();
     fetchPrizeAnalytics();
 
@@ -163,17 +162,6 @@ export default function AdminLeaderboardPage() {
     }
   };
 
-  const fetchPrizeTemplates = async () => {
-    try {
-      const response = await AdminAPI.get("/prize-templates");
-      if (response.success) {
-        setPrizeTemplates(response.templates);
-      }
-    } catch (error) {
-      console.error("Error fetching prize templates:", error);
-    }
-  };
-
   const fetchPrizeHistory = async () => {
     try {
       const response = await AdminAPI.get("/prize-history?limit=10");
@@ -219,74 +207,71 @@ export default function AdminLeaderboardPage() {
     }
   };
 
-  const distributePrizes = async () => {
-    if (leaderboard.length < 3) {
-      toast.error("Need at least 3 users in leaderboard to distribute prizes");
+  const handleAwardClick = (user: LeaderboardUser, rank: number) => {
+    setSelectedUserForAward(user);
+    // Default suggestion based on rank, but editable
+    if (rank === 1) setAwardAmount("500");
+    else if (rank === 2) setAwardAmount("300");
+    else if (rank === 3) setAwardAmount("100");
+    else setAwardAmount("50");
+
+    if (rank === 1) setAwardReason("1st Prize");
+    else if (rank === 2) setAwardReason("2nd Prize");
+    else if (rank === 3) setAwardReason("3rd Prize");
+    else setAwardReason("Community Reward");
+
+    setAwardModalOpen(true);
+  };
+
+  const submitAward = async () => {
+    if (!selectedUserForAward || !awardAmount || !awardReason) {
+      toast.error("Please fill in all fields");
       return;
     }
 
-    const prizes = selectedTemplate ? selectedTemplate.prizes : customPrizes;
-    const contestName = `${filterPeriod.charAt(0).toUpperCase() + filterPeriod.slice(1)} Contest`;
-
-    const winners = [
-      { userId: leaderboard[0]._id, position: 1, tokenAmount: prizes.first },
-      { userId: leaderboard[1]._id, position: 2, tokenAmount: prizes.second },
-      { userId: leaderboard[2]._id, position: 3, tokenAmount: prizes.third },
-    ];
-
-    let dateRange = {};
-    if (filterPeriod === "weekly") {
-      const now = new Date();
-      const weekStart = new Date(now);
-      weekStart.setDate(now.getDate() - now.getDay());
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 6);
-      dateRange = { start: weekStart, end: weekEnd };
-    } else if (filterPeriod === "monthly") {
-      const now = new Date();
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      dateRange = { start: monthStart, end: monthEnd };
-    } else if (filterPeriod === "custom") {
-      dateRange = {
-        start: new Date(customStartDate),
-        end: new Date(customEndDate),
-      };
+    const amount = parseInt(awardAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
     }
 
-    const confirmMessage = `Distribute prizes to top 3 users?\n1st: ${leaderboard[0].name} - ${prizes.first} tokens\n2nd: ${leaderboard[1].name} - ${prizes.second} tokens\n3rd: ${leaderboard[2].name} - ${prizes.third} tokens`;
-
-    if (!confirm(confirmMessage)) return;
-
+    setIsAwarding(true);
     try {
-      const response = await AdminAPI.post("/distribute-prizes", {
-        winners,
-        period: filterPeriod,
-        dateRange,
-        contestName,
-      });
+      // Find rank if possible
+      const rank =
+        leaderboard.findIndex((u) => u._id === selectedUserForAward._id) + 1;
+
+      const response = await AdminAPI.awardPrizeTokens(
+        selectedUserForAward._id,
+        amount,
+        awardReason,
+        rank > 0 ? rank : undefined,
+      );
 
       if (response.success) {
         toast.success(
-          "🎉 Prizes distributed successfully! Winners have been notified via email",
+          `🎉 ${amount} tokens awarded to ${selectedUserForAward.name}! (Expires in 24 hours)`,
         );
+        setAwardModalOpen(false);
+        fetchLeaderboard(true);
         fetchPrizeHistory();
         fetchPrizeAnalytics();
         fetchFilteredAnalytics();
-        fetchLeaderboard(true);
+      } else {
+        toast.error(response.error || "Failed to award tokens");
       }
     } catch (error: any) {
-      toast.error(error.message || "Error distributing prizes");
+      if (
+        error.message?.includes("already has active") ||
+        error.message?.includes("User already has active prize tokens")
+      ) {
+        toast.info(`${selectedUserForAward.name} has been already rewarded`);
+      } else {
+        toast.error(error.message || "Error awarding tokens");
+      }
+    } finally {
+      setIsAwarding(false);
     }
-  };
-
-  const getPrizeAmount = (rank: number) => {
-    const prizes = selectedTemplate ? selectedTemplate.prizes : customPrizes;
-    return rank === 1
-      ? prizes.first
-      : rank === 2
-        ? prizes.second
-        : prizes.third;
   };
 
   const getPrizeInfo = (rank: number) => {
@@ -495,111 +480,6 @@ export default function AdminLeaderboardPage() {
                 )}
               </div>
             </div>
-
-            {/* Prize Settings */}
-            <div>
-              <h3 className="text-sm font-semibold text-black mb-3">
-                Prize Settings
-              </h3>
-              <div className="space-y-3">
-                <select
-                  value={selectedTemplate?._id || "custom"}
-                  onChange={(e) => {
-                    const template = prizeTemplates.find(
-                      (t) => t._id === e.target.value,
-                    );
-                    setSelectedTemplate(template || null);
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
-                >
-                  <option value="custom">Custom Prizes</option>
-                  {prizeTemplates.map((template) => (
-                    <option key={template._id} value={template._id}>
-                      {template.name}
-                    </option>
-                  ))}
-                </select>
-
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="block text-xs font-medium text-black mb-1">
-                      1st Prize
-                    </label>
-                    <input
-                      type="number"
-                      value={
-                        selectedTemplate
-                          ? selectedTemplate.prizes.first
-                          : customPrizes.first
-                      }
-                      onChange={(e) =>
-                        !selectedTemplate &&
-                        setCustomPrizes({
-                          ...customPrizes,
-                          first: parseInt(e.target.value),
-                        })
-                      }
-                      disabled={!!selectedTemplate}
-                      className="w-full px-2 py-1 border border-gray-300 rounded text-black bg-white text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-black mb-1">
-                      2nd Prize
-                    </label>
-                    <input
-                      type="number"
-                      value={
-                        selectedTemplate
-                          ? selectedTemplate.prizes.second
-                          : customPrizes.second
-                      }
-                      onChange={(e) =>
-                        !selectedTemplate &&
-                        setCustomPrizes({
-                          ...customPrizes,
-                          second: parseInt(e.target.value),
-                        })
-                      }
-                      disabled={!!selectedTemplate}
-                      className="w-full px-2 py-1 border border-gray-300 rounded text-black bg-white text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-black mb-1">
-                      3rd Prize
-                    </label>
-                    <input
-                      type="number"
-                      value={
-                        selectedTemplate
-                          ? selectedTemplate.prizes.third
-                          : customPrizes.third
-                      }
-                      onChange={(e) =>
-                        !selectedTemplate &&
-                        setCustomPrizes({
-                          ...customPrizes,
-                          third: parseInt(e.target.value),
-                        })
-                      }
-                      disabled={!!selectedTemplate}
-                      className="w-full px-2 py-1 border border-gray-300 rounded text-black bg-white text-sm"
-                    />
-                  </div>
-                </div>
-
-                {leaderboard.length >= 3 && (
-                  <button
-                    onClick={distributePrizes}
-                    className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg transition-colors font-medium flex items-center justify-center gap-2"
-                  >
-                    <Gift className="w-4 h-4" />
-                    Distribute Prizes to Top 3
-                  </button>
-                )}
-              </div>
-            </div>
           </div>
         </div>
 
@@ -804,58 +684,7 @@ export default function AdminLeaderboardPage() {
                       </div>
 
                       <button
-                        onClick={async () => {
-                          let tokenAmount = 0;
-                          let prizeType = "";
-                          let message = "";
-
-                          tokenAmount = getPrizeAmount(rank);
-                          if (rank === 1) {
-                            prizeType = "1st Prize";
-                          } else if (rank === 2) {
-                            prizeType = "2nd Prize";
-                          } else if (rank === 3) {
-                            prizeType = "3rd Prize";
-                          }
-                          message = `Do you want to give ${prizeType} tokens of ${tokenAmount} to ${user.name}?`;
-
-                          if (confirm(message)) {
-                            try {
-                              const response = await AdminAPI.awardPrizeTokens(
-                                user._id,
-                                tokenAmount,
-                                prizeType,
-                                rank,
-                              );
-
-                              if (response.success) {
-                                toast.success(
-                                  `🎉 ${tokenAmount} ${prizeType} tokens awarded to ${user.name}! (Expires in 24 hours)`,
-                                );
-                                fetchLeaderboard(true);
-                              } else {
-                                toast.error(
-                                  response.error || "Failed to award tokens",
-                                );
-                              }
-                            } catch (error: any) {
-                              if (
-                                error.message?.includes("already has active") ||
-                                error.message?.includes(
-                                  "User already has active prize tokens",
-                                )
-                              ) {
-                                toast.info(
-                                  `${user.name} has been already rewarded`,
-                                );
-                              } else {
-                                toast.error(
-                                  error.message || "Error awarding tokens",
-                                );
-                              }
-                            }
-                          }
-                        }}
+                        onClick={() => handleAwardClick(user, rank)}
                         className="w-full bg-white bg-opacity-90 hover:bg-white text-gray-800 font-bold py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 transform hover:scale-105"
                       >
                         <Coins className="w-4 h-4" />
@@ -1022,63 +851,7 @@ export default function AdminLeaderboardPage() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           {rank <= 3 ? (
                             <button
-                              onClick={async () => {
-                                let tokenAmount = 0;
-                                let prizeType = "";
-                                let message = "";
-
-                                tokenAmount = getPrizeAmount(rank);
-                                if (rank === 1) {
-                                  prizeType = "1st Prize";
-                                } else if (rank === 2) {
-                                  prizeType = "2nd Prize";
-                                } else if (rank === 3) {
-                                  prizeType = "3rd Prize";
-                                }
-                                message = `Do you want to give ${prizeType} tokens of ${tokenAmount} to ${user.name}?`;
-
-                                if (confirm(message)) {
-                                  try {
-                                    const response =
-                                      await AdminAPI.awardPrizeTokens(
-                                        user._id,
-                                        tokenAmount,
-                                        prizeType,
-                                        rank,
-                                      );
-
-                                    if (response.success) {
-                                      toast.success(
-                                        `🎉 ${tokenAmount} ${prizeType} tokens awarded to ${user.name}! (Expires in 24 hours)`,
-                                      );
-                                      fetchLeaderboard(true);
-                                    } else {
-                                      toast.error(
-                                        response.error ||
-                                          "Failed to award tokens",
-                                      );
-                                    }
-                                  } catch (error: any) {
-                                    if (
-                                      error.message?.includes(
-                                        "already has active",
-                                      ) ||
-                                      error.message?.includes(
-                                        "User already has active prize tokens",
-                                      )
-                                    ) {
-                                      toast.info(
-                                        `${user.name} has been already rewarded`,
-                                      );
-                                    } else {
-                                      toast.error(
-                                        error.message ||
-                                          "Error awarding tokens",
-                                      );
-                                    }
-                                  }
-                                }
-                              }}
+                              onClick={() => handleAwardClick(user, rank)}
                               className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 transform hover:scale-105"
                             >
                               <Gift className="w-4 h-4" />
@@ -1184,9 +957,14 @@ export default function AdminLeaderboardPage() {
                     <div>
                       <div className="text-sm text-gray-600">1st Prize</div>
                       <div className="font-bold text-gray-900">
-                        {historySummary.breakdown.firstPrize.count} awards ×{" "}
-                        {getPrizeAmount(1)} ={" "}
-                        {historySummary.breakdown.firstPrize.totalTokens} tokens
+                        <div className="font-bold text-gray-900">
+                          {historySummary.breakdown.firstPrize.count} awards
+                        </div>
+                        <div className="text-xs font-semibold text-gray-500">
+                          Total:{" "}
+                          {historySummary.breakdown.firstPrize.totalTokens}{" "}
+                          tokens
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1195,10 +973,14 @@ export default function AdminLeaderboardPage() {
                     <div>
                       <div className="text-sm text-gray-600">2nd Prize</div>
                       <div className="font-bold text-gray-900">
-                        {historySummary.breakdown.secondPrize.count} awards ×{" "}
-                        {getPrizeAmount(2)} ={" "}
-                        {historySummary.breakdown.secondPrize.totalTokens}{" "}
-                        tokens
+                        <div className="font-bold text-gray-900">
+                          {historySummary.breakdown.secondPrize.count} awards
+                        </div>
+                        <div className="text-xs font-semibold text-gray-500">
+                          Total:{" "}
+                          {historySummary.breakdown.secondPrize.totalTokens}{" "}
+                          tokens
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1207,9 +989,14 @@ export default function AdminLeaderboardPage() {
                     <div>
                       <div className="text-sm text-gray-600">3rd Prize</div>
                       <div className="font-bold text-gray-900">
-                        {historySummary.breakdown.thirdPrize.count} awards ×{" "}
-                        {getPrizeAmount(3)} ={" "}
-                        {historySummary.breakdown.thirdPrize.totalTokens} tokens
+                        <div className="font-bold text-gray-900">
+                          {historySummary.breakdown.thirdPrize.count} awards
+                        </div>
+                        <div className="text-xs font-semibold text-gray-500">
+                          Total:{" "}
+                          {historySummary.breakdown.thirdPrize.totalTokens}{" "}
+                          tokens
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1240,7 +1027,9 @@ export default function AdminLeaderboardPage() {
                                 ? "bg-gradient-to-br from-yellow-400 to-yellow-600"
                                 : prize.position === 2
                                   ? "bg-gradient-to-br from-gray-300 to-gray-500"
-                                  : "bg-gradient-to-br from-orange-400 to-orange-600"
+                                  : prize.position === 3
+                                    ? "bg-gradient-to-br from-orange-400 to-orange-600"
+                                    : "bg-gradient-to-br from-blue-400 to-blue-600"
                             }`}
                           >
                             <span className="text-white text-2xl">
@@ -1248,7 +1037,9 @@ export default function AdminLeaderboardPage() {
                                 ? "🥇"
                                 : prize.position === 2
                                   ? "🥈"
-                                  : "🥉"}
+                                  : prize.position === 3
+                                    ? "🥉"
+                                    : "🎁"}
                             </span>
                           </div>
                           <div className="flex-1">
@@ -1330,6 +1121,106 @@ export default function AdminLeaderboardPage() {
               >
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Award Modal */}
+      {awardModalOpen && selectedUserForAward && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden scale-100 animate-in zoom-in-95 duration-200 border border-gray-100">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-8 text-white text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-white/10 opacity-50 backdrop-blur-3xl animate-pulse"></div>
+              <div className="relative z-10">
+                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-md shadow-inner ring-1 ring-white/30">
+                  <Gift className="w-8 h-8 text-white drop-shadow-md" />
+                </div>
+                <h3 className="text-2xl font-bold tracking-tight">
+                  Award Prize Tokens
+                </h3>
+                <p className="text-blue-100 text-sm mt-2 font-medium">
+                  Reward {selectedUserForAward.name} for their contributions
+                </p>
+              </div>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700 ml-1">
+                  Token Amount
+                </label>
+                <div className="relative group">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center transition-colors group-hover:bg-blue-50">
+                    <Coins className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                  </div>
+                  <input
+                    type="number"
+                    min="1"
+                    value={awardAmount}
+                    onChange={(e) => setAwardAmount(e.target.value)}
+                    className="w-full pl-12 pr-4 h-12 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-gray-900 placeholder:text-gray-400 bg-gray-50/50 hover:bg-white focus:bg-white"
+                    placeholder="e.g. 500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700 ml-1">
+                  Reason / Prize Type
+                </label>
+                <div className="relative group">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center transition-colors group-hover:bg-blue-50">
+                    <Award className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                  </div>
+                  <input
+                    type="text"
+                    value={awardReason}
+                    onChange={(e) => setAwardReason(e.target.value)}
+                    className="w-full pl-12 pr-4 h-12 border border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-gray-900 placeholder:text-gray-400 bg-gray-50/50 hover:bg-white focus:bg-white"
+                    placeholder="e.g. 1st Place, Weekly Winner"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-blue-50/80 border border-blue-100 text-blue-800 text-xs p-4 rounded-xl flex items-start gap-3">
+                <div className="mt-0.5 p-1 bg-blue-100 rounded-full">
+                  <div className="w-1 h-1 bg-blue-600 rounded-full"></div>
+                </div>
+                <p className="leading-snug">
+                  Tokens will be instantly credited to the user's account and
+                  will remain valid for{" "}
+                  <span className="font-bold">24 hours</span>. A notification
+                  will be sent automatically.
+                </p>
+              </div>
+
+              <div className="flex gap-4 pt-2">
+                <button
+                  onClick={() => setAwardModalOpen(false)}
+                  className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-all duration-200 hover:shadow-sm active:scale-95"
+                  disabled={isAwarding}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={submitAward}
+                  disabled={isAwarding}
+                  className="flex-[2] px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-blue-500/25 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isAwarding ? (
+                    <>
+                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      Award Tokens
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

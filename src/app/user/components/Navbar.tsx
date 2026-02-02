@@ -218,17 +218,12 @@ export default function Navbar() {
               <div className="flex items-center space-x-2 bg-blue-50 border border-blue-200 px-4 py-2 rounded-lg relative">
                 <Coins className="w-4 h-4 text-blue-600" />
                 <span className="text-sm font-semibold text-gray-900">
-                  {tokens.effectiveTokens}
+                  {tokens.daily}
                 </span>
                 <span className="text-sm text-gray-500">/</span>
                 <span className="text-sm text-gray-600">
                   {tokens.dailyLimit}
                 </span>
-                {tokens.prizeTokens > 0 && (
-                  <div className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold shadow-sm">
-                    +{tokens.prizeTokens}
-                  </div>
-                )}
               </div>
               <Link
                 href="/user/profile/tokens"
@@ -480,14 +475,10 @@ export default function Navbar() {
                   <div className="flex items-center space-x-1">
                     <Coins className="w-4 h-4 text-blue-600" />
                     <span className="text-sm font-semibold text-gray-900">
-                      {tokens.effectiveTokens}/{tokens.dailyLimit}
+                      {tokens.daily}/{tokens.dailyLimit}
                     </span>
                   </div>
-                  {tokens.prizeTokens > 0 && (
-                    <div className="bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">
-                      +{tokens.prizeTokens}
-                    </div>
-                  )}
+
                   <Link
                     href="/user/profile/tokens"
                     className="flex items-center space-x-1 bg-purple-600 hover:bg-purple-700 text-white px-2 py-1 rounded text-xs font-medium transition-colors"
