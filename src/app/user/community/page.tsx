@@ -82,8 +82,7 @@ export default function CommunityPage() {
     topUsers: [],
   });
   const [loading, setLoading] = useState(true);
-  const [newPost, setNewPost] = useState({ title: "", description: "" });
-  const [showCreatePost, setShowCreatePost] = useState(true);
+
   const [commentTexts, setCommentTexts] = useState<{ [key: string]: string }>(
     {},
   );
@@ -101,10 +100,8 @@ export default function CommunityPage() {
   });
   const [allPosts, setAllPosts] = useState<Post[]>([]);
   const [communityStats, setCommunityStats] = useState<any>({});
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Edit post state
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
@@ -352,50 +349,6 @@ export default function CommunityPage() {
       }
     } finally {
       setLoading(false);
-    }
-  };
-
-  const createPost = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) return;
-
-    setIsSubmitting(true);
-    try {
-      const formData = new FormData();
-      formData.append("post_title", newPost.title);
-      formData.append("description", newPost.description);
-      if (selectedImage) {
-        formData.append("image", selectedImage);
-      }
-
-      const response = await Axios.post("/community/post", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      if (response.data.success) {
-        toast.success("Post created successfully! (+5 points) ✨");
-        updateLimitsFromResponse(response.data);
-      } else {
-        toast.success("Post created successfully! (+5 points)");
-      }
-
-      setNewPost({ title: "", description: "" });
-      setSelectedImage(null);
-      setImagePreview(null);
-      setShowCreatePost(false);
-      fetchData(false);
-    } catch (error: any) {
-      console.error("Create post error:", error);
-      const errorData = error.response?.data;
-
-      if (errorData && (errorData.limitType || errorData.allExhausted)) {
-        updateLimitsFromResponse(errorData);
-      } else {
-        const errorMessage = errorData?.message || "Error creating post";
-        toast.error(errorMessage);
-      }
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -1020,178 +973,6 @@ export default function CommunityPage() {
                 </div>
               </div>
             )}
-
-            {/* Create Post */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-              {showCreatePost ? (
-                <form onSubmit={createPost} className="p-4 md:p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white">
-                      <Edit3 className="w-5 h-5" />
-                    </div>
-                    <div className="text-lg font-semibold text-gray-900">
-                      Create Post
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <input
-                      type="text"
-                      placeholder="Post title"
-                      value={newPost.title}
-                      onChange={(e) =>
-                        setNewPost({ ...newPost, title: e.target.value })
-                      }
-                      className="w-full p-3 border border-gray-300 rounded-lg text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
-                      required
-                    />
-                    <textarea
-                      placeholder="What's on your mind?"
-                      value={newPost.description}
-                      onChange={(e) =>
-                        setNewPost({ ...newPost, description: e.target.value })
-                      }
-                      className="w-full p-3 border border-gray-300 rounded-lg text-gray-900 h-32 resize-none focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors"
-                      required
-                    />
-
-                    <div className="flex items-center justify-between flex-wrap gap-4">
-                      <div className="flex items-center gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition-colors h-10 whitespace-nowrap">
-                          <ImageIcon className="w-5 h-5 text-gray-600" />
-                          <span className="text-sm font-medium text-gray-700">
-                            Add Image
-                          </span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0] || null;
-                              setSelectedImage(file);
-                              if (file) {
-                                const reader = new FileReader();
-                                reader.onload = (e) =>
-                                  setImagePreview(e.target?.result as string);
-                                reader.readAsDataURL(file);
-                              } else {
-                                setImagePreview(null);
-                              }
-                            }}
-                            className="hidden"
-                          />
-                        </label>
-                        {selectedImage && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full flex items-center gap-1">
-                              <ImageIcon className="w-4 h-4" />{" "}
-                              {selectedImage.name}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedImage(null);
-                                setImagePreview(null);
-                              }}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex gap-3">
-                        <button
-                          type="button"
-                          onClick={() => setShowCreatePost(false)}
-                          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors h-10 whitespace-nowrap"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="submit"
-                          disabled={isSubmitting}
-                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 h-10 whitespace-nowrap"
-                        >
-                          {isSubmitting ? (
-                            <>
-                              <RefreshCw className="w-4 h-4 animate-spin" />{" "}
-                              Posting...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="w-4 h-4" /> Post (+5 points)
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Image Preview */}
-                    {imagePreview && (
-                      <div className="mt-4">
-                        <p className="text-sm font-medium text-gray-700 mb-2">
-                          Image Preview:
-                        </p>
-                        <div className="relative inline-block">
-                          <img
-                            src={imagePreview}
-                            alt="Preview"
-                            className="max-w-xs max-h-48 rounded-lg shadow-md object-cover"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedImage(null);
-                              setImagePreview(null);
-                            }}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </form>
-              ) : (
-                <div className="p-4 md:p-6">
-                  <button
-                    onClick={() => {
-                      if (dailyLimits.posts === 0) {
-                        toast.error(
-                          "Aaj ke liye aapki post limit khatam ho gayi hai",
-                        );
-                        return;
-                      }
-                      setShowCreatePost(true);
-                    }}
-                    className={`w-full flex items-center gap-3 p-4 rounded-lg transition-all border ${
-                      dailyLimits.posts === 0
-                        ? "bg-gray-100 border-gray-200 cursor-not-allowed opacity-60"
-                        : "bg-gray-50 hover:bg-gray-100 border-gray-200 hover:border-gray-300"
-                    }`}
-                    disabled={dailyLimits.posts === 0}
-                  >
-                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white">
-                      <Edit3 className="w-5 h-5" />
-                    </div>
-                    <div className="text-left">
-                      <div className="font-medium text-gray-900">
-                        {dailyLimits.posts === 0
-                          ? "Daily post limit reached"
-                          : "What's on your mind?"}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {dailyLimits.posts === 0
-                          ? "You can post again tomorrow"
-                          : `Share your thoughts with the community (${dailyLimits.posts} posts left)`}
-                      </div>
-                    </div>
-                  </button>
-                </div>
-              )}
-            </div>
 
             {/* Posts */}
             <div className="space-y-6">
