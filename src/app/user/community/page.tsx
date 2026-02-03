@@ -87,6 +87,7 @@ export default function CommunityPage() {
     {},
   );
   const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [currentUserName, setCurrentUserName] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showTrending, setShowTrending] = useState(false);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
@@ -130,6 +131,17 @@ export default function CommunityPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Create post state
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newPostData, setNewPostData] = useState({
+    title: "",
+    description: "",
+  });
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   const router = useRouter();
 
@@ -256,6 +268,7 @@ export default function CommunityPage() {
     try {
       const response = await Axios.get("/auth/profile");
       setCurrentUserId(response.data.user._id);
+      setCurrentUserName(response.data.user.name || "User");
     } catch (error) {
       console.error("Error fetching user:", error);
     }
@@ -386,6 +399,82 @@ export default function CommunityPage() {
       toast.error(error.response?.data?.message || "Error deleting post");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  // Create post functions
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image size should be less than 5MB");
+        return;
+      }
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
+
+  const cancelCreatePost = () => {
+    setShowCreateForm(false);
+    setNewPostData({ title: "", description: "" });
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
+
+  const createPost = async () => {
+    if (!newPostData.title.trim() || !newPostData.description.trim()) {
+      toast.error("Title and description are required");
+      return;
+    }
+
+    if (dailyLimits.posts === 0) {
+      toast.error("Daily post limit reached. Try again tomorrow!");
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const formData = new FormData();
+      formData.append("post_title", newPostData.title);
+      formData.append("description", newPostData.description);
+      if (selectedImage) {
+        formData.append("image", selectedImage);
+      }
+
+      const response = await Axios.post("/community/post", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (response.data.success) {
+        toast.success("Post created! (+5 points)");
+        updateLimitsFromResponse(response.data);
+        setShowCreateForm(false);
+        setNewPostData({ title: "", description: "" });
+        setSelectedImage(null);
+        setImagePreview(null);
+        fetchData(false);
+      }
+    } catch (error: any) {
+      const errorData = error.response?.data;
+      if (errorData && (errorData.limitType || errorData.allExhausted)) {
+        updateLimitsFromResponse(errorData);
+      } else {
+        toast.error(errorData?.message || "Error creating post");
+      }
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -838,6 +927,161 @@ export default function CommunityPage() {
         <div className="flex flex-col-reverse lg:flex-row gap-8">
           {/* Main Content */}
           <div className="flex-1 max-w-4xl">
+            {/* Create Post Input Box */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 overflow-hidden">
+              {!showCreateForm ? (
+                <div
+                  onClick={() =>
+                    dailyLimits.posts > 0 && setShowCreateForm(true)
+                  }
+                  className={`p-4 md:p-6 ${
+                    dailyLimits.posts > 0
+                      ? "cursor-pointer hover:bg-gray-50"
+                      : "cursor-not-allowed opacity-60"
+                  } transition-colors`}
+                >
+                  <div className="flex items-center gap-3 md:gap-4">
+                    {/* User Avatar */}
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+                      {currentUserName.charAt(0).toUpperCase() || "U"}
+                    </div>
+
+                    {/* Input Prompt */}
+                    <div className="flex-1">
+                      <div className="bg-gray-100 rounded-full px-4 md:px-6 py-3 md:py-3.5 text-gray-500 hover:bg-gray-200 transition-colors">
+                        {dailyLimits.posts > 0
+                          ? "What's on your mind? Share with the community..."
+                          : "Daily post limit reached. Try again tomorrow!"}
+                      </div>
+                    </div>
+                  </div>
+
+      
+                </div>
+              ) : (
+                <div className="p-4 md:p-6">
+                  <div className="flex items-start gap-3 md:gap-4 mb-4">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+                      {currentUserName.charAt(0).toUpperCase() || "U"}
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      {/* Title Input */}
+                      <input
+                        type="text"
+                        value={newPostData.title}
+                        onChange={(e) =>
+                          setNewPostData({
+                            ...newPostData,
+                            title: e.target.value,
+                          })
+                        }
+                        placeholder="Post title..."
+                        maxLength={100}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none text-gray-900 placeholder-gray-400"
+                        disabled={isCreating}
+                        autoFocus
+                      />
+
+                      {/* Description Textarea */}
+                      <textarea
+                        value={newPostData.description}
+                        onChange={(e) =>
+                          setNewPostData({
+                            ...newPostData,
+                            description: e.target.value,
+                          })
+                        }
+                        placeholder="What's on your mind? Share with the community..."
+                        rows={4}
+                        maxLength={2000}
+                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none resize-none text-gray-900 placeholder-gray-400"
+                        disabled={isCreating}
+                      />
+
+                      {/* Character counts */}
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <span>{newPostData.title.length}/100</span>
+                        <span>{newPostData.description.length}/2000</span>
+                      </div>
+
+                      {/* Image Preview */}
+                      {imagePreview && (
+                        <div className="relative">
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="w-full h-48 object-cover rounded-lg"
+                          />
+                          <button
+                            onClick={removeImage}
+                            disabled={isCreating}
+                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors disabled:opacity-50"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <div className="flex items-center gap-2">
+                      <label
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer ${
+                          isCreating ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                      >
+                        <ImageIcon className="w-5 h-5" />
+                        <span className="text-sm font-medium hidden sm:inline">
+                          Photo
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageSelect}
+                          disabled={isCreating}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={cancelCreatePost}
+                        disabled={isCreating}
+                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium transition-colors disabled:opacity-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={createPost}
+                        disabled={
+                          isCreating ||
+                          !newPostData.title.trim() ||
+                          !newPostData.description.trim() ||
+                          dailyLimits.posts === 0
+                        }
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                      >
+                        {isCreating ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                            <span className="hidden sm:inline">Posting...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4" />
+                            <span className="hidden sm:inline">Post</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {showAdvancedSearch && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
                 <div className="p-4 md:p-6">

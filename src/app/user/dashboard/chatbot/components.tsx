@@ -101,7 +101,7 @@ function SenderBlock({
           />
         </div>
 
-        <div className="w-full sm:w-[220px] relative z-[9999]">
+        <div className="w-full sm:w-[220px]">
           <label className="text-xs text-blue-900 font-semibold">Language</label>
           <select
             className="mt-2 w-full rounded-lg bg-white border border-blue-300 text-blue-900 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"

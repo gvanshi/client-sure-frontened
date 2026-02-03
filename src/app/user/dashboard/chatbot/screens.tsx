@@ -610,7 +610,7 @@ function EmailsScreen() {
       </div>
 
       {error && (
-        <div className="mt-3 rounded-xl bg-red-500/15 border border-red-400/30 p-3 text-sm">
+        <div className="mt-3 rounded-xl bg-red-500/15 border border-red-400/30 p-3 text-sm text-red-700 font-medium">
           {error}
         </div>
       )}
@@ -1041,7 +1041,7 @@ function WhatsAppScreen() {
       </div>
 
       {error && (
-        <div className="mt-3 rounded-xl bg-red-500/15 border border-red-400/30 p-3 text-sm">
+        <div className="mt-3 rounded-xl bg-red-500/15 border border-red-400/30 p-3 text-sm text-red-700 font-medium">
           {error}
         </div>
       )}
@@ -1325,7 +1325,7 @@ function LinkedInScreen() {
                 onChange={(e) => setVariants(Number(e.target.value))}
               />
             </div>
-            <label className="inline-flex items-center gap-2 text-white/80">
+            <label className="inline-flex items-center gap-2 text-black">
               <input
                 type="checkbox"
                 checked={spamFree}
@@ -1406,7 +1406,7 @@ function LinkedInScreen() {
       </div>
 
       {error && (
-        <div className="mt-3 rounded-xl bg-red-500/15 border border-red-400/30 p-3 text-sm">
+        <div className="mt-3 rounded-xl bg-red-500/15 border border-red-400/30 p-3 text-sm text-red-700 font-medium">
           {error}
         </div>
       )}
@@ -1746,7 +1746,7 @@ function ContractsScreen() {
       </div>
 
       {error && (
-        <div className="mt-3 rounded-xl bg-red-500/15 border border-red-400/30 p-3 text-sm">
+        <div className="mt-3 rounded-xl bg-red-500/15 border border-red-400/30 p-3 text-sm text-red-700 font-medium">
           {error}
         </div>
       )}
@@ -1759,13 +1759,13 @@ function ContractsScreen() {
                 <h4 className="font-semibold text-blue-700">Variant {i + 1}</h4>
                 <div className="flex gap-2">
                   <button
-                    className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-blue-700"
+                    className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm transition-colors"
                     onClick={() => safeCopy(r)}
                   >
                     Copy
                   </button>
                   <button
-                    className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-blue-700"
+                    className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm transition-colors"
                     onClick={() => {
                       const blob = new Blob([r], { type: "text/plain" });
                       const url = URL.createObjectURL(blob);
@@ -1778,32 +1778,6 @@ function ContractsScreen() {
                   >
                     Download
                   </button>
-                </div>
-              </div>
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 rounded-r-lg">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0">
-                    <svg
-                      className="h-5 w-5 text-yellow-400"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm font-semibold text-yellow-800">
-                      ⚠️ Legal Disclaimer
-                    </p>
-                    <p className="text-sm text-yellow-700 mt-1">
-                      This is an AI-generated draft. Review by a legal
-                      professional before use.
-                    </p>
-                  </div>
                 </div>
               </div>
               <pre className="whitespace-pre-wrap mt-2 text-blue-900">{r}</pre>

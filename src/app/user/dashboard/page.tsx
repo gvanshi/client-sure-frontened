@@ -45,6 +45,7 @@ interface UserStats {
   dailyLimit?: number;
   // Plan Info
   planBonusTokens?: number;
+  planDailyTokens?: number;
   planDurationDays?: number;
   totalPlanTokens: number;
   totalPlanTokensRemaining: number;
@@ -125,8 +126,12 @@ function DashboardContent() {
       const plan = subscription?.plan;
 
       // Calculate total plan tokens and remaining
+      const dailyTokens = plan?.dailyTokens || 0;
+      const durationDays = plan?.durationDays || 0;
+      const bonusTokens = plan?.bonusTokens || 0;
+      
       const totalPlanTokens = plan
-        ? plan.dailyTokens * plan.durationDays + (plan.bonusTokens || 0)
+        ? (dailyTokens * durationDays) + bonusTokens
         : 0;
       const totalPlanTokensRemaining =
         (tokens?.monthlyRemaining || 0) + (tokens?.bonusTokens || 0);
@@ -151,6 +156,7 @@ function DashboardContent() {
         dailyLimit: tokens?.dailyLimit || 100,
         // Plan info
         planBonusTokens: plan?.bonusTokens || 0,
+        planDailyTokens: plan?.dailyTokens || 0,
         planDurationDays: plan?.durationDays || 0,
         totalPlanTokens,
         totalPlanTokensRemaining,
@@ -361,7 +367,7 @@ function DashboardContent() {
                   {userStats.totalPlanTokens.toLocaleString()}
                 </div>
                 <div className="text-xs text-gray-500">
-                  {userStats.planDurationDays} days @ {userStats.dailyLimit}/day
+                  {userStats.planDurationDays} days @ {userStats.planDailyTokens}/day
                 </div>
               </div>
 

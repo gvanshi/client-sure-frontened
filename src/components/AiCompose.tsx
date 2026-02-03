@@ -155,7 +155,7 @@ const AiCompose: React.FC<AiComposeProps> = ({ channel }) => {
             name="language"
             value={formData.language}
             onChange={handleChange}
-            className="w-full p-2.5 bg-white border border-indigo-200 rounded-lg appearance-auto 
+            className="w-full p-2.5 bg-white border border-indigo-200 rounded-lg 
                        text-gray-700 placeholder-gray-400"
           >
             <option value="">Select Language</option>

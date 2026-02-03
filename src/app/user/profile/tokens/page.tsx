@@ -89,14 +89,16 @@ export default function TokenUsagePage() {
       // Store subscription info for total plan tokens calculation
       const subscription = profileResponse.data.subscription;
       if (subscription?.plan) {
+        const dailyTokens = subscription.plan.dailyTokens || 0;
+        const durationDays = subscription.plan.durationDays || 0;
+        const bonusTokens = subscription.plan.bonusTokens || 0;
+        
         setSubscriptionData({
           planName: subscription.plan.name,
-          durationDays: subscription.plan.durationDays,
-          bonusTokens: subscription.plan.bonusTokens,
-          daysRemaining: subscription.daysRemaining,
-          totalPlanTokens:
-            subscription.plan.dailyTokens * subscription.plan.durationDays +
-            (subscription.plan.bonusTokens || 0),
+          durationDays: durationDays,
+          bonusTokens: bonusTokens,
+          daysRemaining: subscription.daysRemaining || 0,
+          totalPlanTokens: (dailyTokens * durationDays) + bonusTokens,
         });
       }
 
@@ -184,7 +186,9 @@ export default function TokenUsagePage() {
                     </p>
                   </div>
                   <div className="hidden md:block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">
-                    {subscriptionData.daysRemaining} days left
+                    {subscriptionData.daysRemaining > 0 
+                      ? `${subscriptionData.daysRemaining} days remaining` 
+                      : '0 days remaining'}
                   </div>
                 </div>
 

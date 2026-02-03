@@ -169,14 +169,14 @@ export default function ChatbotPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100">
       <Navbar />
 
-      <div className="min-h-screen pt-16">
+      <div className="pt-20">
         <div className="mx-auto max-w-7xl px-6 py-6">
           <div className="mb-4">
             <BackButton />
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
             <aside className="hidden lg:block">
-              <div className="bg-white/90 backdrop-blur-sm rounded-xl border border-blue-200 shadow-lg">
+              <div className="bg-white/90 backdrop-blur-sm rounded-xl border border-blue-200 shadow-lg sticky top-24">
                 <Sidebar activeTool={activeTool} openTool={openTool} />
               </div>
             </aside>
@@ -185,14 +185,14 @@ export default function ChatbotPage() {
               {sidebarOpen && (
                 <>
                   <motion.div
-                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[45]"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={() => setSidebarOpen(false)}
                   />
                   <motion.aside
-                    className="fixed top-0 left-0 bottom-0 w-80 z-50 p-4 bg-white/95 backdrop-blur-sm border-r border-blue-200 shadow-xl"
+                    className="fixed top-0 left-0 bottom-0 w-80 z-[46] p-4 bg-white/95 backdrop-blur-sm border-r border-blue-200 shadow-xl overflow-y-auto"
                     initial={{ x: -320 }}
                     animate={{ x: 0 }}
                     exit={{ x: -320 }}

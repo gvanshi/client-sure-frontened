@@ -1,63 +1,173 @@
+"use client";
+
+import { Mail, Globe } from "lucide-react";
+import { useState } from "react";
+import FooterModal from "../../component/FooterModal";
+import { legalContent } from "../../data/legalContent";
+import ContactModalContent from "../../component/footer-modals/ContactModalContent";
+import AboutModalContent from "../../component/footer-modals/AboutModalContent";
+
 export default function Footer() {
+  const [activeModal, setActiveModal] = useState<
+    "privacy" | "refund" | "terms" | "contact" | "about" | null
+  >(null);
+
+  const getModalContent = () => {
+    switch (activeModal) {
+      case "contact":
+        return <ContactModalContent />;
+      case "about":
+        return <AboutModalContent />;
+      case "privacy":
+        return (
+          <LegalContentDisplay content={legalContent.privacyPolicy} showTitle />
+        );
+      case "refund":
+        return (
+          <LegalContentDisplay content={legalContent.refundPolicy} showTitle />
+        );
+      case "terms":
+        return (
+          <LegalContentDisplay
+            content={legalContent.termsAndConditions}
+            showTitle
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
-    <footer className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Company Info */}
-          <div className="col-span-1 md:col-span-1">
-            <h3 className="text-2xl font-bold text-blue-400 mb-4">
-              ClientSure™️
-            </h3>
-            <p className="text-gray-300 mb-4">
-              Operated Under Snoowball Media Pvt Ltd.
-            </p>
-            <p className="text-gray-300 text-sm">
-              Empowering your business with AI-driven lead generation and comprehensive resources to accelerate your growth.
-            </p>
+    <footer className="bg-white pt-20 pb-32 lg:pt-32 lg:pb-40 px-6 border-t border-gray-50 text-center font-sans relative z-10 w-full">
+      <div className="max-w-7xl mx-auto flex flex-col items-center">
+        {/* Logo */}
+        <div className="flex items-center gap-2 mb-8 lg:mb-12 select-none">
+          <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#1C9988] rounded-full flex items-center justify-center text-white font-bold text-lg lg:text-xl">
+            <Globe className="w-5 h-5 lg:w-6 lg:h-6 stroke-2" />
           </div>
-          
-          {/* Quick Links */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Legal & Support</h4>
-            <ul className="space-y-2">
-              <li><a href="/privacy-policy" className="text-gray-300 hover:text-white">Privacy Policy</a></li>
-              <li><a href="/refund-policy" className="text-gray-300 hover:text-white">Refund Policy</a></li>
-              <li><a href="/terms-and-conditions" className="text-gray-300 hover:text-white">Terms and Conditions</a></li>
-              <li><a href="/contact-us" className="text-gray-300 hover:text-white">Contact Us</a></li>
-              <li><a href="/about-us" className="text-gray-300 hover:text-white">About Us</a></li>
-            </ul>
-          </div>
-          
-          {/* Contact */}
-          <div>
-            <h4 className="text-lg font-semibold mb-4">Contact</h4>
-            <ul className="space-y-2 text-gray-300">
-              <li>
-                <span className="text-sm font-semibold">Support Email:</span>
-                <br />
-                <a href="mailto:snoowballmedia@gmail.com" className="hover:text-white">
-                  snoowballmedia@gmail.com
-                </a>
-              </li>
-            </ul>
-          </div>
+          <span className="font-bold text-gray-900 text-lg lg:text-2xl tracking-tight">
+            ClientSure
+          </span>
         </div>
-        
+
+        {/* Copyright */}
+        <p className="text-[12px] lg:text-sm text-gray-500 mb-8 lg:mb-10 uppercase tracking-wide font-medium">
+          Copyright ClientSure™ Operated Under Snowball Media Pvt Ltd.
+        </p>
+
+        {/* Links */}
+        <div className="flex flex-wrap justify-center gap-6 lg:gap-10 text-[13px] lg:text-base text-gray-500 font-medium mb-10 w-full px-4 items-center">
+          <button
+            onClick={() => setActiveModal("privacy")}
+            className="hover:text-gray-900 transition-colors focus:outline-none"
+          >
+            Privacy Policy
+          </button>
+          <span className="text-gray-300 w-px h-4 bg-gray-200"></span>
+          <button
+            onClick={() => setActiveModal("refund")}
+            className="hover:text-gray-900 transition-colors focus:outline-none"
+          >
+            Refund Policy
+          </button>
+          <span className="text-gray-300 w-px h-4 bg-gray-200"></span>
+          <button
+            onClick={() => setActiveModal("terms")}
+            className="hover:text-gray-900 transition-colors focus:outline-none"
+          >
+            Terms and Conditions
+          </button>
+          <span className="text-gray-300 w-px h-4 bg-gray-200"></span>
+          <button
+            onClick={() => setActiveModal("contact")}
+            className="hover:text-gray-900 transition-colors focus:outline-none"
+          >
+            Contact Us
+          </button>
+          <span className="text-gray-300 w-px h-4 bg-gray-200"></span>
+          <button
+            onClick={() => setActiveModal("about")}
+            className="hover:text-gray-900 transition-colors focus:outline-none"
+          >
+            About Us
+          </button>
+        </div>
+
+        {/* Support Email */}
+        <div className="flex items-center justify-center gap-2 text-[13px] lg:text-base text-gray-500 mb-12">
+          <Mail className="w-4 h-4 lg:w-5 lg:h-5 text-gray-400" />
+          <span>
+            Support email:{" "}
+            <a
+              href="mailto:snoowballmedia@gmail.com"
+              className="text-[#1C9988] font-medium hover:underline"
+            >
+              snoowballmedia@gmail.com
+            </a>
+          </span>
+        </div>
+
         {/* Disclaimer */}
-        <div className="border-t border-gray-800 mt-8 pt-6">
-          <div className="bg-gray-800 rounded-lg p-4 mb-6">
-            <h5 className="text-sm font-semibold text-gray-200 mb-2">Disclaimer:</h5>
-            <p className="text-xs text-gray-400 leading-relaxed">
-              Our platform provides tools, systems, resources, and access to verified leads to help freelancers and agencies connect with potential clients; however, we do not guarantee results, revenue, or client acquisition, as outcomes depend on individual effort and external factors. The information provided is for general purposes only and does not constitute business, legal, or financial advice. We are not affiliated with, endorsed by, or associated with Meta (Facebook, Instagram), Google, LinkedIn, or any other third-party platforms or trademarks mentioned, which belong to their respective owners. Use of the platform and engagement with leads is solely at your own risk.
-            </p>
-          </div>
-          
-          {/* Copyright */}
-          <p className="text-gray-400 text-center text-sm">
-            &copy; {new Date().getFullYear()} ClientSure™️ - Operated Under Snoowball Media Pvt Ltd. All rights reserved.
+        <div className="max-w-[900px] lg:max-w-4xl mx-auto text-[10px] lg:text-xs text-gray-300 leading-relaxed text-center px-4">
+          <p className="mb-2">
+            <span className="font-bold text-gray-400">Disclaimer:</span> Our
+            platform provides tools, systems, resources, and access to verified
+            leads to help freelancers and agencies connect with potential
+            clients; however, we do not guarantee results, revenue, or client
+            acquisition, as outcomes depend on individual effort and external
+            factors. The information provided is for general purposes only and
+            does not constitute business, legal, or financial advice.
+          </p>
+          <p>
+            We are not affiliated with, endorsed by, or associated with Meta
+            (Facebook, Instagram), Google, LinkedIn, or any other third-party
+            platforms or trademarks mentioned, which belong to their respective
+            owners. Use of the platform and engagement with leads is solely at
+            your own risk.
           </p>
         </div>
       </div>
+
+      <FooterModal
+        isOpen={activeModal !== null}
+        onClose={() => setActiveModal(null)}
+      >
+        {getModalContent()}
+      </FooterModal>
     </footer>
-  )
+  );
+}
+
+// Helper component to render legal text content consistently
+function LegalContentDisplay({
+  content,
+  showTitle = false,
+}: {
+  content: any;
+  showTitle?: boolean;
+}) {
+  if (!content) return null;
+  return (
+    <div className="space-y-8">
+      {showTitle && (
+        <div className="mb-6 border-b border-gray-100 pb-4">
+          <h2 className="text-2xl font-bold text-gray-900">{content.title}</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Last updated: {content.lastUpdated}
+          </p>
+        </div>
+      )}
+      {content.sections.map((section: any, index: number) => (
+        <div key={index} className="space-y-3">
+          <h3 className="text-base font-semibold text-gray-900">
+            {section.title}
+          </h3>
+          <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap text-justify">
+            {section.content}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
 }

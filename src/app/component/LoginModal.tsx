@@ -61,19 +61,12 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       setIsLoading(true);
       setError(""); // Clear any previous errors
 
-      // Get userId from deviceConflict data
-      const userId = deviceConflict?.userId;
-
-      if (!userId) {
-        throw new Error("User information missing. Please try again.");
-      }
-
-      console.log("Logging out device:", { sessionId, userId });
+      console.log("Logging out device:", { sessionId });
 
       const response = await fetch(`${API_BASE}/logout-device`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, userId }),
+        body: JSON.stringify({ sessionId }),
       });
 
       const data = await response.json();
