@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { Zap, Check, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -94,6 +94,12 @@ export default function FinalCTA() {
                 repeat: Infinity,
                 ease: "easeInOut",
               },
+            }}
+            onClick={() => {
+              document.getElementById("pricing")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
             }}
             className="bg-[#F85E2E] hover:bg-[#E04D1F] text-white font-bold py-4 px-10 lg:px-12 lg:py-5 rounded-full text-sm lg:text-lg transition-colors shadow-lg shadow-orange-500/20"
           >

@@ -85,14 +85,23 @@ export default function Header() {
                 </motion.button>
               </Link>
             ) : (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsLoginModalOpen(true)}
-                className="bg-[#F85E2E] text-white px-5 py-2.5 rounded-lg hover:bg-[#e0552a] font-medium text-sm transition-colors shadow-sm"
-              >
-                Get Started
-              </motion.button>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setIsLoginModalOpen(true)}
+                  className="text-gray-600 hover:text-[#1C9988] font-medium text-sm transition-colors"
+                >
+                  Login
+                </button>
+                <Link href="#pricing">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-[#F85E2E] text-white px-5 py-2.5 rounded-lg hover:bg-[#e0552a] font-medium text-sm transition-colors shadow-sm"
+                  >
+                    Get Started
+                  </motion.button>
+                </Link>
+              </div>
             )}
           </div>
         </nav>

@@ -116,7 +116,7 @@ export default function ClientAccessSystem() {
                   key={index}
                   className="flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-xl hover:shadow-sm transition-shadow"
                 >
-                  <div className="bg-[#E8F5F3] p-2.5 rounded-lg flex-shrink-0">
+                  <div className="bg-[#E8F5F3] p-2.5 rounded-lg shrink-0">
                     {item.icon}
                   </div>
                   <div className="overflow-hidden">

@@ -96,7 +96,7 @@ export default function BasicPDFViewer({
   return (
     <div className={`bg-white rounded-lg border shadow-sm flex flex-col h-full ${className}`}>
       {/* Controls */}
-      <div className="flex items-center justify-between p-4 border-b bg-gray-50 flex-shrink-0">
+      <div className="flex items-center justify-between p-4 border-b bg-gray-50 shrink-0">
         <div className="flex items-center gap-3">
           <FileText className="w-5 h-5 text-red-600" />
           <div>

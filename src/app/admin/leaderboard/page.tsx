@@ -1022,7 +1022,7 @@ export default function AdminLeaderboardPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex items-start gap-4 flex-1">
                           <div
-                            className={`w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 ${
+                            className={`w-14 h-14 rounded-full flex items-center justify-center shrink-0 ${
                               prize.position === 1
                                 ? "bg-gradient-to-br from-yellow-400 to-yellow-600"
                                 : prize.position === 2

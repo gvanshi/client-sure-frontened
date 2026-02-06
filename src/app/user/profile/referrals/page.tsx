@@ -123,10 +123,10 @@ export default function ReferralsPage() {
                     {referralData?.referralCode && (
                       <button
                         onClick={copyReferralCode}
-                        className="bg-white bg-opacity-20 hover:bg-opacity-30 p-2 rounded-lg transition-colors"
+                        className="bg-green-100 p-2 rounded-lg hover:bg-green-200 transition-colors shadow-sm ml-2"
                         title="Copy referral code"
                       >
-                        <Copy className="w-5 h-5 text-white" />
+                        <Copy className="w-5 h-5 text-green-800" />
                       </button>
                     )}
                   </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { toast } from "sonner";
 import Axios from "../../../utils/Axios";
 import Navbar from "../components/Navbar";
@@ -15,12 +16,10 @@ import {
   X,
   TrendingUp,
   RefreshCw,
-  Search,
   Filter,
   Award,
   Users,
   MessageSquare,
-  ThumbsUp,
   Calendar,
   Sparkles,
   Edit3,
@@ -88,7 +87,7 @@ export default function CommunityPage() {
   );
   const [currentUserId, setCurrentUserId] = useState<string>("");
   const [currentUserName, setCurrentUserName] = useState<string>("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery] = useState("");
   const [showTrending, setShowTrending] = useState(false);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [searchFilters, setSearchFilters] = useState({
@@ -100,9 +99,12 @@ export default function CommunityPage() {
     minLikes: 0,
   });
   const [allPosts, setAllPosts] = useState<Post[]>([]);
-  const [communityStats, setCommunityStats] = useState<any>({});
-
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [communityStats, setCommunityStats] = useState<{
+    totalPosts?: number;
+    totalUsers?: number;
+    totalComments?: number;
+    activeMembers?: number;
+  }>({});
 
   // Edit post state
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
@@ -133,7 +135,6 @@ export default function CommunityPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Create post state
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPostData, setNewPostData] = useState({
     title: "",
@@ -168,11 +169,13 @@ export default function CommunityPage() {
       clearInterval(refreshInterval);
       window.removeEventListener("focus", handleWindowFocus);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Auto-fetch when search or trending changes
   useEffect(() => {
     fetchData(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, showTrending]);
 
   // Client-side filtering
@@ -294,9 +297,13 @@ export default function CommunityPage() {
     }
   };
 
-  const updateLimitsFromResponse = (responseData: any) => {
+  const updateLimitsFromResponse = (responseData: {
+    remainingLimits?: Record<string, number>;
+    limitType?: string;
+    allExhausted?: boolean;
+  }) => {
     if (responseData.remainingLimits) {
-      setDailyLimits(responseData.remainingLimits);
+      setDailyLimits(responseData.remainingLimits as { posts: number; likes: number; comments: number });
     }
 
     // Show limit exhausted messages
@@ -323,7 +330,7 @@ export default function CommunityPage() {
     try {
       if (!silent) setLoading(true);
 
-      let endpoint = showTrending ? "/community/trending" : "/community/posts";
+      const endpoint = showTrending ? "/community/trending" : "/community/posts";
 
       // Build query parameters
       const queryParams = new URLSearchParams();
@@ -352,9 +359,9 @@ export default function CommunityPage() {
       }
 
       setCommunityStats(statsRes.data);
-      setLastUpdated(new Date());
-    } catch (error: any) {
-      if (error.response?.status === 403) {
+    } catch (error) {
+      const err = error as { response?: { status?: number } };
+      if (err.response?.status === 403) {
         toast.error("Subscription expired. Please renew to access community.");
         router.push("/user/dashboard");
       } else {
@@ -394,9 +401,10 @@ export default function CommunityPage() {
 
       setShowDeleteModal(false);
       setPostToDelete(null);
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } } };
       console.error("Delete post error:", error);
-      toast.error(error.response?.data?.message || "Error deleting post");
+      toast.error(err.response?.data?.message || "Error deleting post");
     } finally {
       setIsDeleting(false);
     }
@@ -466,8 +474,9 @@ export default function CommunityPage() {
         setImagePreview(null);
         fetchData(false);
       }
-    } catch (error: any) {
-      const errorData = error.response?.data;
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string; limitType?: string; allExhausted?: boolean; remainingLimits?: Record<string, number> } } };
+      const errorData = err.response?.data;
       if (errorData && (errorData.limitType || errorData.allExhausted)) {
         updateLimitsFromResponse(errorData);
       } else {
@@ -515,10 +524,11 @@ export default function CommunityPage() {
         fetchData(false);
         cancelEdit();
       }
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } } };
       console.error("Update post error:", error);
       const errorMessage =
-        error.response?.data?.message || "Error updating post";
+        err.response?.data?.message || "Error updating post";
       toast.error(errorMessage);
     } finally {
       setIsUpdating(false);
@@ -548,7 +558,8 @@ export default function CommunityPage() {
         updateLimitsFromResponse(response.data);
       }
       fetchData(true); // Sync with backend
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string; limitType?: string; allExhausted?: boolean; remainingLimits?: Record<string, number> } } };
       // Revert optimistic update on error
       setPosts((prevPosts) =>
         prevPosts.map((p) =>
@@ -563,7 +574,7 @@ export default function CommunityPage() {
         ),
       );
 
-      const errorData = error.response?.data;
+      const errorData = err.response?.data;
       if (errorData && (errorData.limitType || errorData.allExhausted)) {
         updateLimitsFromResponse(errorData);
       } else {
@@ -597,7 +608,8 @@ export default function CommunityPage() {
       await Axios.post(`/community/unlike/${postId}`);
       toast.success("Post unliked (-1 point from author)");
       fetchData(true); // Sync with backend
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } } };
       // Revert optimistic update on error
       setPosts((prevPosts) =>
         prevPosts.map((p) =>
@@ -607,7 +619,7 @@ export default function CommunityPage() {
         ),
       );
       const errorMessage =
-        error.response?.data?.message || "Error unliking post";
+        err.response?.data?.message || "Error unliking post";
       toast.error(errorMessage);
     }
   };
@@ -626,8 +638,9 @@ export default function CommunityPage() {
       }
       setCommentTexts({ ...commentTexts, [postId]: "" });
       fetchData(false);
-    } catch (error: any) {
-      const errorData = error.response?.data;
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string; limitType?: string; allExhausted?: boolean } } };
+      const errorData = err.response?.data;
       if (errorData && (errorData.limitType || errorData.allExhausted)) {
         updateLimitsFromResponse(errorData);
       } else {
@@ -641,12 +654,13 @@ export default function CommunityPage() {
       await Axios.delete(`/community/comment/${commentId}`);
       toast.success("Comment deleted (-2 points)");
       fetchData(false);
-    } catch (error) {
+    } catch {
       toast.error("Error deleting comment");
     }
   };
 
   // Focus the comment input for a given post
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const focusCommentInput = (postId: string) => {
     if (dailyLimits.comments === 0) {
       toast.error("Aaj ke liye aapki comment limit khatam ho gayi hai");
@@ -942,7 +956,7 @@ export default function CommunityPage() {
                 >
                   <div className="flex items-center gap-3 md:gap-4">
                     {/* User Avatar */}
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold shrink-0">
                       {currentUserName.charAt(0).toUpperCase() || "U"}
                     </div>
 
@@ -961,7 +975,7 @@ export default function CommunityPage() {
               ) : (
                 <div className="p-4 md:p-6">
                   <div className="flex items-start gap-3 md:gap-4 mb-4">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold shrink-0">
                       {currentUserName.charAt(0).toUpperCase() || "U"}
                     </div>
                     <div className="flex-1 space-y-3">
@@ -1007,9 +1021,11 @@ export default function CommunityPage() {
                       {/* Image Preview */}
                       {imagePreview && (
                         <div className="relative">
-                          <img
+                          <Image
                             src={imagePreview}
                             alt="Preview"
+                            width={800}
+                            height={192}
                             className="w-full h-48 object-cover rounded-lg"
                           />
                           <button
@@ -1327,9 +1343,11 @@ export default function CommunityPage() {
 
                               {editImagePreview && (
                                 <div className="relative inline-block">
-                                  <img
+                                  <Image
                                     src={editImagePreview}
                                     alt="Preview"
+                                    width={384}
+                                    height={192}
                                     className="max-w-xs max-h-48 rounded-lg shadow-md object-cover"
                                   />
                                   <button
@@ -1375,9 +1393,11 @@ export default function CommunityPage() {
 
                             {post.image && (
                               <div className="mt-3">
-                                <img
+                                <Image
                                   src={post.image}
                                   alt="Post image"
+                                  width={800}
+                                  height={320}
                                   className="rounded-lg max-w-full h-auto max-h-80 object-cover border border-gray-200"
                                 />
                               </div>
@@ -1504,7 +1524,7 @@ export default function CommunityPage() {
 
                           {/* Add Comment */}
                           <div className="flex gap-3">
-                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white flex-shrink-0">
+                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white shrink-0">
                               <MessageCircle className="w-4 h-4" />
                             </div>
                             <input

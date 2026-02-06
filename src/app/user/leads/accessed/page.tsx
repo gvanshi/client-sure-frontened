@@ -61,6 +61,7 @@ function AccessedLeadsContent() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [sortBy, setSortBy] = useState("latest");
   const [selectedEmailLeads, setSelectedEmailLeads] = useState<string[]>([]);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [emailDefaultType, setEmailDefaultType] = useState<
@@ -81,6 +82,7 @@ function AccessedLeadsContent() {
       const params = new URLSearchParams({
         page: page.toString(),
         limit: "10", // Reduced limit as requested
+        sortBy,
       });
 
       if (searchTerm) params.append("search", searchTerm);
@@ -289,6 +291,7 @@ function AccessedLeadsContent() {
     selectedCountry,
     startDate,
     endDate,
+    sortBy,
   ]);
 
   const cities = Array.from(
@@ -364,6 +367,17 @@ function AccessedLeadsContent() {
               <span className="md:hidden text-sm font-medium text-gray-700">
                 Filters
               </span>
+            </div>
+
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 w-full md:w-auto font-medium"
+              >
+                <option value="latest">Latest Added</option>
+                <option value="default">Default</option>
+              </select>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:flex md:items-center gap-3 w-full md:w-auto">
@@ -493,7 +507,7 @@ function AccessedLeadsContent() {
                     <th className="px-2 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wide">
                       ACCESS DATE
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wide min-w-[160px]">
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wide min-w-40">
                       SOCIAL LINKS
                     </th>
                     <th className="px-3 py-3 text-center text-sm font-semibold text-gray-700 uppercase tracking-wide">

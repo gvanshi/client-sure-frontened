@@ -9,15 +9,11 @@ import {
   loadTemplate,
   safeCopy,
   buildStructuredPayload,
-  type SenderData,
-  type EmailToolData,
-  type WhatsAppToolData,
-  type LinkedInToolData,
-  type ContractToolData,
+  type StructuredPayload,
 } from "./utils";
 
 // Updated API call function to support both legacy and structured formats
-async function generateTextOnServer(payload: any): Promise<string[]> {
+async function generateTextOnServer(payload: StructuredPayload | Record<string, unknown>): Promise<string[]> {
   const res = await Axios.post("/compose", payload);
 
   if (res.data.variants) {
@@ -125,6 +121,7 @@ function EmailsScreen() {
 
   const prompt = useMemo(
     () => promptOverride ?? buildPrompt(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       promptOverride,
       role,
@@ -206,7 +203,7 @@ function EmailsScreen() {
           const parsed = outs.map((o) => {
             // Backend already returns parsed JSON objects, just validate structure
             if (typeof o === "object" && o !== null) {
-              const obj = o as any;
+              const obj = o as Record<string, unknown>;
               return {
                 subject: String(obj.subject ?? ""),
                 preview: String(obj.preview ?? ""),
@@ -230,8 +227,8 @@ function EmailsScreen() {
         }
       }
       textareaRef.current?.blur();
-    } catch (e: any) {
-      setError(e?.message ?? "Generation failed");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Generation failed");
     } finally {
       setLoading(false);
     }
@@ -259,6 +256,7 @@ function EmailsScreen() {
     return () => window.removeEventListener("ai-tools:generate", h);
   }, [onGenerateInner]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function fillExample() {
     setRole("Founder");
     setSenderName("Aman Kumar");
@@ -279,6 +277,7 @@ function EmailsScreen() {
   }
 
   const templateKey = "aiTools:emailsTemplate";
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function onSaveTemplate() {
     const state = {
       role,
@@ -319,8 +318,9 @@ function EmailsScreen() {
     document.body.appendChild(alertDiv);
     setTimeout(() => document.body.removeChild(alertDiv), 2000);
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function onLoadTemplate() {
-    const t = loadTemplate<any>(templateKey);
+    const t = loadTemplate<Record<string, unknown>>(templateKey);
     if (!t) {
       // Create custom alert with black text
       const alertDiv = document.createElement("div");
@@ -342,24 +342,25 @@ function EmailsScreen() {
       setTimeout(() => document.body.removeChild(alertDiv), 2000);
       return;
     }
-    setRole(t.role ?? role);
-    setSenderName(t.senderName ?? senderName);
-    setSenderEmail(t.senderEmail ?? "");
-    setLanguage(t.language ?? "English");
-    setLevel(t.level ?? "Simple");
-    setNiche(t.niche ?? niche);
-    setTarget(t.target ?? target);
-    setProspectName(t.prospectName ?? "");
-    setCompany(t.company ?? "");
-    setProspectEmail(t.prospectEmail ?? "");
-    setTone(t.tone ?? "Sales — Short");
-    setCtaText(t.ctaText ?? ctaText);
-    setWordLimit(t.wordLimit ?? wordLimit);
+    setRole(String(t.role ?? role));
+    setSenderName(String(t.senderName ?? senderName));
+    setSenderEmail(String(t.senderEmail ?? ""));
+    setLanguage(String(t.language ?? "English"));
+    setLevel((t.level as "Simple" | "Intermediate" | "Advanced") ?? "Simple");
+    setNiche(String(t.niche ?? niche));
+    setTarget(String(t.target ?? target));
+    setProspectName(String(t.prospectName ?? ""));
+    setCompany(String(t.company ?? ""));
+    setProspectEmail(String(t.prospectEmail ?? ""));
+    setTone(String(t.tone ?? "Sales — Short"));
+    setCtaText(String(t.ctaText ?? ctaText));
+    setWordLimit(Number(t.wordLimit) || wordLimit);
     setSpamFree(!!t.spamFree);
     setJsonMode(!!t.jsonMode);
-    setVariants(t.variants ?? 1);
-    setPromptOverride(t.promptOverride ?? null);
+    setVariants(Number(t.variants) || 1);
+    setPromptOverride(t.promptOverride ? String(t.promptOverride) : null);
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function onReset() {
     setRole("Founder");
     setSenderName("Aman Kumar");
@@ -405,7 +406,7 @@ function EmailsScreen() {
 
       <Card>
         <FieldRow>
-          <div className="flex-1 min-w-[220px]">
+          <div className="flex-1 min-w-55">
             <label className="text-xs text-blue-900 font-semibold">
               Niche (keyword)
             </label>
@@ -426,7 +427,7 @@ function EmailsScreen() {
             </datalist>
           </div>
 
-          <div className="flex-1 min-w-[220px]">
+          <div className="flex-1 min-w-55">
             <label className="text-xs text-blue-900 font-semibold">
               Target (keyword)
             </label>
@@ -446,7 +447,7 @@ function EmailsScreen() {
             </datalist>
           </div>
 
-          <div className="w-full sm:w-[220px]">
+          <div className="w-full sm:w-55">
             <label className="text-xs text-blue-900 font-semibold">
               Tone / Variant
             </label>
@@ -506,7 +507,7 @@ function EmailsScreen() {
         <div className="h-2" />
 
         <FieldRow>
-          <div className="flex-1 min-w-[220px]">
+          <div className="flex-1 min-w-55">
             <label className="text-xs text-blue-900 font-semibold">
               CTA (exact text)
             </label>
@@ -518,7 +519,7 @@ function EmailsScreen() {
             />
           </div>
 
-          <div className="w-[160px]">
+          <div className="w-40">
             <label className="text-xs text-blue-900 font-semibold">
               Word limit
             </label>
@@ -588,7 +589,7 @@ function EmailsScreen() {
       </label>
       <textarea
         ref={textareaRef}
-        className="w-full min-h-[220px] rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+        className="w-full min-h-55 rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
         value={prompt}
         onChange={(e) => setPromptOverride(e.target.value)}
         aria-busy={loading}
@@ -782,6 +783,7 @@ function WhatsAppScreen() {
 
   const prompt = useMemo(
     () => promptOverride ?? buildPrompt(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       promptOverride,
       role,
@@ -844,8 +846,8 @@ function WhatsAppScreen() {
       const outs = await generateTextOnServer(payload);
       setResults(outs);
       textareaRef.current?.blur();
-    } catch (e: any) {
-      setError(e?.message ?? "Generation failed");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Generation failed");
     } finally {
       setLoading(false);
     }
@@ -892,7 +894,7 @@ function WhatsAppScreen() {
 
       <Card>
         <FieldRow>
-          <div className="flex-1 min-w-[220px]">
+          <div className="flex-1 min-w-55">
             <label className="text-xs text-blue-900 font-semibold">Niche</label>
             <input
               list="nicheListWhatsapp"
@@ -909,7 +911,7 @@ function WhatsAppScreen() {
               <option value="Marketing" />
             </datalist>
           </div>
-          <div className="flex-1 min-w-[220px]">
+          <div className="flex-1 min-w-55">
             <label className="text-xs text-blue-900 font-semibold">
               Target
             </label>
@@ -926,7 +928,7 @@ function WhatsAppScreen() {
               <option value="Property Managers" />
             </datalist>
           </div>
-          <div className="w-full sm:w-[220px]">
+          <div className="w-full sm:w-55">
             <label className="text-xs text-blue-900 font-semibold">
               Variant
             </label>
@@ -974,7 +976,7 @@ function WhatsAppScreen() {
         <div className="h-2" />
 
         <FieldRow>
-          <div className="flex-1 min-w-[220px]">
+          <div className="flex-1 min-w-55">
             <label className="text-xs text-blue-700 font-semibold">
               Prospect name (optional)
             </label>
@@ -985,7 +987,7 @@ function WhatsAppScreen() {
               placeholder="e.g., Priya"
             />
           </div>
-          <div className="flex-1 min-w-[220px]">
+          <div className="flex-1 min-w-55">
             <label className="text-xs text-blue-900 font-semibold">
               CTA (exact)
             </label>
@@ -996,7 +998,7 @@ function WhatsAppScreen() {
               placeholder='e.g., "Reply YES to schedule"'
             />
           </div>
-          <div className="w-[160px]">
+          <div className="w-40">
             <label className="text-xs text-blue-900 font-semibold">
               Word limit
             </label>
@@ -1019,7 +1021,7 @@ function WhatsAppScreen() {
       <label className="block text-xs text-blue-700">Preview prompt</label>
       <textarea
         ref={textareaRef}
-        className="w-full min-h-[180px] rounded-2xl bg-white/10 border border-blue-700 px-3 py-3 outline-none text-blue-700"
+        className="w-full min-h-45 rounded-2xl bg-white/10 border border-blue-700 px-3 py-3 outline-none text-blue-700"
         value={prompt}
         onChange={(e) => setPromptOverride(e.target.value)}
         aria-busy={loading}
@@ -1149,6 +1151,7 @@ function LinkedInScreen() {
 
   const prompt = useMemo(
     () => promptOverride ?? buildPrompt(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       promptOverride,
       role,
@@ -1211,8 +1214,8 @@ function LinkedInScreen() {
       const outs = await generateTextOnServer(payload);
       setResults(outs);
       textareaRef.current?.blur();
-    } catch (e: any) {
-      setError(e?.message ?? "Generation failed");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Generation failed");
     } finally {
       setLoading(false);
     }
@@ -1259,7 +1262,7 @@ function LinkedInScreen() {
 
       <Card>
         <FieldRow>
-          <div className="flex-1 min-w-[220px]">
+          <div className="flex-1 min-w-55">
             <label className="text-xs text-blue-900 font-semibold">Niche</label>
             <input
               list="nicheListLinkedin"
@@ -1275,7 +1278,7 @@ function LinkedInScreen() {
               <option value="Realtors" />
             </datalist>
           </div>
-          <div className="flex-1 min-w-[220px]">
+          <div className="flex-1 min-w-55">
             <label className="text-xs text-blue-900 font-semibold">
               Target
             </label>
@@ -1292,7 +1295,7 @@ function LinkedInScreen() {
               <option value="Property Managers" />
             </datalist>
           </div>
-          <div className="w-full sm:w-[220px]">
+          <div className="w-full sm:w-55">
             <label className="text-xs text-blue-900 font-semibold">
               Variant
             </label>
@@ -1339,7 +1342,7 @@ function LinkedInScreen() {
         <div className="h-2" />
 
         <FieldRow>
-          <div className="flex-1 min-w-[220px]">
+          <div className="flex-1 min-w-55">
             <label className="text-xs text-blue-900 font-semibold">
               Prospect name (optional)
             </label>
@@ -1350,7 +1353,7 @@ function LinkedInScreen() {
               placeholder="e.g., Anjali"
             />
           </div>
-          <div className="flex-1 min-w-[220px]">
+          <div className="flex-1 min-w-55">
             <label className="text-xs text-blue-900 font-semibold">
               CTA (exact)
             </label>
@@ -1361,7 +1364,7 @@ function LinkedInScreen() {
               placeholder='e.g., "Can we connect for a quick chat?"'
             />
           </div>
-          <div className="w-[160px]">
+          <div className="w-40">
             <label className="text-xs text-blue-900 font-semibold">
               Word limit
             </label>
@@ -1384,7 +1387,7 @@ function LinkedInScreen() {
       <label className="block text-xs text-blue-700">Preview prompt</label>
       <textarea
         ref={textareaRef}
-        className="w-full min-h-[180px] rounded-2xl bg-white/10 border border-blue-700 px-3 py-3 outline-none text-blue-700"
+        className="w-full min-h-45 rounded-2xl bg-white/10 border border-blue-700 px-3 py-3 outline-none text-blue-700"
         value={prompt}
         onChange={(e) => setPromptOverride(e.target.value)}
         aria-busy={loading}
@@ -1513,6 +1516,7 @@ function ContractsScreen() {
 
   const prompt = useMemo(
     () => promptOverride ?? buildPrompt(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       promptOverride,
       role,
@@ -1568,8 +1572,8 @@ function ContractsScreen() {
       const outs = await generateTextOnServer(payload);
       setResults(outs);
       textareaRef.current?.blur();
-    } catch (e: any) {
-      setError(e?.message ?? "Generation failed");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Generation failed");
     } finally {
       setLoading(false);
     }
@@ -1615,7 +1619,7 @@ function ContractsScreen() {
 
       <Card>
         <FieldRow>
-          <div className="flex-1 min-w-[220px]">
+          <div className="flex-1 min-w-55">
             <label className="text-xs text-blue-900 font-semibold">Niche</label>
             <input
               list="nicheListContracts"
@@ -1631,7 +1635,7 @@ function ContractsScreen() {
               <option value="Consulting" />
             </datalist>
           </div>
-          <div className="flex-1 min-w-[220px]">
+          <div className="flex-1 min-w-55">
             <label className="text-xs text-blue-900 font-semibold">
               Project scope
             </label>
@@ -1642,7 +1646,7 @@ function ContractsScreen() {
               placeholder="e.g., Website + CMS"
             />
           </div>
-          <div className="w-full sm:w-[220px]">
+          <div className="w-full sm:w-55">
             <label className="text-xs text-blue-900 font-semibold">
               Variant
             </label>
@@ -1682,7 +1686,7 @@ function ContractsScreen() {
         <div className="h-2" />
 
         <FieldRow>
-          <div className="flex-1 min-w-[220px]">
+          <div className="flex-1 min-w-55">
             <label className="text-xs text-blue-900 font-semibold">
               Client name (optional)
             </label>
@@ -1693,7 +1697,7 @@ function ContractsScreen() {
               placeholder="e.g., Acme Corp"
             />
           </div>
-          <div className="flex-1 min-w-[220px]">
+          <div className="flex-1 min-w-55">
             <label className="text-xs text-blue-900 font-semibold">
               CTA (exact)
             </label>
@@ -1704,7 +1708,7 @@ function ContractsScreen() {
               placeholder="e.g., Sign to confirm and send PO"
             />
           </div>
-          <div className="w-[160px]">
+          <div className="w-40">
             <label className="text-xs text-blue-900 font-semibold">
               Word limit
             </label>
@@ -1727,7 +1731,7 @@ function ContractsScreen() {
       <label className="block text-xs text-blue-700">Preview prompt</label>
       <textarea
         ref={textareaRef}
-        className="w-full min-h-[220px] rounded-2xl bg-white/10 border border-blue-700 px-3 py-3 outline-none text-blue-700"
+        className="w-full min-h-55 rounded-2xl bg-white/10 border border-blue-700 px-3 py-3 outline-none text-blue-700"
         value={prompt}
         onChange={(e) => setPromptOverride(e.target.value)}
         aria-busy={loading}

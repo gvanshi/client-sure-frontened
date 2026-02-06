@@ -109,7 +109,7 @@ export default function Footer() {
         </div>
 
         {/* Disclaimer */}
-        <div className="max-w-[900px] lg:max-w-4xl mx-auto text-[10px] lg:text-xs text-gray-300 leading-relaxed text-center px-4">
+        <div className="max-w-225 lg:max-w-4xl mx-auto text-[10px] lg:text-xs text-gray-300 leading-relaxed text-center px-4">
           <p className="mb-2">
             <span className="font-bold text-gray-400">Disclaimer:</span> Our
             platform provides tools, systems, resources, and access to verified

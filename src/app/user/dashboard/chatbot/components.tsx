@@ -81,7 +81,7 @@ function SenderBlock({
   return (
     <Card>
       <FieldRow>
-        <div className="flex-1 min-w-[220px]">
+        <div className="flex-1 min-w-55">
           <label className="text-xs text-blue-900 font-semibold">Your profession / role</label>
           <input
             className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
@@ -91,7 +91,7 @@ function SenderBlock({
           />
         </div>
 
-        <div className="w-full sm:w-[260px]">
+        <div className="w-full sm:w-65">
           <label className="text-xs text-blue-900 font-semibold">Sender name</label>
           <input
             className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
@@ -101,7 +101,7 @@ function SenderBlock({
           />
         </div>
 
-        <div className="w-full sm:w-[220px]">
+        <div className="w-full sm:w-55">
           <label className="text-xs text-blue-900 font-semibold">Language</label>
           <select
             className="mt-2 w-full rounded-lg bg-white border border-blue-300 text-blue-900 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
@@ -120,7 +120,7 @@ function SenderBlock({
           </select>
         </div>
 
-        <div className="w-full sm:w-[240px]">
+        <div className="w-full sm:w-60">
           <label className="text-xs text-blue-900 font-semibold">Reading level</label>
           <select
             className="mt-2 w-full rounded-lg bg-white border border-blue-300 text-blue-900 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"

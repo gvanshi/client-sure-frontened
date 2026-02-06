@@ -38,7 +38,15 @@ export default function StickyBottomBar() {
 
         {/* Right Content */}
         <div className="flex items-center gap-4">
-          <button className="bg-[#F85E2E] hover:bg-[#E04D1F] text-white font-bold py-2.5 px-6 rounded-lg text-sm transition-colors flex items-center gap-2">
+          <button
+            onClick={() => {
+              document.getElementById("pricing")?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            }}
+            className="bg-[#F85E2E] hover:bg-[#E04D1F] text-white font-bold py-2.5 px-6 rounded-lg text-sm transition-colors flex items-center gap-2"
+          >
             Get Started Now <ArrowRight className="w-4 h-4" />
           </button>
           <button

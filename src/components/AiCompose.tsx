@@ -25,7 +25,7 @@ const AiCompose: React.FC<AiComposeProps> = ({ channel }) => {
     const { name, value } = e.target;
 
     if (name === "details") {
-      let words = value.trim().split(/\s+/);
+      const words = value.trim().split(/\s+/);
 
       if (!value.trim()) {
         setWordCount(0);
@@ -79,7 +79,7 @@ const AiCompose: React.FC<AiComposeProps> = ({ channel }) => {
 
       setWordCount(0);
 
-    } catch (err) {
+    } catch {
       setResponse("Error connecting to AI server.");
     } finally {
       setLoading(false);

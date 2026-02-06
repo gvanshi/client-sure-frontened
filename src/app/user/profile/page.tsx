@@ -17,9 +17,9 @@ import {
   Edit,
   Info,
   Calendar,
-  Award,
   Trash2,
   CheckCheck,
+  Copy,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -902,7 +902,7 @@ export default function ProfilePage() {
                           }`}
                         >
                           <div className="flex items-start space-x-4">
-                            <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+                            <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold shrink-0">
                               {notification.fromUser?.name
                                 ?.charAt(0)
                                 .toUpperCase() || "N"}
@@ -930,7 +930,7 @@ export default function ProfilePage() {
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   {!notification.isRead && (
-                                    <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                                    <div className="w-2 h-2 bg-blue-500 rounded-full shrink-0"></div>
                                   )}
                                   <button
                                     onClick={() =>
@@ -989,22 +989,10 @@ export default function ProfilePage() {
                               {referralData?.referralCode && (
                                 <button
                                   onClick={copyReferralCode}
-                                  className="bg-white bg-opacity-20 hover:bg-opacity-30 p-2 rounded-lg transition-colors"
+                                  className="bg-green-100 p-2 rounded-lg hover:bg-green-200 transition-colors shadow-sm ml-2"
                                   title="Copy referral code"
                                 >
-                                  <svg
-                                    className="w-5 h-5 text-white"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                    />
-                                  </svg>
+                                  <Copy className="w-5 h-5 text-green-800" />
                                 </button>
                               )}
                             </div>

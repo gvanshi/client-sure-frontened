@@ -94,14 +94,22 @@ export default function Navbar() {
     return () => clearInterval(refreshInterval);
   }, []);
 
-  const loadNotifications = async () => {
+  const loadNotifications = async (limit = 5) => {
     try {
       const [countRes, notificationsRes] = await Promise.all([
         Axios.get("/notifications/count"),
-        Axios.get("/notifications?limit=5"),
+        Axios.get(`/notifications?limit=${limit}`),
       ]);
       setNotificationCount(countRes.data.count || 0);
-      setNotifications(notificationsRes.data.notifications || []);
+
+      const sortedNotifications = (
+        notificationsRes.data.notifications || []
+      ).sort(
+        (a: Notification, b: Notification) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+
+      setNotifications(sortedNotifications);
     } catch (error) {
       console.error("Error loading notifications:", error);
       // Set default values on error
@@ -249,8 +257,8 @@ export default function Navbar() {
               </button>
 
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50 max-h-96 overflow-y-auto">
-                  <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center">
+                <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50 max-h-[80vh] flex flex-col">
+                  <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center shrink-0">
                     <h3 className="text-sm font-semibold text-gray-900">
                       Notifications
                     </h3>
@@ -270,7 +278,7 @@ export default function Navbar() {
                       <p className="text-sm">No notifications yet</p>
                     </div>
                   ) : (
-                    <div className="max-h-64 overflow-y-auto">
+                    <div className="flex-1 overflow-y-auto">
                       {notifications.map((notification) => (
                         <div
                           key={notification._id}
@@ -290,7 +298,7 @@ export default function Navbar() {
                         >
                           <div className="flex items-start space-x-3">
                             <div
-                              className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${
+                              className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${
                                 notification.type === "prize_tokens_awarded"
                                   ? "bg-orange-600"
                                   : "bg-purple-600"
@@ -323,7 +331,7 @@ export default function Navbar() {
                             </div>
                             {!notification.isRead && (
                               <div
-                                className={`w-2 h-2 rounded-full flex-shrink-0 mt-2 ${
+                                className={`w-2 h-2 rounded-full shrink-0 mt-2 ${
                                   notification.type === "prize_tokens_awarded"
                                     ? "bg-orange-500"
                                     : "bg-blue-500"
@@ -336,13 +344,13 @@ export default function Navbar() {
                     </div>
                   )}
 
-                  <div className="px-4 py-2 border-t border-gray-100">
+                  <div className="px-4 py-2 border-t border-gray-100 shrink-0 bg-white rounded-b-lg">
                     <button
-                      onClick={() => {
-                        router.push("/user/notifications");
-                        setShowNotifications(false);
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        loadNotifications(50);
                       }}
-                      className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                      className="w-full text-xs text-blue-600 hover:text-blue-800 font-medium py-1"
                     >
                       View all notifications
                     </button>

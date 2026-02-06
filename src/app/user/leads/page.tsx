@@ -764,7 +764,7 @@ function LeadsContent() {
                         <th className="px-2 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wide">
                           PHONE
                         </th>
-                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wide min-w-[160px]">
+                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wide min-w-40">
                           SOCIAL LINKS
                         </th>
                       </>

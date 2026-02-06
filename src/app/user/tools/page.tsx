@@ -268,7 +268,7 @@ export default function ToolsPage() {
                 {suggested.map(t => (
                   <article className="bg-gradient-to-br from-white to-blue-50 rounded-xl p-5 border border-blue-200 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1" key={t.id}>
                     <div className="flex items-center gap-4 mb-4">
-                      <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
                         {t.logo ? <img src={t.logo} alt={t.name} className="w-full h-full object-cover rounded-xl" /> : <span className="text-xl font-bold text-blue-600">{t.name.charAt(0)}</span>}
                       </div>
                       <div className="flex-1">
@@ -337,7 +337,7 @@ export default function ToolsPage() {
               filteredTools.map(t => (
                 <article className="bg-white rounded-xl p-5 border border-gray-200 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-1" key={t.id}>
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
                       {t.logo ? <img src={t.logo} alt={t.name} className="w-full h-full object-cover rounded-lg" /> : <span className="text-lg font-bold text-black">{t.name.charAt(0)}</span>}
                     </div>
                     <div className="flex-1">

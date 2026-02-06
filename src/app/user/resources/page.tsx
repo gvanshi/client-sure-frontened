@@ -146,7 +146,7 @@ export default function ResourcesPage() {
         </div>
         <div className="bg-white border-l-4 border-blue-600 shadow-sm p-4 md:p-6 mb-4 md:mb-8">
           <div className="flex items-center space-x-3 md:space-x-4">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-100 flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-100 flex items-center justify-center shrink-0">
               <FileText className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
             </div>
             <div>
@@ -269,7 +269,7 @@ export default function ResourcesPage() {
                     className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white flex flex-col relative"
                   >
                     {/* Thumbnail */}
-                    <div className="relative h-32 md:h-48 bg-gray-100 flex-shrink-0">
+                    <div className="relative h-32 md:h-48 bg-gray-100 shrink-0">
                       {/* Lock Overlay */}
                       {!resource.isAccessedByUser && (
                         <div className="absolute inset-0 bg-black/50 z-10 flex items-center justify-center backdrop-blur-[1px]">

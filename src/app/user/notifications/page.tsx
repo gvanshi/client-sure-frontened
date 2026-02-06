@@ -189,7 +189,7 @@ export default function NotificationsPage() {
                 >
                   <div className="flex items-start space-x-4">
                     <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 ${
+                      className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shrink-0 ${
                         notification.type === "token_purchase"
                           ? "bg-green-600"
                           : "bg-purple-600"
