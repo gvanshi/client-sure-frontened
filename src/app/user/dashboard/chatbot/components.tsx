@@ -1,18 +1,23 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 
 function useEditorShortcuts(ref: React.RefObject<HTMLTextAreaElement | null>) {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test((document.activeElement?.tagName ?? ''))) {
-        e.preventDefault(); ref.current?.focus();
+      if (
+        e.key === "/" &&
+        !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName ?? "")
+      ) {
+        e.preventDefault();
+        ref.current?.focus();
       }
-      if (e.key === 'Escape') (document.activeElement as HTMLElement | null)?.blur();
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'enter') {
-        window.dispatchEvent(new CustomEvent('ai-tools:generate'));
+      if (e.key === "Escape")
+        (document.activeElement as HTMLElement | null)?.blur();
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "enter") {
+        window.dispatchEvent(new CustomEvent("ai-tools:generate"));
       }
     }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [ref]);
 }
 
@@ -28,22 +33,40 @@ function Card({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Sidebar({ activeTool, openTool }: { activeTool: any; openTool: (t: any) => void }) {
-  const Item = ({ id, label, emoji }: { id: any; label: string; emoji: string }) => {
+function Sidebar({
+  activeTool,
+  openTool,
+}: {
+  activeTool: any;
+  openTool: (t: any) => void;
+}) {
+  const Item = ({
+    id,
+    label,
+    emoji,
+  }: {
+    id: any;
+    label: string;
+    emoji: string;
+  }) => {
     const active = activeTool === id;
     return (
       <button
         onClick={() => openTool(id)}
         className={[
-          'w-full text-left px-4 py-3 rounded-xl border transition-all group',
+          "w-full text-left px-4 py-3 rounded-xl border transition-all group",
           active
-            ? 'bg-gradient-to-r from-blue-500 to-blue-600 border-blue-600 text-white shadow-lg transform scale-105'
-            : 'bg-white border-blue-200 hover:bg-blue-50 hover:border-blue-300 text-blue-900 hover:shadow-md'
-        ].join(' ')}
+            ? "bg-gradient-to-r from-blue-500 to-blue-600 border-blue-600 text-white shadow-lg transform scale-105"
+            : "bg-white border-blue-200 hover:bg-blue-50 hover:border-blue-300 text-blue-900 hover:shadow-md",
+        ].join(" ")}
       >
         <span className="mr-3 text-lg">{emoji}</span>
         <span className="font-semibold">{label}</span>
-        {active && <span className="ml-2 text-xs px-2 py-1 rounded-full bg-white/20 text-white">active</span>}
+        {active && (
+          <span className="ml-2 text-xs px-2 py-1 rounded-full bg-white/20 text-white">
+            active
+          </span>
+        )}
       </button>
     );
   };
@@ -66,47 +89,63 @@ function Sidebar({ activeTool, openTool }: { activeTool: any; openTool: (t: any)
 }
 
 function SenderBlock({
-  role, setRole,
-  senderName, setSenderName,
-  senderEmail, setSenderEmail,
-  language, setLanguage,
-  level, setLevel
+  role,
+  setRole,
+  senderName,
+  setSenderName,
+  senderEmail,
+  setSenderEmail,
+  language,
+  setLanguage,
+  level,
+  setLevel,
 }: {
-  role: string; setRole: (v:string)=>void;
-  senderName: string; setSenderName: (v:string)=>void;
-  senderEmail: string; setSenderEmail: (v:string)=>void;
-  language: string; setLanguage: (v:string)=>void;
-  level: 'Simple'|'Intermediate'|'Advanced'; setLevel: (v:'Simple'|'Intermediate'|'Advanced')=>void;
+  role: string;
+  setRole: (v: string) => void;
+  senderName: string;
+  setSenderName: (v: string) => void;
+  senderEmail: string;
+  setSenderEmail: (v: string) => void;
+  language: string;
+  setLanguage: (v: string) => void;
+  level: "Simple" | "Intermediate" | "Advanced";
+  setLevel: (v: "Simple" | "Intermediate" | "Advanced") => void;
 }) {
   return (
     <Card>
       <FieldRow>
-        <div className="flex-1 min-w-55">
-          <label className="text-xs text-blue-900 font-semibold">Your profession / role</label>
+        <div className="flex-1 min-w-[220px]">
+          <label className="text-xs text-blue-900 font-semibold">
+            Your profession / role
+          </label>
           <input
             className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
             value={role}
-            onChange={(e)=>setRole(e.target.value)}
+            onChange={(e) => setRole(e.target.value)}
             placeholder="Founder · Growth · Manager"
           />
         </div>
 
-        <div className="w-full sm:w-65">
-          <label className="text-xs text-blue-900 font-semibold">Sender name</label>
+        <div className="w-full sm:w-[260px]">
+          <label className="text-xs text-blue-900 font-semibold">
+            Sender name
+          </label>
           <input
             className="mt-2 w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
             value={senderName}
-            onChange={(e)=>setSenderName(e.target.value)}
+            onChange={(e) => setSenderName(e.target.value)}
             placeholder="Your name"
           />
         </div>
 
-        <div className="w-full sm:w-55">
-          <label className="text-xs text-blue-900 font-semibold">Language</label>
+        <div className="w-full sm:w-[220px]">
+          <label className="text-xs text-blue-900 font-semibold">
+            Language
+          </label>
           <select
             className="mt-2 w-full rounded-lg bg-white border border-blue-300 text-blue-900 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
             value={language}
-            onChange={e => setLanguage(e.target.value)}
+            onChange={(e) => setLanguage(e.target.value)}
           >
             <option>English</option>
             <option>Hindi</option>
@@ -121,11 +160,13 @@ function SenderBlock({
         </div>
 
         <div className="w-full sm:w-60">
-          <label className="text-xs text-blue-900 font-semibold">Reading level</label>
+          <label className="text-xs text-blue-900 font-semibold">
+            Reading level
+          </label>
           <select
             className="mt-2 w-full rounded-lg bg-white border border-blue-300 text-blue-900 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
             value={level}
-            onChange={(e)=>setLevel(e.target.value as any)}
+            onChange={(e) => setLevel(e.target.value as any)}
           >
             <option value="Simple">Simple (conversational)</option>
             <option value="Intermediate">Intermediate (professional)</option>
@@ -142,7 +183,7 @@ function SenderBlock({
           <input
             className="w-full rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none placeholder:text-blue-400 text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
             value={senderEmail}
-            onChange={(e)=>setSenderEmail(e.target.value)}
+            onChange={(e) => setSenderEmail(e.target.value)}
             placeholder="you@company.com"
           />
         </div>

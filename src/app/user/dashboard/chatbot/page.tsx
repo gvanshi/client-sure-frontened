@@ -12,6 +12,7 @@ import {
   LinkedInScreen,
   ContractsScreen,
 } from "./screens";
+import { Menu } from "lucide-react";
 
 type Tool = "emails" | "whatsapp" | "linkedin" | "contracts" | null;
 
@@ -37,10 +38,16 @@ export default function ChatbotPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100">
       <Navbar />
 
-      <div className="pt-20">
-        <div className="mx-auto max-w-7xl px-6 py-6">
-          <div className="mb-4">
+      <div className="pt-6 relative">
+        <div className="mx-auto max-w-7xl px-6 py-6 min-h-[calc(100vh-80px)]">
+          <div className="mb-4 flex items-center gap-4">
             <BackButton />
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-lg bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
             <aside className="hidden lg:block">
@@ -53,14 +60,14 @@ export default function ChatbotPage() {
               {sidebarOpen && (
                 <>
                   <motion.div
-                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-45"
+                    className="absolute inset-0 bg-black/50 backdrop-blur-sm z-[40]"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={() => setSidebarOpen(false)}
                   />
                   <motion.aside
-                    className="fixed top-0 left-0 bottom-0 w-80 z-46 p-4 bg-white/95 backdrop-blur-sm border-r border-blue-200 shadow-xl overflow-y-auto"
+                    className="absolute top-0 left-0 bottom-0 w-80 z-[45] p-4 bg-white border-r border-blue-200 shadow-xl overflow-y-auto"
                     initial={{ x: -320 }}
                     animate={{ x: 0 }}
                     exit={{ x: -320 }}

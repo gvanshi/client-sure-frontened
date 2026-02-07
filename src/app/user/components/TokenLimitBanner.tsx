@@ -42,9 +42,9 @@ export default function TokenLimitBanner({
             : "bg-yellow-50 border-yellow-200"
         } border-b`}
       >
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-3">
+        <div className="max-w-7xl mx-auto px-4 py-2">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
               <div
                 className={`shrink-0 ${
                   isCritical ? "text-red-600" : "text-yellow-600"
@@ -52,7 +52,7 @@ export default function TokenLimitBanner({
               >
                 <AlertCircle className="w-5 h-5" />
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                 <span
                   className={`text-sm font-semibold ${
                     isCritical ? "text-red-900" : "text-yellow-900"
@@ -60,9 +60,10 @@ export default function TokenLimitBanner({
                 >
                   {isCritical ? "Critical: " : "Warning: "}
                   Token Usage Alert
+                  <span className="hidden sm:inline mx-1">—</span>
                 </span>
                 <span
-                  className={`text-sm ${
+                  className={`text-xs sm:text-sm ${
                     isCritical ? "text-red-700" : "text-yellow-700"
                   }`}
                 >
@@ -76,7 +77,7 @@ export default function TokenLimitBanner({
 
             <button
               onClick={() => setIsRechargeModalOpen(true)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 isCritical
                   ? "bg-red-600 hover:bg-red-700 text-white"
                   : "bg-yellow-600 hover:bg-yellow-700 text-white"

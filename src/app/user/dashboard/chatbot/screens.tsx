@@ -13,7 +13,9 @@ import {
 } from "./utils";
 
 // Updated API call function to support both legacy and structured formats
-async function generateTextOnServer(payload: StructuredPayload | Record<string, unknown>): Promise<string[]> {
+async function generateTextOnServer(
+  payload: StructuredPayload | Record<string, unknown>,
+): Promise<string[]> {
   const res = await Axios.post("/compose", payload);
 
   if (res.data.variants) {
@@ -406,7 +408,7 @@ function EmailsScreen() {
 
       <Card>
         <FieldRow>
-          <div className="flex-1 min-w-55">
+          <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">
               Niche (keyword)
             </label>
@@ -427,7 +429,7 @@ function EmailsScreen() {
             </datalist>
           </div>
 
-          <div className="flex-1 min-w-55">
+          <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">
               Target (keyword)
             </label>
@@ -447,7 +449,7 @@ function EmailsScreen() {
             </datalist>
           </div>
 
-          <div className="w-full sm:w-55">
+          <div className="w-full sm:w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">
               Tone / Variant
             </label>
@@ -507,7 +509,7 @@ function EmailsScreen() {
         <div className="h-2" />
 
         <FieldRow>
-          <div className="flex-1 min-w-55">
+          <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">
               CTA (exact text)
             </label>
@@ -589,7 +591,7 @@ function EmailsScreen() {
       </label>
       <textarea
         ref={textareaRef}
-        className="w-full min-h-55 rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
+        className="w-full min-h-[220px] rounded-lg bg-white border border-blue-300 px-4 py-3 outline-none text-blue-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm"
         value={prompt}
         onChange={(e) => setPromptOverride(e.target.value)}
         aria-busy={loading}
@@ -894,7 +896,7 @@ function WhatsAppScreen() {
 
       <Card>
         <FieldRow>
-          <div className="flex-1 min-w-55">
+          <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">Niche</label>
             <input
               list="nicheListWhatsapp"
@@ -911,7 +913,7 @@ function WhatsAppScreen() {
               <option value="Marketing" />
             </datalist>
           </div>
-          <div className="flex-1 min-w-55">
+          <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">
               Target
             </label>
@@ -928,7 +930,7 @@ function WhatsAppScreen() {
               <option value="Property Managers" />
             </datalist>
           </div>
-          <div className="w-full sm:w-55">
+          <div className="w-full sm:w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">
               Variant
             </label>
@@ -976,7 +978,7 @@ function WhatsAppScreen() {
         <div className="h-2" />
 
         <FieldRow>
-          <div className="flex-1 min-w-55">
+          <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-700 font-semibold">
               Prospect name (optional)
             </label>
@@ -987,7 +989,7 @@ function WhatsAppScreen() {
               placeholder="e.g., Priya"
             />
           </div>
-          <div className="flex-1 min-w-55">
+          <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">
               CTA (exact)
             </label>
@@ -1021,7 +1023,7 @@ function WhatsAppScreen() {
       <label className="block text-xs text-blue-700">Preview prompt</label>
       <textarea
         ref={textareaRef}
-        className="w-full min-h-45 rounded-2xl bg-white/10 border border-blue-700 px-3 py-3 outline-none text-blue-700"
+        className="w-full min-h-[180px] rounded-2xl bg-white/10 border border-blue-700 px-3 py-3 outline-none text-blue-700"
         value={prompt}
         onChange={(e) => setPromptOverride(e.target.value)}
         aria-busy={loading}
@@ -1262,7 +1264,7 @@ function LinkedInScreen() {
 
       <Card>
         <FieldRow>
-          <div className="flex-1 min-w-55">
+          <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">Niche</label>
             <input
               list="nicheListLinkedin"
@@ -1278,7 +1280,7 @@ function LinkedInScreen() {
               <option value="Realtors" />
             </datalist>
           </div>
-          <div className="flex-1 min-w-55">
+          <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">
               Target
             </label>
@@ -1295,7 +1297,7 @@ function LinkedInScreen() {
               <option value="Property Managers" />
             </datalist>
           </div>
-          <div className="w-full sm:w-55">
+          <div className="w-full sm:w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">
               Variant
             </label>
@@ -1342,7 +1344,7 @@ function LinkedInScreen() {
         <div className="h-2" />
 
         <FieldRow>
-          <div className="flex-1 min-w-55">
+          <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">
               Prospect name (optional)
             </label>
@@ -1353,7 +1355,7 @@ function LinkedInScreen() {
               placeholder="e.g., Anjali"
             />
           </div>
-          <div className="flex-1 min-w-55">
+          <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">
               CTA (exact)
             </label>
@@ -1387,7 +1389,7 @@ function LinkedInScreen() {
       <label className="block text-xs text-blue-700">Preview prompt</label>
       <textarea
         ref={textareaRef}
-        className="w-full min-h-45 rounded-2xl bg-white/10 border border-blue-700 px-3 py-3 outline-none text-blue-700"
+        className="w-full min-h-[180px] rounded-2xl bg-white/10 border border-blue-700 px-3 py-3 outline-none text-blue-700"
         value={prompt}
         onChange={(e) => setPromptOverride(e.target.value)}
         aria-busy={loading}
@@ -1619,7 +1621,7 @@ function ContractsScreen() {
 
       <Card>
         <FieldRow>
-          <div className="flex-1 min-w-55">
+          <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">Niche</label>
             <input
               list="nicheListContracts"
@@ -1635,7 +1637,7 @@ function ContractsScreen() {
               <option value="Consulting" />
             </datalist>
           </div>
-          <div className="flex-1 min-w-55">
+          <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">
               Project scope
             </label>
@@ -1646,7 +1648,7 @@ function ContractsScreen() {
               placeholder="e.g., Website + CMS"
             />
           </div>
-          <div className="w-full sm:w-55">
+          <div className="w-full sm:w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">
               Variant
             </label>
@@ -1686,7 +1688,7 @@ function ContractsScreen() {
         <div className="h-2" />
 
         <FieldRow>
-          <div className="flex-1 min-w-55">
+          <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">
               Client name (optional)
             </label>
@@ -1697,7 +1699,7 @@ function ContractsScreen() {
               placeholder="e.g., Acme Corp"
             />
           </div>
-          <div className="flex-1 min-w-55">
+          <div className="flex-1 min-w-[220px]">
             <label className="text-xs text-blue-900 font-semibold">
               CTA (exact)
             </label>
@@ -1731,7 +1733,7 @@ function ContractsScreen() {
       <label className="block text-xs text-blue-700">Preview prompt</label>
       <textarea
         ref={textareaRef}
-        className="w-full min-h-55 rounded-2xl bg-white/10 border border-blue-700 px-3 py-3 outline-none text-blue-700"
+        className="w-full min-h-[220px] rounded-2xl bg-white/10 border border-blue-700 px-3 py-3 outline-none text-blue-700"
         value={prompt}
         onChange={(e) => setPromptOverride(e.target.value)}
         aria-busy={loading}
