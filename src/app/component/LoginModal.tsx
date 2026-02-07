@@ -296,6 +296,15 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                         >
                           {isLoading ? "Logging in..." : "Log In"}
                         </button>
+                        <div className="mt-4 text-center text-xs text-gray-500">
+                          Need help? Contact support:{" "}
+                          <a
+                            href="mailto:snoowballmedia@gmail.com"
+                            className="text-[#1C9988] hover:underline"
+                          >
+                            snoowballmedia@gmail.com
+                          </a>
+                        </div>
                       </form>
                     </motion.div>
                   ) : view === "login" && deviceConflict ? (
