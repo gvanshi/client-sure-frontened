@@ -2,7 +2,15 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Lock, Search, Filter, Calendar, ArrowLeft, Eye } from "lucide-react";
+import {
+  Lock,
+  Search,
+  Filter,
+  Calendar,
+  ArrowLeft,
+  Eye,
+  ArrowUpDown,
+} from "lucide-react";
 import { toast } from "sonner";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -41,6 +49,7 @@ function LeadInformationContent() {
   const [selectedCountry, setSelectedCountry] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [bulkSelectCount, setBulkSelectCount] = useState<number>(0);
   const [bulkProcessing, setBulkProcessing] = useState(false);
@@ -59,6 +68,7 @@ function LeadInformationContent() {
       if (selectedCountry) params.append("country", selectedCountry);
       if (startDate) params.append("startDate", startDate);
       if (endDate) params.append("endDate", endDate);
+      if (sortBy) params.append("sortBy", sortBy);
 
       const response = await Axios.get(`/auth/leads?${params.toString()}`);
       setLeads(response.data.leads);
@@ -182,7 +192,7 @@ function LeadInformationContent() {
 
   useEffect(() => {
     loadLeads();
-  }, [page, selectedCategory, selectedCountry, startDate, endDate]);
+  }, [page, selectedCategory, selectedCountry, startDate, endDate, sortBy]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -216,12 +226,12 @@ function LeadInformationContent() {
   const lockedLeads = filteredLeads.filter((lead) => !lead.isAccessedByUser);
 
   return (
-    <div className="w-full px-2 py-4">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors self-start sm:self-auto"
           >
             <ArrowLeft className="w-5 h-5" />
             <span className="text-sm font-medium">Back</span>
@@ -235,19 +245,19 @@ function LeadInformationContent() {
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <button
             onClick={() => router.push("/user/leads/accessed")}
-            className="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 transition-colors"
+            className="bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
           >
             <Eye className="w-4 h-4" />
-            View Accessed Leads
+            View Accessed
           </button>
           {selectedLeads.length > 0 && (
             <button
               onClick={handleBulkAccess}
               disabled={bulkProcessing}
-              className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
             >
               {bulkProcessing ? (
                 <>
@@ -258,8 +268,7 @@ function LeadInformationContent() {
                 <>
                   <Lock className="w-4 h-4" />
                   Unlock {selectedLeads.length} Lead
-                  {selectedLeads.length > 1 ? "s" : ""} ({selectedLeads.length}{" "}
-                  Token{selectedLeads.length > 1 ? "s" : ""})
+                  {selectedLeads.length > 1 ? "s" : ""}
                 </>
               )}
             </button>
@@ -276,14 +285,14 @@ function LeadInformationContent() {
               placeholder="Search leads..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
           {/* Bulk Selection Controls */}
           {lockedLeads.length > 0 && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                 <h3 className="text-sm font-medium text-blue-900">
                   Bulk Lead Selection
                 </h3>
@@ -291,9 +300,11 @@ function LeadInformationContent() {
                   {lockedLeads.length} unlocked leads available
                 </span>
               </div>
-              <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex items-center gap-2">
-                  <label className="text-sm text-blue-800">Select:</label>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <label className="text-sm text-blue-800 whitespace-nowrap">
+                    Select:
+                  </label>
                   <input
                     type="number"
                     min="1"
@@ -302,28 +313,28 @@ function LeadInformationContent() {
                     onChange={(e) =>
                       setBulkSelectCount(parseInt(e.target.value) || 0)
                     }
-                    placeholder="Enter number (1-100)"
-                    className="w-32 px-2 py-1 border border-blue-300 rounded text-sm text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="1-100"
+                    className="w-full sm:w-24 px-2 py-1 border border-blue-300 rounded text-sm text-black focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                   <button
                     onClick={handleBulkSelectByCount}
                     disabled={!bulkSelectCount || bulkSelectCount <= 0}
-                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                   >
                     Select {bulkSelectCount || 0}
                   </button>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <button
                     onClick={handleSelectAll}
-                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-medium hover:bg-blue-200"
+                    className="flex-1 sm:flex-none bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-medium hover:bg-blue-200 whitespace-nowrap"
                   >
                     Select All ({Math.min(lockedLeads.length, 100)})
                   </button>
                   {selectedLeads.length > 0 && (
                     <button
                       onClick={handleClearSelection}
-                      className="bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm font-medium hover:bg-gray-200"
+                      className="flex-1 sm:flex-none bg-gray-100 text-gray-700 px-3 py-1 rounded text-sm font-medium hover:bg-gray-200 whitespace-nowrap"
                     >
                       Clear ({selectedLeads.length})
                     </button>
@@ -348,62 +359,89 @@ function LeadInformationContent() {
             </div>
           )}
 
-          <div className="flex items-center gap-3 flex-wrap">
-            <Filter className="w-4 h-4 text-gray-500" />
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
-            >
-              <option value="">All Categories</option>
-              {allCategories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
+          <div className="flex flex-wrap gap-3">
+            <div className="relative w-full sm:w-auto sm:flex-1 min-w-[200px]">
+              <ArrowUpDown className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="name_asc">Name (A-Z)</option>
+                <option value="name_desc">Name (Z-A)</option>
+                <option value="verified">Last Verified</option>
+              </select>
+            </div>
 
-            <select
-              value={selectedCountry}
-              onChange={(e) => setSelectedCountry(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
-            >
-              <option value="">All Countries</option>
-              {allCountries.map((country) => (
-                <option key={country} value={country}>
-                  {country}
-                </option>
-              ))}
-            </select>
+            <div className="relative w-full sm:w-auto sm:flex-1 min-w-[200px]">
+              <Filter className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">All Categories</option>
+                {allCategories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-gray-500" />
+            <div className="relative w-full sm:w-auto sm:flex-1 min-w-[200px]">
+              <Filter className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
+              <select
+                value={selectedCountry}
+                onChange={(e) => setSelectedCountry(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">All Countries</option>
+                {allCountries.map((country) => (
+                  <option key={country} value={country}>
+                    {country}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto sm:flex-[2] min-w-[300px]">
+              <Calendar className="w-4 h-4 text-gray-500 shrink-0" />
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Start Date"
               />
-              <span className="text-gray-500 text-sm">to</span>
+              <span className="text-gray-500 text-sm whitespace-nowrap">
+                to
+              </span>
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="End Date"
               />
             </div>
 
-            {(selectedCountry || selectedCategory || startDate || endDate) && (
+            {(selectedCountry ||
+              selectedCategory ||
+              startDate ||
+              endDate ||
+              sortBy !== "newest") && (
               <button
                 onClick={() => {
                   setSelectedCountry("");
                   setSelectedCategory("");
                   setStartDate("");
                   setEndDate("");
+                  setSortBy("newest");
                 }}
-                className="text-sm text-gray-600 hover:text-gray-900"
+                className="text-sm text-gray-600 hover:text-gray-900 font-medium px-2 py-1"
               >
                 Clear Filters
               </button>
@@ -420,8 +458,8 @@ function LeadInformationContent() {
       ) : (
         <>
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="w-full">
-              <table className="w-full table-auto">
+            <div className="overflow-x-auto">
+              <table className="w-full table-auto min-w-[800px]">
                 <thead className="bg-gray-50 border-b">
                   <tr>
                     {lockedLeads.length > 0 && (

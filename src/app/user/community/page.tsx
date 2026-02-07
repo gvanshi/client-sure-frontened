@@ -134,8 +134,12 @@ export default function CommunityPage() {
   const [postToDelete, setPostToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Comment delete confirmation state
+  const [showCommentDeleteModal, setShowCommentDeleteModal] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
+  const [isDeletingComment, setIsDeletingComment] = useState(false);
+
   // Create post state
-  const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPostData, setNewPostData] = useState({
     title: "",
     description: "",
@@ -303,7 +307,13 @@ export default function CommunityPage() {
     allExhausted?: boolean;
   }) => {
     if (responseData.remainingLimits) {
-      setDailyLimits(responseData.remainingLimits as { posts: number; likes: number; comments: number });
+      setDailyLimits(
+        responseData.remainingLimits as {
+          posts: number;
+          likes: number;
+          comments: number;
+        },
+      );
     }
 
     // Show limit exhausted messages
@@ -330,7 +340,9 @@ export default function CommunityPage() {
     try {
       if (!silent) setLoading(true);
 
-      const endpoint = showTrending ? "/community/trending" : "/community/posts";
+      const endpoint = showTrending
+        ? "/community/trending"
+        : "/community/posts";
 
       // Build query parameters
       const queryParams = new URLSearchParams();
@@ -390,6 +402,10 @@ export default function CommunityPage() {
         // Update daily limits if returned from backend
         if (response.data.remainingLimits) {
           setDailyLimits(response.data.remainingLimits);
+        } else {
+          // Manually restore limit if not returned
+          restoreLimit("posts");
+          fetchDailyLimits(true);
         }
 
         fetchData(false);
@@ -433,7 +449,6 @@ export default function CommunityPage() {
   };
 
   const cancelCreatePost = () => {
-    setShowCreateForm(false);
     setNewPostData({ title: "", description: "" });
     setSelectedImage(null);
     setImagePreview(null);
@@ -468,14 +483,22 @@ export default function CommunityPage() {
       if (response.data.success) {
         toast.success("Post created! (+5 points)");
         updateLimitsFromResponse(response.data);
-        setShowCreateForm(false);
         setNewPostData({ title: "", description: "" });
         setSelectedImage(null);
         setImagePreview(null);
         fetchData(false);
       }
     } catch (error) {
-      const err = error as { response?: { data?: { message?: string; limitType?: string; allExhausted?: boolean; remainingLimits?: Record<string, number> } } };
+      const err = error as {
+        response?: {
+          data?: {
+            message?: string;
+            limitType?: string;
+            allExhausted?: boolean;
+            remainingLimits?: Record<string, number>;
+          };
+        };
+      };
       const errorData = err.response?.data;
       if (errorData && (errorData.limitType || errorData.allExhausted)) {
         updateLimitsFromResponse(errorData);
@@ -527,8 +550,7 @@ export default function CommunityPage() {
     } catch (error) {
       const err = error as { response?: { data?: { message?: string } } };
       console.error("Update post error:", error);
-      const errorMessage =
-        err.response?.data?.message || "Error updating post";
+      const errorMessage = err.response?.data?.message || "Error updating post";
       toast.error(errorMessage);
     } finally {
       setIsUpdating(false);
@@ -559,7 +581,16 @@ export default function CommunityPage() {
       }
       fetchData(true); // Sync with backend
     } catch (error) {
-      const err = error as { response?: { data?: { message?: string; limitType?: string; allExhausted?: boolean; remainingLimits?: Record<string, number> } } };
+      const err = error as {
+        response?: {
+          data?: {
+            message?: string;
+            limitType?: string;
+            allExhausted?: boolean;
+            remainingLimits?: Record<string, number>;
+          };
+        };
+      };
       // Revert optimistic update on error
       setPosts((prevPosts) =>
         prevPosts.map((p) =>
@@ -607,6 +638,8 @@ export default function CommunityPage() {
 
       await Axios.post(`/community/unlike/${postId}`);
       toast.success("Post unliked (-1 point from author)");
+      restoreLimit("likes");
+      fetchDailyLimits(true); // Sync limits
       fetchData(true); // Sync with backend
     } catch (error) {
       const err = error as { response?: { data?: { message?: string } } };
@@ -618,10 +651,16 @@ export default function CommunityPage() {
             : p,
         ),
       );
-      const errorMessage =
-        err.response?.data?.message || "Error unliking post";
+      const errorMessage = err.response?.data?.message || "Error unliking post";
       toast.error(errorMessage);
     }
+  };
+
+  const restoreLimit = (limitType: "posts" | "likes" | "comments") => {
+    setDailyLimits((prev) => ({
+      ...prev,
+      [limitType]: Math.min(prev[limitType] + 1, maxLimits[limitType]),
+    }));
   };
 
   const addComment = async (postId: string) => {
@@ -639,7 +678,15 @@ export default function CommunityPage() {
       setCommentTexts({ ...commentTexts, [postId]: "" });
       fetchData(false);
     } catch (error) {
-      const err = error as { response?: { data?: { message?: string; limitType?: string; allExhausted?: boolean } } };
+      const err = error as {
+        response?: {
+          data?: {
+            message?: string;
+            limitType?: string;
+            allExhausted?: boolean;
+          };
+        };
+      };
       const errorData = err.response?.data;
       if (errorData && (errorData.limitType || errorData.allExhausted)) {
         updateLimitsFromResponse(errorData);
@@ -649,13 +696,27 @@ export default function CommunityPage() {
     }
   };
 
-  const deleteComment = async (commentId: string) => {
+  const handleDeleteCommentClick = (commentId: string) => {
+    setCommentToDelete(commentId);
+    setShowCommentDeleteModal(true);
+  };
+
+  const confirmDeleteComment = async () => {
+    if (!commentToDelete) return;
+
+    setIsDeletingComment(true);
     try {
-      await Axios.delete(`/community/comment/${commentId}`);
+      await Axios.delete(`/community/comment/${commentToDelete}`);
       toast.success("Comment deleted (-2 points)");
+      restoreLimit("comments");
+      fetchDailyLimits(true);
       fetchData(false);
+      setShowCommentDeleteModal(false);
+      setCommentToDelete(null);
     } catch {
       toast.error("Error deleting comment");
+    } finally {
+      setIsDeletingComment(false);
     }
   };
 
@@ -943,159 +1004,129 @@ export default function CommunityPage() {
           <div className="flex-1 max-w-4xl">
             {/* Create Post Input Box */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6 overflow-hidden">
-              {!showCreateForm ? (
-                <div
-                  onClick={() =>
-                    dailyLimits.posts > 0 && setShowCreateForm(true)
-                  }
-                  className={`p-4 md:p-6 ${
-                    dailyLimits.posts > 0
-                      ? "cursor-pointer hover:bg-gray-50"
-                      : "cursor-not-allowed opacity-60"
-                  } transition-colors`}
-                >
-                  <div className="flex items-center gap-3 md:gap-4">
-                    {/* User Avatar */}
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold shrink-0">
-                      {currentUserName.charAt(0).toUpperCase() || "U"}
-                    </div>
-
-                    {/* Input Prompt */}
-                    <div className="flex-1">
-                      <div className="bg-gray-100 rounded-full px-4 md:px-6 py-3 md:py-3.5 text-gray-500 hover:bg-gray-200 transition-colors">
-                        {dailyLimits.posts > 0
-                          ? "What's on your mind? Share with the community..."
-                          : "Daily post limit reached. Try again tomorrow!"}
-                      </div>
-                    </div>
+              <div className="p-4 md:p-6">
+                <div className="flex items-start gap-3 md:gap-4 mb-4">
+                  <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold shrink-0">
+                    {currentUserName.charAt(0).toUpperCase() || "U"}
                   </div>
+                  <div className="flex-1 space-y-3">
+                    {/* Title Input */}
+                    <input
+                      type="text"
+                      value={newPostData.title}
+                      onChange={(e) =>
+                        setNewPostData({
+                          ...newPostData,
+                          title: e.target.value,
+                        })
+                      }
+                      placeholder="Post title..."
+                      maxLength={100}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none text-gray-900 placeholder-gray-400"
+                      disabled={isCreating}
+                      autoFocus
+                    />
 
-      
-                </div>
-              ) : (
-                <div className="p-4 md:p-6">
-                  <div className="flex items-start gap-3 md:gap-4 mb-4">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold shrink-0">
-                      {currentUserName.charAt(0).toUpperCase() || "U"}
+                    {/* Description Textarea */}
+                    <textarea
+                      value={newPostData.description}
+                      onChange={(e) =>
+                        setNewPostData({
+                          ...newPostData,
+                          description: e.target.value,
+                        })
+                      }
+                      placeholder="What's on your mind? Share with the community..."
+                      rows={4}
+                      maxLength={2000}
+                      className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none resize-none text-gray-900 placeholder-gray-400"
+                      disabled={isCreating}
+                    />
+
+                    {/* Character counts */}
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <span>{newPostData.title.length}/100</span>
+                      <span>{newPostData.description.length}/2000</span>
                     </div>
-                    <div className="flex-1 space-y-3">
-                      {/* Title Input */}
-                      <input
-                        type="text"
-                        value={newPostData.title}
-                        onChange={(e) =>
-                          setNewPostData({
-                            ...newPostData,
-                            title: e.target.value,
-                          })
-                        }
-                        placeholder="Post title..."
-                        maxLength={100}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none text-gray-900 placeholder-gray-400"
-                        disabled={isCreating}
-                        autoFocus
-                      />
 
-                      {/* Description Textarea */}
-                      <textarea
-                        value={newPostData.description}
-                        onChange={(e) =>
-                          setNewPostData({
-                            ...newPostData,
-                            description: e.target.value,
-                          })
-                        }
-                        placeholder="What's on your mind? Share with the community..."
-                        rows={4}
-                        maxLength={2000}
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none resize-none text-gray-900 placeholder-gray-400"
-                        disabled={isCreating}
-                      />
-
-                      {/* Character counts */}
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <span>{newPostData.title.length}/100</span>
-                        <span>{newPostData.description.length}/2000</span>
-                      </div>
-
-                      {/* Image Preview */}
-                      {imagePreview && (
-                        <div className="relative">
-                          <Image
-                            src={imagePreview}
-                            alt="Preview"
-                            width={800}
-                            height={192}
-                            className="w-full h-48 object-cover rounded-lg"
-                          />
-                          <button
-                            onClick={removeImage}
-                            disabled={isCreating}
-                            className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors disabled:opacity-50"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                    <div className="flex items-center gap-2">
-                      <label
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer ${
-                          isCreating ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
-                      >
-                        <ImageIcon className="w-5 h-5" />
-                        <span className="text-sm font-medium hidden sm:inline">
-                          Photo
-                        </span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageSelect}
-                          disabled={isCreating}
-                          className="hidden"
+                    {/* Image Preview */}
+                    {imagePreview && (
+                      <div className="relative">
+                        <Image
+                          src={imagePreview}
+                          alt="Preview"
+                          width={800}
+                          height={192}
+                          className="w-full h-48 object-cover rounded-lg"
                         />
-                      </label>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={cancelCreatePost}
-                        disabled={isCreating}
-                        className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium transition-colors disabled:opacity-50"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        onClick={createPost}
-                        disabled={
-                          isCreating ||
-                          !newPostData.title.trim() ||
-                          !newPostData.description.trim() ||
-                          dailyLimits.posts === 0
-                        }
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-                      >
-                        {isCreating ? (
-                          <>
-                            <RefreshCw className="w-4 h-4 animate-spin" />
-                            <span className="hidden sm:inline">Posting...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-4 h-4" />
-                            <span className="hidden sm:inline">Post</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
+                        <button
+                          onClick={removeImage}
+                          disabled={isCreating}
+                          className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors disabled:opacity-50"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <label
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer ${
+                        isCreating ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      <ImageIcon className="w-5 h-5" />
+                      <span className="text-sm font-medium hidden sm:inline">
+                        Photo
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        disabled={isCreating}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {/* Cancel button removed/modified if needed, keeping it as Clear/Cancel */}
+                    <button
+                      onClick={cancelCreatePost}
+                      disabled={isCreating}
+                      className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium transition-colors disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={createPost}
+                      disabled={
+                        isCreating ||
+                        !newPostData.title.trim() ||
+                        !newPostData.description.trim() ||
+                        dailyLimits.posts === 0
+                      }
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                    >
+                      {isCreating ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          <span className="hidden sm:inline">Posting...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          <span className="hidden sm:inline">Post</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {showAdvancedSearch && (
@@ -1509,7 +1540,9 @@ export default function CommunityPage() {
                                         currentUserId && (
                                         <button
                                           onClick={() =>
-                                            deleteComment(comment._id)
+                                            handleDeleteCommentClick(
+                                              comment._id,
+                                            )
                                           }
                                           className="text-gray-400 hover:text-red-500 p-1 rounded transition-colors"
                                         >
@@ -1776,6 +1809,22 @@ export default function CommunityPage() {
         message="Are you sure you want to delete this post? This action cannot be undone. Any points earned from this post will be deducted."
         confirmText="Delete Post"
         isDeleting={isDeleting}
+      />
+
+      {/* Comment Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showCommentDeleteModal}
+        onClose={() => {
+          if (!isDeletingComment) {
+            setShowCommentDeleteModal(false);
+            setCommentToDelete(null);
+          }
+        }}
+        onConfirm={confirmDeleteComment}
+        title="Delete Comment?"
+        message="Are you sure you want to delete this comment? This action cannot be undone."
+        confirmText="Delete Comment"
+        isDeleting={isDeletingComment}
       />
     </div>
   );
